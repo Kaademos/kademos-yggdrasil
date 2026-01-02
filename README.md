@@ -78,6 +78,25 @@ Each realm unlocks only after the previous realm's flag is successfully submitte
 
 ---
 
+## 📦 Editions & Roadmap
+
+Project Yggdrasil is Open Source software. We are currently building an Enterprise tier for organizations running large-scale training events.
+
+| Feature | Community Edition (This Repo) | Enterprise / Pro (Coming Soon) |
+| :--- | :---: | :---: |
+| **10 Vulnerable Realms** | ✅ | ✅ |
+| **Docker Compose Deployment** | ✅ | ✅ |
+| **Single-Player Progression** | ✅ | ✅ |
+| **Prometheus/Grafana Observability** | ✅ | ✅ |
+| **Team Mode & CTF Scoring** | ❌ | ✅ |
+| **SSO / SAML Integration** | ❌ | ✅ |
+| **Kubernetes / Helm Charts** | ❌ | ✅ |
+| **Instructor Analytics Dashboard** | ❌ | ✅ |
+
+> **Interested in Enterprise features?** Star the repo to follow updates or contact us for early access.
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
