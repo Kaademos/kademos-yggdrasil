@@ -1,0 +1,76 @@
+name: 🐛 Bug Report
+description: Create a report to help us improve Project Yggdrasil
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+        
+        **STOP! READ THIS FIRST:**
+        If you are reporting a security vulnerability in a Realm (e.g., "I found SQL injection in Asgard"), **THIS IS INTENTIONAL**. Do not file a bug report.
+        
+  - type: dropdown
+    id: classification
+    attributes:
+      label: Is this related to an intentional vulnerability?
+      options:
+        - "No, this is a platform/infrastructure bug"
+        - "Yes, I found a vulnerability in a Realm"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      options:
+        - "Gatekeeper (Control Plane)"
+        - "Flag Oracle"
+        - "Installation Scripts (Make/Docker)"
+        - "Documentation"
+        - "Realm (Challenge Environment)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+      placeholder: "The login page on Gatekeeper crashes when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Run 'make up'
+        2. Go to 'localhost:8080'
+        3. Click on...
+        4. See error...
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment Details
+      description: OS (Windows/Mac/Linux), Docker Version, Node Version
+      placeholder: "Windows 11 (WSL2), Docker Desktop 4.25, Node 20"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: I have checked that this issue is not an intentional vulnerability.
+          required: true
+        - label: I have searched existing issues to see if this is a duplicate.
+          required: true
