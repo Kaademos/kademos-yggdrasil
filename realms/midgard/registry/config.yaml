@@ -1,0 +1,60 @@
+# Verdaccio Configuration for Midgard Supply Chain Challenge
+# OWASP A03:2025 - Software Supply Chain Failures
+# VULNERABLE: Allows dependency confusion attacks via public registry priority
+
+storage: /verdaccio/storage
+
+auth:
+  htpasswd:
+    file: /verdaccio/htpasswd
+    max_users: 1000
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+    cache: true
+    timeout: 30s
+    max_failures: 3
+    max_retry_after: 5m
+
+packages:
+  # Private scoped packages (@midgard/*)
+  '@midgard/*':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: npmjs
+
+  # Public packages (allowing confusion)
+  # VULNERABLE: Allows typosquatting packages like 'midgard-ui-kit'
+  '**':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: npmjs
+
+log:
+  - { type: stdout, format: pretty, level: info }
+
+# Web UI configuration
+web:
+  title: Midgard Package Registry
+  logo: https://via.placeholder.com/150x40?text=Midgard
+  primary_color: "#c12127"  # npm red
+  scope: "@midgard"
+  darkMode: false
+  enable: true
+
+# Security headers
+middlewares:
+  audit:
+    enabled: true
+
+# Server configuration
+server:
+  keepAliveTimeout: 60
+
+# Experiment flags
+experiments:
+  token: false
+  search: true

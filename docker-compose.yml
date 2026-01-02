@@ -1,0 +1,535 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: yggdrasil-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - yggdrasil_main
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:2.9.3
+    container_name: yggdrasil-loki
+    user: "10001:10001"
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    volumes:
+      - ./config/loki/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - yggdrasil_main
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--timeout=2", "--spider", "http://localhost:3100/ready"]
+      interval: 15s
+      timeout: 10s
+      retries: 6
+      start_period: 40s
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:2.9.3
+    container_name: yggdrasil-promtail
+    volumes:
+      - ./config/promtail/promtail-config.yaml:/etc/promtail/config.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - yggdrasil_main
+    depends_on:
+      loki:
+        condition: service_started
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: yggdrasil-prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./config/prometheus/alerts:/etc/prometheus/alerts
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - yggdrasil_main
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: yggdrasil-grafana
+    ports:
+      - "${GRAFANA_PORT:-3200}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3200
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+    networks:
+      - yggdrasil_main
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      loki:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  flag-oracle:
+    build:
+      context: ./flag-oracle
+      dockerfile: Dockerfile
+    container_name: yggdrasil-flag-oracle
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=${FLAG_ORACLE_PORT:-3001}
+      - DATA_PATH=/data
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-60000}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-10}
+    volumes:
+      - progress_data:/data
+    networks:
+      - yggdrasil_main
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  yggdrasil-gatekeeper:
+    build:
+      context: ./gatekeeper
+      dockerfile: Dockerfile
+    container_name: yggdrasil-gatekeeper
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=8080
+      - FLAG_ORACLE_URL=${FLAG_ORACLE_URL:-http://flag-oracle:3001}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - SESSION_MAX_AGE_MS=${SESSION_MAX_AGE_MS:-3600000}
+      - AUTH_RATE_LIMIT_WINDOW_MS=${AUTH_RATE_LIMIT_WINDOW_MS:-300000}
+      - AUTH_RATE_LIMIT_MAX_REQUESTS=${AUTH_RATE_LIMIT_MAX_REQUESTS:-5}
+      - BCRYPT_ROUNDS=${BCRYPT_ROUNDS:-10}
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN}
+    networks:
+      - yggdrasil_main
+      - sample_realm_net
+      - niflheim_net
+      - helheim_net
+      - svartalfheim_net
+      - jotunheim_net
+      - muspelheim_net
+      - nidavellir_net
+      - vanaheim_net
+      - midgard_net
+      - alfheim_net
+      - asgard_net
+    depends_on:
+      flag-oracle:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  sample-realm:
+    build:
+      context: ./realms/sample-realm
+      dockerfile: Dockerfile
+    container_name: sample-realm
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - FLAG=${SAMPLE_REALM_FLAG:-YGGDRASIL{SAMPLE:00000000-0000-0000-0000-000000000000}}
+    networks:
+      - sample_realm_net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  niflheim:
+    build:
+      context: ./realms/niflheim
+      dockerfile: Dockerfile
+    container_name: niflheim
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - FLAG=${NIFLHEIM_FLAG}
+      - REALM_NAME=niflheim
+    networks:
+      - niflheim_net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  helheim:
+    build:
+      context: ./realms/helheim
+      dockerfile: Dockerfile
+    container_name: helheim
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - FLAG=${HELHEIM_FLAG}
+      - REALM_NAME=helheim
+    networks:
+      - helheim_net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  svartalfheim:
+    build:
+      context: ./realms/svartalfheim
+      dockerfile: Dockerfile
+    container_name: svartalfheim
+    environment:
+      - PORT=3000
+      - FLAG=${SVARTALFHEIM_FLAG}
+      - REALM_NAME=svartalfheim
+    networks:
+      - svartalfheim_net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  jotunheim:
+    build:
+      context: ./realms/jotunheim
+      dockerfile: Dockerfile
+    container_name: jotunheim
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - FLAG=${JOTUNHEIM_FLAG}
+      - REALM_NAME=jotunheim
+      - SESSION_SECRET=${JOTUNHEIM_SESSION_SECRET}
+    networks:
+      - jotunheim_net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  muspelheim:
+    build:
+      context: ./realms/muspelheim
+      dockerfile: Dockerfile
+    container_name: muspelheim
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - FLAG=${MUSPELHEIM_FLAG}
+      - REALM_NAME=muspelheim
+    networks:
+      - muspelheim_net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  nidavellir-db:
+    image: postgres:15-alpine
+    container_name: nidavellir-db
+    environment:
+      - POSTGRES_DB=nidavellir
+      - POSTGRES_USER=dwarf_admin
+      - POSTGRES_PASSWORD=${NIDAVELLIR_DB_PASSWORD}
+    volumes:
+      - nidavellir_db_data:/var/lib/postgresql/data
+      - ./realms/nidavellir/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - nidavellir_net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "dwarf_admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  nidavellir:
+    build:
+      context: ./realms/nidavellir
+      dockerfile: Dockerfile
+    container_name: nidavellir
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - FLAG=${NIDAVELLIR_FLAG}
+      - REALM_NAME=nidavellir
+      - DATABASE_URL=postgresql://dwarf_admin:${NIDAVELLIR_DB_PASSWORD}@nidavellir-db:5432/nidavellir
+    networks:
+      - nidavellir_net
+    depends_on:
+      nidavellir-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  vanaheim:
+    build:
+      context: ./realms/vanaheim
+      dockerfile: Dockerfile
+    container_name: vanaheim
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - FLAG=${VANAHEIM_FLAG}
+      - REALM_NAME=vanaheim
+    networks:
+      - vanaheim_net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  midgard:
+    build:
+      context: ./realms/midgard
+      dockerfile: Dockerfile
+    container_name: midgard
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - FLAG=${MIDGARD_FLAG}
+      - REALM_NAME=midgard
+      - VERDACCIO_URL=http://verdaccio:4873
+    networks:
+      - midgard_net
+    depends_on:
+      verdaccio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  verdaccio:
+    image: verdaccio/verdaccio:5.29
+    container_name: midgard-registry
+    user: "10001:65533"
+    volumes:
+      - ./realms/midgard/registry/config.yaml:/verdaccio/conf/config.yaml:ro
+      - ./realms/midgard/registry/htpasswd:/verdaccio/htpasswd:ro
+      - verdaccio_storage:/verdaccio/storage
+    networks:
+      - midgard_net
+    environment:
+      - VERDACCIO_PORT=4873
+      - VERDACCIO_PUBLIC_URL=http://verdaccio:4873
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider --timeout=3 -q http://127.0.0.1:4873/-/ping || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 6
+      start_period: 45s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  alfheim:
+    build:
+      context: ./realms/alfheim
+      dockerfile: Dockerfile
+    container_name: alfheim
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - FLAG=${ALFHEIM_FLAG}
+      - REALM_NAME=alfheim
+    networks:
+      - alfheim_net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  asgard-db:
+    image: postgres:15-alpine
+    container_name: asgard-db
+    environment:
+      - POSTGRES_DB=asgard
+      - POSTGRES_USER=hr_admin
+      - POSTGRES_PASSWORD=${ASGARD_DB_PASSWORD}
+    volumes:
+      - asgard_db_data:/var/lib/postgresql/data
+      - ./realms/asgard/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - asgard_net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "hr_admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  asgard:
+    build:
+      context: ./realms/asgard
+      dockerfile: Dockerfile
+    container_name: asgard
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - FLAG=${ASGARD_FLAG}
+      - REALM_NAME=asgard
+      - DATABASE_URL=postgresql://hr_admin:${ASGARD_DB_PASSWORD}@asgard-db:5432/asgard
+    networks:
+      - asgard_net
+    depends_on:
+      asgard-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+networks:
+  yggdrasil_main:
+    driver: bridge
+    name: yggdrasil_main
+  sample_realm_net:
+    driver: bridge
+    name: sample_realm_net
+  niflheim_net:
+    driver: bridge
+    name: niflheim_net
+  helheim_net:
+    driver: bridge
+    name: helheim_net
+  svartalfheim_net:
+    driver: bridge
+    name: svartalfheim_net
+  jotunheim_net:
+    driver: bridge
+    name: jotunheim_net
+  muspelheim_net:
+    driver: bridge
+    name: muspelheim_net
+  nidavellir_net:
+    driver: bridge
+    name: nidavellir_net
+  vanaheim_net:
+    driver: bridge
+    name: vanaheim_net
+  midgard_net:
+    driver: bridge
+    name: midgard_net
+  alfheim_net:
+    driver: bridge
+    name: alfheim_net
+  asgard_net:
+    driver: bridge
+    name: asgard_net
+
+volumes:
+  progress_data:
+    driver: local
+    name: yggdrasil_progress_data
+  redis_data:
+    driver: local
+    name: yggdrasil_redis_data
+  nidavellir_db_data:
+    driver: local
+    name: yggdrasil_nidavellir_db_data
+  asgard_db_data:
+    driver: local
+    name: yggdrasil_asgard_db_data
+  loki_data:
+    driver: local
+    name: yggdrasil_loki_data
+  prometheus_data:
+    driver: local
+    name: yggdrasil_prometheus_data
+  grafana_data:
+    driver: local
+    name: yggdrasil_grafana_data
+  verdaccio_storage:
+    driver: local
+    name: yggdrasil_verdaccio_storage

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Midgard Package Marketplace</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* NPM-style header */
+    .npm-header {
+      background: #c12127;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .npm-header h1 {
+      font-size: 2rem;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .realm-badge {
+      background: rgba(255,255,255,0.2);
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* Main container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* Search section */
+    .search-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+    }
+
+    .search-section h2 {
+      margin-bottom: 1rem;
+      color: #333;
+      font-size: 1.5rem;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 0.85rem 1rem;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #c12127;
+    }
+
+    .search-box button {
+      padding: 0.85rem 2.5rem;
+      background: #c12127;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .search-box button:hover {
+      background: #a01a1f;
+    }
+
+    /* Package grid */
+    .package-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .package-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.3s;
+      border: 2px solid transparent;
+    }
+
+    .package-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+      border-color: #c12127;
+    }
+
+    .package-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .package-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #c12127;
+      font-family: 'Courier New', monospace;
+    }
+
+    .package-version {
+      background: #f0f0f0;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+    }
+
+    .package-registry {
+      display: inline-block;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .registry-public {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+
+    .registry-private {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .package-description {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    .package-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-install {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-install:hover {
+      background: #218838;
+      transform: scale(1.05);
+    }
+
+    /* Build console */
+    .build-console {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .build-console h2 {
+      margin-bottom: 1.5rem;
+      color: #333;
+      font-size: 1.5rem;
+    }
+
+    .build-controls {
+      display: grid;
+      grid-template-columns: 1fr 2fr auto;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .build-controls input {
+      padding: 0.75rem;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+
+    .build-controls input:focus {
+      outline: none;
+      border-color: #c12127;
+    }
+
+    .btn-build {
+      background: #28a745;
+      color: white;
+      padding: 0.75rem 2rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-build:hover {
+      background: #218838;
+      transform: scale(1.02);
+    }
+
+    .terminal {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1.5rem;
+      border-radius: 8px;
+      font-family: 'Courier New', 'Consolas', monospace;
+      font-size: 0.9rem;
+      max-height: 500px;
+      overflow-y: auto;
+      line-height: 1.8;
+    }
+
+    .terminal::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .terminal::-webkit-scrollbar-track {
+      background: #2d2d2d;
+    }
+
+    .terminal::-webkit-scrollbar-thumb {
+      background: #555;
+      border-radius: 4px;
+    }
+
+    .log-line {
+      margin: 0.25rem 0;
+    }
+
+    .log-info {
+      color: #d4d4d4;
+    }
+
+    .log-warn {
+      color: #dcdcaa;
+      font-weight: 600;
+    }
+
+    .log-error {
+      color: #f48771;
+      font-weight: 600;
+    }
+
+    .artifact-link {
+      color: #4fc3f7;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .artifact-link:hover {
+      color: #29b6f6;
+    }
+
+    /* Hint box */
+    .hint-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-left: 4px solid #5a67d8;
+      padding: 1.25rem;
+      margin-top: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .hint-box strong {
+      font-size: 1.1rem;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .hint-box code {
+      background: rgba(255,255,255,0.2);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Loading state */
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #999;
+    }
+
+    .empty-state h3 {
+      margin-bottom: 0.5rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <!-- SPOILER: HTML comment hints for challengers -->
+  <!-- Try comparing @midgard/ui-kit (private, v1.0.0) vs midgard-ui-kit (public, v1.0.1) -->
+  <!-- Notice the dependency confusion: public package has HIGHER version -->
+  <!-- Build with 'midgard-ui-kit' to trigger malicious postinstall script -->
+  <!-- Download the build-metadata.json artifact to find the FLAG -->
+
+  <div class="npm-header">
+    <h1>📦 Midgard Package Marketplace</h1>
+    <div class="realm-badge">OWASP A03:2025 - Supply Chain</div>
+  </div>
+
+  <div class="container">
+    <!-- Search Section -->
+    <div class="search-section">
+      <h2>🔍 Search Packages</h2>
+      <div class="search-box">
+        <input type="text" id="packageSearch" placeholder="Search packages... (try: midgard)" />
+        <button onclick="searchPackages()">Search</button>
+      </div>
+    </div>
+
+    <!-- Package Grid -->
+    <div class="package-grid" id="packageGrid">
+      <div class="empty-state">
+        <h3>Loading packages...</h3>
+        <p>Fetching from registry...</p>
+      </div>
+    </div>
+
+    <!-- Build Console -->
+    <div class="build-console">
+      <h2>🔨 CI/CD Build Console</h2>
+      
+      <div class="build-controls">
+        <input type="text" id="buildProject" placeholder="Project name" value="midgard-app" />
+        <input type="text" id="buildDeps" placeholder="Dependencies (comma-separated)" value="midgard-ui-kit" />
+        <button class="btn-build" onclick="createBuild()">Create Build</button>
+      </div>
+
+      <div class="terminal" id="buildLogs">
+        <div class="log-line log-info">$ Build console ready. Create a build to see logs...</div>
+        <div class="log-line log-info">$ Hint: Try building with different package names</div>
+      </div>
+
+      <div class="hint-box">
+        <strong>💡 Supply Chain Challenge Hint:</strong>
+        Compare these packages: <code>@midgard/ui-kit</code> (private, scoped) vs 
+        <code>midgard-ui-kit</code> (public, unscoped). Notice the version difference!
+        When you build, which one gets resolved? What happens during postinstall?
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // EXPLOIT: Client-side JavaScript for marketplace interaction
+    let currentBuildId = null;
+
+    /**
+     * Search and display packages
+     */
+    async function searchPackages() {
+      const query = document.getElementById('packageSearch').value;
+      
+      try {
+        const response = await fetch('/api/packages');
+        const data = await response.json();
+
+        const grid = document.getElementById('packageGrid');
+        grid.innerHTML = '';
+
+        if (!data.success) {
+          grid.innerHTML = '<div class="empty-state"><h3>Error loading packages</h3></div>';
+          return;
+        }
+
+        const allPackages = [...data.packages.public, ...data.packages.private];
+        const filtered = query 
+          ? allPackages.filter(p => p.name.toLowerCase().includes(query.toLowerCase()))
+          : allPackages;
+
+        if (filtered.length === 0) {
+          grid.innerHTML = '<div class="empty-state"><h3>No packages found</h3><p>Try different search terms</p></div>';
+          return;
+        }
+
+        filtered.forEach(pkg => {
+          const card = document.createElement('div');
+          card.className = 'package-card';
+          card.innerHTML = `
+            <div class="package-header">
+              <span class="package-name">${pkg.name}</span>
+              <span class="package-version">v${pkg.version}</span>
+            </div>
+            <span class="package-registry registry-${pkg.registry}">${pkg.registry}</span>
+            <p class="package-description">${pkg.description}</p>
+            <div class="package-actions">
+              <button class="btn btn-install" onclick="installPackage('${pkg.name}')">
+                Install
+              </button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Error fetching packages:', error);
+        document.getElementById('packageGrid').innerHTML = 
+          '<div class="empty-state"><h3>Failed to load packages</h3></div>';
+      }
+    }
+
+    /**
+     * Install single package (demo)
+     */
+    async function installPackage(packageName) {
+      try {
+        const response = await fetch('/api/install', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ packageName })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          const warning = data.warning ? `\n⚠️  ${data.warning}` : '';
+          alert(`✅ ${packageName} installed from ${data.package.registry}${warning}`);
+        } else {
+          alert(`❌ Installation failed: ${data.error}`);
+        }
+      } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+      }
+    }
+
+    /**
+     * Create build with dependencies
+     */
+    async function createBuild() {
+      const projectName = document.getElementById('buildProject').value.trim();
+      const depsInput = document.getElementById('buildDeps').value.trim();
+      
+      if (!projectName || !depsInput) {
+        alert('Please enter project name and dependencies');
+        return;
+      }
+
+      const dependencies = depsInput.split(',').map(d => d.trim()).filter(d => d);
+
+      const terminalEl = document.getElementById('buildLogs');
+      terminalEl.innerHTML = '<div class="log-line log-info">🔨 Starting build...</div>';
+
+      try {
+        const response = await fetch('/api/build/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectName, dependencies })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          currentBuildId = data.build.buildId;
+          await displayBuildLogs(currentBuildId);
+        } else {
+          terminalEl.innerHTML += `<div class="log-line log-error">❌ Build failed: ${data.error}</div>`;
+        }
+      } catch (error) {
+        terminalEl.innerHTML += `<div class="log-line log-error">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    /**
+     * Display build logs with artifacts
+     */
+    async function displayBuildLogs(buildId) {
+      try {
+        const response = await fetch(`/api/build/${buildId}/logs`);
+        const data = await response.json();
+
+        const terminalEl = document.getElementById('buildLogs');
+        terminalEl.innerHTML = '';
+
+        if (!data.success) {
+          terminalEl.innerHTML = `<div class="log-line log-error">Failed to load logs</div>`;
+          return;
+        }
+
+        data.logs.forEach(log => {
+          const line = document.createElement('div');
+          line.className = `log-line log-${log.level}`;
+          
+          // Format timestamp
+          const time = new Date(log.timestamp).toLocaleTimeString();
+          line.textContent = `[${time}] ${log.message}`;
+          
+          terminalEl.appendChild(line);
+        });
+
+        // Check for artifacts
+        const artifactsRes = await fetch(`/api/build/${buildId}/artifacts`);
+        if (artifactsRes.ok) {
+          const artifactsData = await artifactsRes.json();
+          if (artifactsData.success && artifactsData.artifacts.length > 0) {
+            const line = document.createElement('div');
+            line.className = 'log-line log-info';
+            line.innerHTML = `<br>📦 Artifacts Available: ${artifactsData.artifacts.map(name => 
+              `<a class="artifact-link" href="/api/build/${buildId}/artifacts/${name}" download>${name}</a>`
+            ).join(', ')}`;
+            terminalEl.appendChild(line);
+            
+            // SPOILER: Add hint about artifact
+            const hintLine = document.createElement('div');
+            hintLine.className = 'log-line log-warn';
+            hintLine.textContent = '💡 Hint: Download build-metadata.json to see what the postinstall script did!';
+            terminalEl.appendChild(hintLine);
+          }
+        }
+
+        terminalEl.scrollTop = terminalEl.scrollHeight;
+      } catch (error) {
+        console.error('Error displaying logs:', error);
+      }
+    }
+
+    // Load packages on page load
+    window.addEventListener('load', () => {
+      searchPackages();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" data-realm="svartalfheim">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Svartalfheim Forge - Yggdrasil</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚒️ Svartalfheim</h1>
+            <div class="subtitle">Dwarven Forge Guild - Realm 8</div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <!-- Current Badge Display -->
+        <div class="badge-display">
+            <div class="badge-title">Your Guild Badge</div>
+            
+            <div class="badge-info">
+                <div class="badge-field">
+                    <div class="badge-label">Guild Name</div>
+                    <div class="badge-value" th:text="${badge.guildName}">Unknown</div>
+                </div>
+                <div class="badge-field">
+                    <div class="badge-label">Rank</div>
+                    <div class="badge-value" th:text="${badge.rank}">None</div>
+                </div>
+                <div class="badge-field">
+                    <div class="badge-label">Level</div>
+                    <div class="badge-value" th:text="${badge.level}">0</div>
+                </div>
+                <div class="badge-field">
+                    <div class="badge-label">Status</div>
+                    <div class="badge-value" th:text="${badge.admin ? 'ADMIN' : 'Member'}">Member</div>
+                </div>
+            </div>
+
+            <div class="badge-message" th:text="${badge.message}">
+                No message
+            </div>
+
+            <div th:if="${badge.admin}" class="admin-badge">
+                🔥 ADMIN ACCESS GRANTED 🔥
+            </div>
+        </div>
+
+        <!-- Forge Badge Form -->
+        <div class="forge-section">
+            <h2 class="section-title">Forge New Badge</h2>
+            
+            <form method="post" action="/forge-badge">
+                <div class="form-group">
+                    <label for="guildName">Guild Name</label>
+                    <input type="text" id="guildName" name="guildName" 
+                           placeholder="Enter guild name" maxlength="50" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="rank">Rank</label>
+                    <input type="text" id="rank" name="rank" 
+                           placeholder="Enter rank" maxlength="30" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="level">Level</label>
+                    <input type="number" id="level" name="level" 
+                           placeholder="Enter level" min="1" max="99" required>
+                </div>
+
+                <button type="submit">⚒️ Forge Badge</button>
+                <button type="button" class="secondary" 
+                        onclick="document.getElementById('clearForm').submit()">
+                    🗑️ Clear Badge
+                </button>
+            </form>
+
+            <form id="clearForm" method="post" action="/clear-badge" style="display:none;"></form>
+        </div>
+
+        <div class="hint-box">
+            💎 <strong>Notice:</strong> Guild badges are cryptographically secured and stored in your browser. 
+            Badge data is serialized using industry-standard Java serialization for maximum compatibility.
+        </div>
+
+        <div class="footer">
+            Svartalfheim Dwarven Forge v2.1.0<br>
+            Powered by Ancient Serialization Magic
+        </div>
+    </div>
+</body>
+</html>

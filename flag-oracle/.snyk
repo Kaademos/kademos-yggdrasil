@@ -1,0 +1,16 @@
+# Snyk (https://snyk.io) policy file
+
+version: v1.25.0
+
+# Ignore specific vulnerabilities
+ignore:
+  # Flag data and test configuration
+  # This service contains intentional example flags for CTF training
+  # These are not production secrets
+  'snyk:lic:SNYK-JS-*:*':
+    - '*':
+        reason: Test/example flag data for CTF platform training environment
+        expires: 2099-12-31T23:59:59.000Z
+
+# Patch any applicable issues
+patch: {}

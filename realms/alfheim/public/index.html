@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alfheim Cloud Storage - AWS Console</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Amazon Ember', 'Helvetica Neue', Arial, sans-serif;
+      background: #232f3e;
+      color: #fff;
+      line-height: 1.6;
+    }
+
+    /* AWS-style navigation bar */
+    .aws-navbar {
+      background: #232f3e;
+      border-bottom: 2px solid #ff9900;
+      padding: 0.75rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .service-name {
+      font-size: 1.4rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .aws-logo {
+      color: #ff9900;
+      font-size: 1.6rem;
+    }
+
+    .region-selector {
+      background: #37475a;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      color: #fff;
+      border: 1px solid #545b64;
+    }
+
+    /* Main container */
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* Grid layout */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+
+    /* Card component */
+    .card {
+      background: #1a1f2e;
+      border: 1px solid #37475a;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.25rem;
+      color: #ff9900;
+      border-bottom: 2px solid #37475a;
+      padding-bottom: 0.75rem;
+    }
+
+    .card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+
+    /* S3 Bucket Grid */
+    .bucket-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .bucket-card {
+      background: #37475a;
+      border: 2px solid #545b64;
+      border-radius: 6px;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .bucket-card:hover {
+      border-color: #ff9900;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(255, 153, 0, 0.2);
+    }
+
+    .bucket-card.private {
+      border-left: 4px solid #d13212;
+    }
+
+    .bucket-card.public {
+      border-left: 4px solid #5ea134;
+    }
+
+    .bucket-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 0.5rem;
+      font-family: 'Courier New', monospace;
+    }
+
+    .bucket-meta {
+      font-size: 0.85rem;
+      color: #aab7b8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.75rem;
+    }
+
+    .bucket-status {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-public {
+      background: #5ea134;
+      color: #fff;
+    }
+
+    .status-private {
+      background: #d13212;
+      color: #fff;
+    }
+
+    /* Object list */
+    .object-list {
+      background: #0d1117;
+      border-radius: 4px;
+      padding: 1rem;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+
+    .object-item {
+      padding: 0.5rem;
+      margin: 0.25rem 0;
+      background: #161b22;
+      border-left: 3px solid #ff9900;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .object-item:hover {
+      background: #21262d;
+    }
+
+    /* Developer Tools Panel */
+    .dev-tools {
+      background: #161b22;
+      border: 1px solid #ff9900;
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .tool-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .tool-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .tool-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #aab7b8;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .tool-input {
+      width: 100%;
+      padding: 0.75rem;
+      background: #0d1117;
+      border: 1px solid #545b64;
+      border-radius: 4px;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .tool-input:focus {
+      outline: none;
+      border-color: #ff9900;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: #ff9900;
+      color: #232f3e;
+    }
+
+    .btn-primary:hover {
+      background: #ec7211;
+      transform: scale(1.02);
+    }
+
+    .btn-secondary {
+      background: #37475a;
+      color: #fff;
+      border: 1px solid #545b64;
+    }
+
+    .btn-secondary:hover {
+      background: #445566;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    /* Result display */
+    .result-box {
+      background: #0d1117;
+      border: 1px solid #ff9900;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .result-box::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .result-box::-webkit-scrollbar-track {
+      background: #161b22;
+    }
+
+    .result-box::-webkit-scrollbar-thumb {
+      background: #ff9900;
+      border-radius: 4px;
+    }
+
+    .result-success {
+      color: #5ea134;
+    }
+
+    .result-error {
+      color: #d13212;
+    }
+
+    .result-warning {
+      color: #f89406;
+    }
+
+    .result-info {
+      color: #4db8ff;
+    }
+
+    /* Hint box */
+    .hint-box {
+      background: linear-gradient(135deg, #232f3e 0%, #37475a 100%);
+      border-left: 4px solid #ff9900;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-top: 1rem;
+    }
+
+    .hint-box strong {
+      color: #ff9900;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .hint-box code {
+      background: rgba(255, 153, 0, 0.2);
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      color: #fff;
+    }
+
+    /* Badge */
+    .owasp-badge {
+      background: rgba(209, 50, 18, 0.2);
+      border: 1px solid #d13212;
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #ff9999;
+    }
+
+    /* Loading state */
+    .loading {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255,153,0,0.3);
+      border-radius: 50%;
+      border-top-color: #ff9900;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: #aab7b8;
+    }
+  </style>
+</head>
+<body>
+  <!-- SPOILER: HTML comment hints for challengers -->
+  <!-- Exploit chain: SSRF → IMDS → Credentials → S3 Access -->
+  <!-- 1. Use SSRF proxy to bypass IP filter (try IPv6: http://[::ffff:169.254.169.254]) -->
+  <!-- 2. Generate IMDSv2 token via PUT /api/imds/token -->
+  <!-- 3. Fetch credentials from /api/imds/metadata/iam/credentials?role=AlfheimAdminRole -->
+  <!-- 4. Use AccessKeyId from credentials to access alfheim-secrets bucket -->
+  <!-- 5. Download flag.txt from alfheim-secrets bucket -->
+
+  <div class="aws-navbar">
+    <div class="service-name">
+      <span class="aws-logo">☁️</span>
+      Alfheim Cloud Storage
+    </div>
+    <div>
+      <span class="region-selector">alfheim-north-1</span>
+      <span class="owasp-badge">OWASP A02:2025 - Security Misconfiguration</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid-2col">
+      <!-- Left Column: S3 Buckets -->
+      <div>
+        <div class="card">
+          <h2>S3 Buckets</h2>
+          <div class="bucket-grid" id="bucketGrid">
+            <div class="empty-state">Loading buckets...</div>
+          </div>
+        </div>
+
+        <div class="card" id="objectViewerCard" style="display: none; margin-top: 1.5rem;">
+          <h2>Bucket Objects: <span id="selectedBucket"></span></h2>
+          <div class="object-list" id="objectList"></div>
+          <div id="objectContent" style="display: none;">
+            <h3 style="margin-top: 1rem;">Object Content</h3>
+            <div class="result-box" id="objectContentDisplay"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Developer Tools -->
+      <div>
+        <div class="card">
+          <h2>🔧 Developer Tools</h2>
+
+          <!-- SSRF Proxy -->
+          <div class="dev-tools">
+            <h3>URL Preview (SSRF)</h3>
+            <div class="tool-section">
+              <label class="tool-label">URL to Fetch:</label>
+              <input type="text" class="tool-input" id="proxyUrl" 
+                     placeholder="http://[::ffff:169.254.169.254]/api/imds/token" />
+              
+              <label class="tool-label">Method:</label>
+              <select class="tool-input" id="proxyMethod">
+                <option value="GET">GET</option>
+                <option value="PUT">PUT</option>
+                <option value="POST">POST</option>
+              </select>
+
+              <label class="tool-label">Headers (JSON):</label>
+              <input type="text" class="tool-input" id="proxyHeaders" 
+                     placeholder='{"X-aws-ec2-metadata-token-ttl-seconds": "21600"}' />
+
+              <button class="btn btn-primary btn-full" onclick="proxyFetch()">Fetch URL</button>
+            </div>
+            <div id="proxyResult"></div>
+          </div>
+
+          <!-- IMDS Access -->
+          <div class="dev-tools">
+            <h3>Instance Metadata (IMDS)</h3>
+            <div class="tool-section">
+              <label class="tool-label">IMDS Token:</label>
+              <input type="text" class="tool-input" id="imdsToken" 
+                     placeholder="Paste token from SSRF fetch" />
+              
+              <button class="btn btn-primary btn-full" onclick="getIMDSCredentials()" 
+                      style="margin-bottom: 0.5rem;">Get IAM Credentials</button>
+              <button class="btn btn-secondary btn-full" onclick="getIMDSMetadata()">Get Instance Metadata</button>
+            </div>
+            <div id="imdsResult"></div>
+          </div>
+
+          <!-- Hint Box -->
+          <div class="hint-box">
+            <strong>💡 Cloud Misconfiguration Challenge:</strong>
+            <p>1. Use <code>URL Preview</code> to bypass IP filters (try IPv6 notation)</p>
+            <p>2. Access IMDS to get credentials with <code>RealmAccessToken</code></p>
+            <p>3. Use credentials to access private <code>alfheim-secrets</code> bucket</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let currentCredentials = null;
+
+    /**
+     * Load S3 buckets on page load
+     */
+    async function loadBuckets() {
+      try {
+        const response = await fetch('/api/cloud/buckets');
+        const data = await response.json();
+
+        const grid = document.getElementById('bucketGrid');
+        grid.innerHTML = '';
+
+        if (!data.success || data.buckets.length === 0) {
+          grid.innerHTML = '<div class="empty-state">No buckets found</div>';
+          return;
+        }
+
+        data.buckets.forEach(bucket => {
+          const card = document.createElement('div');
+          card.className = `bucket-card ${bucket.public ? 'public' : 'private'}`;
+          card.onclick = () => loadBucketObjects(bucket.name, bucket.public);
+          
+          card.innerHTML = `
+            <div class="bucket-name">${bucket.name}</div>
+            <div class="bucket-meta">
+              <span>${bucket.objectCount} objects</span>
+              <span class="bucket-status status-${bucket.public ? 'public' : 'private'}">
+                ${bucket.public ? 'Public' : 'Private'}
+              </span>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Error loading buckets:', error);
+        document.getElementById('bucketGrid').innerHTML = 
+          '<div class="empty-state">Failed to load buckets</div>';
+      }
+    }
+
+    /**
+     * Load objects from selected bucket
+     */
+    async function loadBucketObjects(bucketName, isPublic) {
+      try {
+        let url = `/api/cloud/bucket/${bucketName}/objects`;
+        
+        // Add credentials if we have them and bucket is private
+        if (!isPublic && currentCredentials) {
+          const params = new URLSearchParams({
+            accessKeyId: currentCredentials.AccessKeyId,
+            secretAccessKey: currentCredentials.SecretAccessKey || '',
+            token: currentCredentials.Token || ''
+          });
+          url += `?${params}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        document.getElementById('selectedBucket').textContent = bucketName;
+        document.getElementById('objectViewerCard').style.display = 'block';
+
+        const objectList = document.getElementById('objectList');
+        
+        if (!data.success) {
+          objectList.innerHTML = `<div class="result-error">Access Denied: ${data.error}</div>`;
+          return;
+        }
+
+        objectList.innerHTML = '';
+        data.objects.forEach(obj => {
+          const item = document.createElement('div');
+          item.className = 'object-item';
+          item.textContent = obj;
+          item.onclick = () => loadObjectContent(bucketName, obj, isPublic);
+          objectList.appendChild(item);
+        });
+
+      } catch (error) {
+        console.error('Error loading objects:', error);
+      }
+    }
+
+    /**
+     * Load content of selected object
+     */
+    async function loadObjectContent(bucket, key, isPublic) {
+      try {
+        let url = `/api/cloud/object/${bucket}/${key}`;
+        
+        // Add credentials if we have them and object is private
+        if (!isPublic && currentCredentials) {
+          const params = new URLSearchParams({
+            accessKeyId: currentCredentials.AccessKeyId,
+            secretAccessKey: currentCredentials.SecretAccessKey || '',
+            token: currentCredentials.Token || ''
+          });
+          url += `?${params}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        document.getElementById('objectContent').style.display = 'block';
+        const display = document.getElementById('objectContentDisplay');
+
+        if (!data.success) {
+          display.innerHTML = `<span class="result-error">Access Denied: ${data.error}</span>`;
+          return;
+        }
+
+        const content = typeof data.object.content === 'object' 
+          ? JSON.stringify(data.object.content, null, 2)
+          : data.object.content;
+
+        display.innerHTML = `<span class="result-info">${escapeHtml(content)}</span>`;
+      } catch (error) {
+        console.error('Error loading object:', error);
+      }
+    }
+
+    /**
+     * SSRF Proxy fetch
+     */
+    async function proxyFetch() {
+      const url = document.getElementById('proxyUrl').value.trim();
+      const method = document.getElementById('proxyMethod').value;
+      const headersInput = document.getElementById('proxyHeaders').value.trim();
+
+      if (!url) {
+        alert('Please enter a URL');
+        return;
+      }
+
+      let headers = {};
+      if (headersInput) {
+        try {
+          headers = JSON.parse(headersInput);
+        } catch (e) {
+          alert('Invalid JSON in headers');
+          return;
+        }
+      }
+
+      const resultDiv = document.getElementById('proxyResult');
+      resultDiv.innerHTML = '<div class="result-box"><span class="loading"></span> Fetching...</div>';
+
+      try {
+        const response = await fetch('/api/proxy/fetch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, method, headers })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          const displayContent = data.body || 'No body content';
+          resultDiv.innerHTML = `
+            <div class="result-box">
+              <span class="result-success">✓ Success (${data.status})</span><br><br>
+              <span class="result-info">${escapeHtml(displayContent)}</span>
+            </div>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <div class="result-box">
+              <span class="result-error">✗ Error: ${data.error}</span>
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <div class="result-box">
+            <span class="result-error">✗ Request failed: ${error.message}</span>
+          </div>
+        `;
+      }
+    }
+
+    /**
+     * Get IMDS credentials
+     */
+    async function getIMDSCredentials() {
+      const token = document.getElementById('imdsToken').value.trim();
+
+      if (!token) {
+        alert('Please enter IMDS token');
+        return;
+      }
+
+      const resultDiv = document.getElementById('imdsResult');
+      resultDiv.innerHTML = '<div class="result-box"><span class="loading"></span> Fetching credentials...</div>';
+
+      try {
+        const response = await fetch('/api/imds/metadata/iam/credentials?role=AlfheimAdminRole', {
+          headers: { 'X-aws-ec2-metadata-token': token }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
+
+        const credentials = await response.json();
+        currentCredentials = credentials;
+
+        resultDiv.innerHTML = `
+          <div class="result-box">
+            <span class="result-success">✓ Credentials Retrieved</span><br><br>
+            <span class="result-info">${JSON.stringify(credentials, null, 2)}</span><br><br>
+            <span class="result-warning">💡 Use AccessKeyId to access private buckets!</span>
+          </div>
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <div class="result-box">
+            <span class="result-error">✗ Error: ${error.message}</span>
+          </div>
+        `;
+      }
+    }
+
+    /**
+     * Get IMDS metadata
+     */
+    async function getIMDSMetadata() {
+      const token = document.getElementById('imdsToken').value.trim();
+
+      if (!token) {
+        alert('Please enter IMDS token');
+        return;
+      }
+
+      const resultDiv = document.getElementById('imdsResult');
+      resultDiv.innerHTML = '<div class="result-box"><span class="loading"></span> Fetching metadata...</div>';
+
+      try {
+        const response = await fetch('/api/imds/metadata/instance', {
+          headers: { 'X-aws-ec2-metadata-token': token }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
+
+        const metadata = await response.json();
+
+        resultDiv.innerHTML = `
+          <div class="result-box">
+            <span class="result-success">✓ Instance Metadata</span><br><br>
+            <span class="result-info">${JSON.stringify(metadata, null, 2)}</span>
+          </div>
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <div class="result-box">
+            <span class="result-error">✗ Error: ${error.message}</span>
+          </div>
+        `;
+      }
+    }
+
+    /**
+     * Escape HTML for safe display
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Load buckets on page load
+    window.addEventListener('load', () => {
+      loadBuckets();
+    });
+  </script>
+</body>
+</html>

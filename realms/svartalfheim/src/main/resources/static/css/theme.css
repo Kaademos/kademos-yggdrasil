@@ -1,0 +1,513 @@
+/**
+ * Svartalfheim Forge Theme
+ * Realm 8: Dark Forge / Manufacturing
+ * 
+ * Theme: Dark amber/orange forge on charcoal background
+ * Vulnerability: Insecure Deserialization
+ * 
+ * 
+ */
+
+/* Import shared theme system - Note: Path relative to realm served by Spring Boot */
+/* @import url('/_shared/styles/theme-variables.css'); */
+/* @import url('/_shared/styles/components.css'); */
+
+/* For now, define variables locally since Spring Boot static serving is different */
+
+/* ============================================
+   SVARTALFHEIM COLOR PALETTE
+   ============================================ */
+
+[data-realm="svartalfheim"],
+body {
+  /* Primary Colors - Forge Fire */
+  --color-primary: #ff9800;        /* Dark orange (forge fire) */
+  --color-secondary: #ffa500;      /* Orange (heat) */
+  --color-accent: #ffcc66;         /* Light orange (highlights) */
+  
+  /* Status Colors */
+  --color-danger: #ff4500;         /* Red-orange (danger) */
+  --color-warning: #ffaa00;        /* Amber (warning) */
+  --color-success: #669900;        /* Olive green (success) */
+  --color-info: #999966;           /* Tan (info) */
+  
+  /* Backgrounds - Dark Forge */
+  --bg-primary: #1a1410;           /* Very dark brown-black */
+  --bg-secondary: #2a2420;         /* Dark charcoal */
+  --bg-tertiary: #3a3430;          /* Lighter charcoal */
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  /* Text Colors */
+  --text-primary: #e8e6e3;         /* Light stone */
+  --text-secondary: #ffcc80;       /* Orange-cream */
+  --text-muted: #a67c52;           /* Dark tan */
+  --text-inverse: #ffffff;         /* White */
+  
+  /* Borders */
+  --border-color: rgba(255, 152, 0, 0.3);
+  --border-color-hover: rgba(255, 152, 0, 0.6);
+  --border-primary: rgba(255, 152, 0, 0.4);
+  
+  /* Special: Metallic accents */
+  --metal-steel: #6e7f80;
+  --metal-iron: #4a4a4a;
+  --metal-gold: #d4af37;
+  
+  /* Forge glow effects */
+  --forge-glow: rgba(255, 152, 0, 0.2);
+  --forge-glow-strong: rgba(255, 152, 0, 0.5);
+  
+  /* Shadows */
+  --shadow-forge: 0 0 30px rgba(255, 152, 0, 0.2);
+  --shadow-forge-strong: 0 0 40px rgba(255, 152, 0, 0.4);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Georgia', serif;
+  background: linear-gradient(135deg, #2c1810 0%, #4a2511 50%, #1a0f0a 100%);
+  color: var(--text-secondary);
+  min-height: 100vh;
+  padding: 2rem;
+  position: relative;
+}
+
+/* Forge ambiance overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(255, 152, 0, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(255, 193, 7, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid var(--border-primary);
+}
+
+h1 {
+  font-size: 3rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-bottom: 0.5rem;
+  text-shadow: 
+    0 0 20px rgba(255, 152, 0, 0.8),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+  animation: forgeGlow 3s ease-in-out infinite;
+}
+
+@keyframes forgeGlow {
+  0%, 100% {
+    text-shadow: 
+      0 0 20px rgba(255, 152, 0, 0.8),
+      2px 2px 4px rgba(0, 0, 0, 0.8);
+  }
+  50% {
+    text-shadow: 
+      0 0 30px rgba(255, 152, 0, 1),
+      2px 2px 4px rgba(0, 0, 0, 0.8);
+  }
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  letter-spacing: 2px;
+  font-style: italic;
+}
+
+/* ============================================
+   BADGE DISPLAY
+   ============================================ */
+
+.badge-display {
+  background: var(--bg-overlay);
+  border: 2px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-forge);
+  transition: box-shadow 0.3s ease;
+}
+
+.badge-display:hover {
+  box-shadow: var(--shadow-forge-strong);
+}
+
+.badge-title {
+  color: var(--color-primary);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+
+.badge-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .badge-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+.badge-field {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--border-color-hover);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.badge-field:hover {
+  transform: translateX(4px);
+  border-color: var(--color-primary);
+}
+
+.badge-label {
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.badge-value {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.badge-message {
+  background: rgba(255, 152, 0, 0.1);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 1rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ============================================
+   ADMIN BADGE
+   ============================================ */
+
+.admin-badge {
+  background: rgba(244, 67, 54, 0.2);
+  border: 2px solid #f44336;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-top: 1rem;
+  color: #ff6b6b;
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  animation: adminPulse 2s ease-in-out infinite;
+}
+
+@keyframes adminPulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(244, 67, 54, 0.6);
+  }
+}
+
+/* ============================================
+   FORGE SECTION
+   ============================================ */
+
+.forge-section {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-forge);
+}
+
+.section-title {
+  color: var(--color-primary);
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+
+/* ============================================
+   FORMS
+   ============================================ */
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  padding: 0.75rem;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 10px var(--forge-glow);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+button {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #f57c00 100%);
+  border: 1px solid var(--border-color-hover);
+  border-radius: 4px;
+  padding: 0.75rem 2rem;
+  color: var(--text-inverse);
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+button:hover {
+  background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+  box-shadow: 0 0 20px var(--forge-glow-strong);
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 0 10px var(--forge-glow);
+}
+
+button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+button.secondary {
+  background: linear-gradient(135deg, #666 0%, #444 100%);
+  border-color: #888;
+}
+
+button.secondary:hover {
+  background: linear-gradient(135deg, #777 0%, #555 100%);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   ALERTS
+   ============================================ */
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-weight: 500;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-success {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #81c784;
+}
+
+.alert-error {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  color: #e57373;
+}
+
+/* ============================================
+   HINT BOX
+   ============================================ */
+
+.hint-box {
+  background: rgba(255, 152, 0, 0.1);
+  border-left: 3px solid var(--color-primary);
+  padding: 1rem;
+  margin: 2rem 0;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.hint-box strong {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+.footer {
+  text-align: center;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 152, 0, 0.2);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.8;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
+  }
+  
+  h1 {
+    font-size: 2rem;
+    letter-spacing: 2px;
+  }
+  
+  .subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .badge-display,
+  .forge-section {
+    padding: 1.5rem;
+  }
+  
+  button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  .badge-title,
+  .section-title {
+    font-size: 1.25rem;
+  }
+  
+  .badge-display,
+  .forge-section {
+    padding: 1rem;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .badge-display,
+  .forge-section {
+    border-width: 3px;
+  }
+  
+  button {
+    border-width: 2px;
+  }
+}

@@ -1,0 +1,48 @@
+groups:
+  - name: platform_alerts
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected on {{ $labels.service }}"
+          description: "{{ $labels.service }} has error rate above 5% (current: {{ $value }})"
+
+      - alert: FlagOracleDown
+        expr: up{job="flag-oracle"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Flag Oracle service is down"
+          description: "Flag Oracle has been down for more than 2 minutes"
+
+      - alert: GatekeeperDown
+        expr: up{job="gatekeeper"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Gatekeeper service is down"
+          description: "Gatekeeper has been down for more than 2 minutes"
+
+      - alert: HighLoginFailures
+        expr: rate(login_attempts_total{status="failure"}[5m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High login failure rate"
+          description: "More than 10 failed login attempts in 5 minutes"
+
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow response time on {{ $labels.service }}"
+          description: "P95 response time is above 2 seconds (current: {{ $value }}s)"

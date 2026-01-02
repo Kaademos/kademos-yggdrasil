@@ -1,0 +1,84 @@
+# Multi-stage Dockerfile Template for Yggdrasil Realms (M8)
+# Supports BUILD_MODE: player (comments stripped) or instructor (comments retained)
+#
+# Usage:
+#   Player build:       docker build --build-arg BUILD_MODE=player -t realm:player .
+#   Instructor build:   docker build --build-arg BUILD_MODE=instructor -t realm:instructor .
+#
+# Note: This requires strip-comments.js to be copied into the realm directory
+# before building, or use docker-compose which handles the build context.
+
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install dependencies first (better layer caching)
+COPY package*.json ./
+RUN npm ci
+
+# Copy TypeScript config
+COPY tsconfig.json ./
+
+# M8: Build mode argument (player = stripped, instructor = full comments)
+ARG BUILD_MODE=player
+
+# Copy source code
+COPY src ./src-original
+
+# Copy comment stripper script (must be in build context)
+COPY strip-comments.js ./strip-comments.js 2>/dev/null || echo "⚠️  strip-comments.js not found, comments will NOT be stripped"
+
+# Process source based on build mode
+RUN if [ "$BUILD_MODE" = "player" ] && [ -f "strip-comments.js" ]; then \
+      echo "🎮 Building PLAYER version (comments stripped)..."; \
+      mkdir -p src; \
+      node strip-comments.js src-original src || { \
+        echo "❌ Comment stripping failed, using original source"; \
+        cp -r src-original src; \
+      }; \
+      rm -rf src-original; \
+    elif [ "$BUILD_MODE" = "player" ] && [ ! -f "strip-comments.js" ]; then \
+      echo "⚠️  PLAYER mode requested but strip-comments.js not found"; \
+      echo "⚠️  Using original source with comments"; \
+      mv src-original src; \
+    else \
+      echo "👨‍🏫 Building INSTRUCTOR version (comments retained)..."; \
+      mv src-original src; \
+    fi
+
+# Compile TypeScript
+RUN npm run build
+
+# Verify build output
+RUN ls -la dist/ && echo "✅ Build complete"
+
+# Stage 2: Production
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install wget for health checks
+RUN apk add --no-cache wget
+
+# Copy package files and install production dependencies only
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy compiled code from builder
+COPY --from=builder /app/dist ./dist
+
+# Run as non-root user
+USER node
+
+# Set environment
+ENV NODE_ENV=production
+
+# Expose port (3000 is standard for realms)
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 --start-period=10s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+
+# Start application
+CMD ["node", "dist/index.js"]

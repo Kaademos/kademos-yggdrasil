@@ -1,0 +1,165 @@
+/**
+ * Alfheim Cloud Theme
+ * Realm 2: Cloud Storage (AWS-inspired)
+ * 
+ */
+
+[data-realm="alfheim"],
+body {
+  --color-primary: #146eb4;
+  --color-secondary: #0073bb;
+  --color-accent: #00a1e0;
+  --color-danger: #d13212;
+  --color-warning: #ff9900;
+  --color-success: #1d8102;
+  --color-info: #0073bb;
+  --bg-primary: #ffffff;
+  --bg-secondary: #fafafa;
+  --bg-tertiary: #f2f3f3;
+  --text-primary: #000716;
+  --text-secondary: #5f6b7a;
+  --text-muted: #879596;
+  --text-inverse: #ffffff;
+  --border-color: #d5dbdb;
+  --border-color-hover: #146eb4;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Amazon Ember', Arial, sans-serif;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.container { max-width: 1400px; margin: 0 auto; }
+
+header {
+  background: var(--bg-primary);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+
+h1 {
+  font-size: 2rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card h2 {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.form-group { margin-bottom: 1rem; }
+
+label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+button {
+  padding: 0.5rem 1rem;
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background: #0d5d8c;
+}
+
+.bucket-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.bucket-card {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.bucket-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.file-list {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.file-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-item:last-child { border-bottom: none; }
+
+.file-item:hover {
+  background: var(--bg-secondary);
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.alert-success {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.alert-error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+@media (max-width: 768px) {
+  body { padding: 1rem; }
+  .bucket-list { grid-template-columns: 1fr; }
+}

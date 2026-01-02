@@ -1,0 +1,213 @@
+/**
+ * Nidavellir Forge Theme
+ * Realm 5: Dwarven Forge/Mining
+ * 
+ * 
+ */
+
+[data-realm="nidavellir"],
+body {
+  /* Primary Colors - Dwarven Gold */
+  --color-primary: #d4af37;        /* Dwarven gold */
+  --color-secondary: #cd7f32;      /* Bronze */
+  --color-accent: #b87333;         /* Copper */
+  
+  /* Status Colors */
+  --color-danger: #ff6b35;         /* Forge fire (danger) */
+  --color-warning: #ffaa00;        /* Amber (warning) */
+  --color-success: #669900;        /* Earth green (success) */
+  --color-info: #8b7355;           /* Wood brown (info) */
+  
+  /* Backgrounds - Forge Depths */
+  --bg-primary: #1a1410;           /* Very dark brown-black */
+  --bg-secondary: #2a2420;         /* Charcoal stone */
+  --bg-tertiary: #3a3430;          /* Lighter stone */
+  
+  /* Text Colors */
+  --text-primary: #e8e6e3;         /* Light stone */
+  --text-secondary: #c8c5c0;       /* Gray stone */
+  --text-muted: #989590;           /* Dark gray-brown */
+  --text-inverse: #1a1410;         /* Dark */
+  
+  /* Borders */
+  --border-color: #5a4a3a;         /* Brown-gray */
+  --border-color-hover: #d4af37;   /* Gold on hover */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Georgia', serif;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.forge-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.forge-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: rgba(205, 127, 50, 0.1);
+  border: 2px solid var(--color-primary);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+}
+
+.forge-header h1 {
+  font-size: 2.5rem;
+  color: var(--color-primary);
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.6);
+  margin-bottom: 0.5rem;
+}
+
+.forge-header .subtitle {
+  color: var(--color-secondary);
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+.search-panel {
+  background: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+  margin-bottom: 2rem;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.search-panel h2 {
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.search-form {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  border: none;
+  border-radius: 8px;
+  color: var(--text-inverse);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.artifact-card {
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.artifact-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+  transform: translateY(-4px);
+}
+
+.artifact-card h3 {
+  color: var(--color-primary);
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+}
+
+.artifact-card .artifact-type {
+  color: var(--color-secondary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.artifact-card .artifact-description {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.artifact-card .artifact-rarity {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.rarity-common { background: #95a5a6; color: white; }
+.rarity-uncommon { background: #27ae60; color: white; }
+.rarity-rare { background: #3498db; color: white; }
+.rarity-epic { background: #9b59b6; color: white; }
+.rarity-legendary { background: var(--color-primary); color: var(--text-inverse); }
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+}
+
+.hint-box {
+  background: rgba(212, 175, 55, 0.1);
+  border-left: 4px solid var(--color-primary);
+  padding: 1rem;
+  margin: 1.5rem 0;
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .forge-header h1 { font-size: 2rem; }
+  .search-form { flex-direction: column; }
+  .results-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

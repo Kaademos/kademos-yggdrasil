@@ -1,0 +1,257 @@
+<html lang="en" data-realm="muspelheim">
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Muspelheim - Fire Realm Trading Post</title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+  <div class="container">
+            <div class="stat-label">Collateral</div>
+            <div class="stat-value" id="collateral">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Loan Status</div>
+            <div class="stat-value" id="loanStatus">Inactive</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Exploited</div>
+            <div class="stat-value" id="exploitStatus">No</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>💰 Flash Loan Trading</h2>
+      <div class="info-box">
+        <p><strong>Flash Loans:</strong> Borrow large amounts instantly for trading. No collateral needed upfront!</p>
+        <p>Loan amounts: 1 - 10,000 tokens</p>
+      </div>
+      
+      <div class="form-group">
+        <label for="loanAmount">Loan Amount:</label>
+        <input type="number" id="loanAmount" placeholder="Enter amount (1-10000)" min="1" max="10000" value="5000">
+      </div>
+      <button onclick="executeFlashLoan()">Execute Flash Loan</button>
+      
+      <div class="hint">
+        <strong>💡 Hint:</strong> Flash loans release collateral before checking repayment. 
+        What happens if you don't have enough balance to repay?
+      </div>
+      
+      <div id="flashLoanMessage"></div>
+    </div>
+
+    <div class="panel">
+      <h2>🏦 Account Operations</h2>
+      <div class="form-group">
+        <label for="operationAmount">Amount:</label>
+        <input type="number" id="operationAmount" placeholder="Enter amount" min="1" value="500">
+      </div>
+      <button onclick="deposit()">Deposit</button>
+      <button onclick="withdrawal()">Withdraw</button>
+    </div>
+
+    <div class="panel" id="vaultPanel">
+      <h2>🏛️ Vault Access</h2>
+      <div class="info-box">
+        <p>The vault contains the realm's greatest secrets. Only master traders may enter.</p>
+      </div>
+      <button onclick="accessVault()">Access Vault</button>
+      <div id="vaultContent"></div>
+    </div>
+
+    <div class="panel">
+      <h2>📜 Transaction History</h2>
+      <button onclick="loadTransactions()">Load Transactions</button>
+      <div id="transactionList" class="transaction-list hidden"></div>
+    </div>
+
+    <div class="panel">
+      <h2>ℹ️ Challenge Information</h2>
+      <div class="info-box">
+        <p><strong>Realm:</strong> Muspelheim (Order: 6)</p>
+        <p><strong>Category:</strong> OWASP A06:2025 - Insecure Design</p>
+        <p><strong>Vulnerability:</strong> Business Logic Flaw - Premature Collateral Release</p>
+        <p><strong>Objective:</strong> Exploit the flash loan system to access the vault</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function getCurrentUserId() {
+      return document.getElementById('userId').value || 'trader001';
+    }
+
+    function createNewUser() {
+      const randomId = `trader${Math.floor(Math.random() * 10000).toString().padStart(3, '0')}`;
+      document.getElementById('userId').value = randomId;
+      showMessage('New user ID generated: ' + randomId, 'success', 'flashLoanMessage');
+      loadAccount();
+    }
+
+    async function loadAccount() {
+      const userId = getCurrentUserId();
+      try {
+        const response = await fetch(`/api/account/${userId}`);
+        const data = await response.json();
+
+        document.getElementById('balance').textContent = data.balance;
+        document.getElementById('collateral').textContent = data.collateral;
+        document.getElementById('loanStatus').textContent = data.loanActive ? 'Active' : 'Inactive';
+        document.getElementById('exploitStatus').textContent = data.exploited ? 'YES 🎯' : 'No';
+        
+        document.getElementById('accountStats').classList.remove('hidden');
+        
+        if (data.exploited) {
+          showMessage('⚠️ Account flagged as exploited! Try accessing the vault...', 'warning', 'flashLoanMessage');
+        }
+      } catch (error) {
+        showMessage('Failed to load account', 'error', 'flashLoanMessage');
+      }
+    }
+
+    async function executeFlashLoan() {
+      const userId = getCurrentUserId();
+      const amount = parseInt(document.getElementById('loanAmount').value);
+
+      if (!amount || amount < 1 || amount > 10000) {
+        showMessage('Invalid loan amount (1-10000)', 'error', 'flashLoanMessage');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/flash-loan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, amount }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          let message = data.message;
+          if (data.exploited) {
+            message += '<br><strong>🎯 EXPLOITATION SUCCESSFUL!</strong><br>' + (data.hint || '');
+          }
+          showMessage(message, data.exploited ? 'warning' : 'success', 'flashLoanMessage');
+          await loadAccount();
+        } else {
+          showMessage(data.message || 'Flash loan failed', 'error', 'flashLoanMessage');
+        }
+      } catch (error) {
+        showMessage('Flash loan request failed', 'error', 'flashLoanMessage');
+      }
+    }
+
+    async function deposit() {
+      const userId = getCurrentUserId();
+      const amount = parseInt(document.getElementById('operationAmount').value);
+
+      try {
+        const response = await fetch('/api/deposit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, amount }),
+        });
+
+        const data = await response.json();
+        showMessage(data.message, data.success ? 'success' : 'error', 'flashLoanMessage');
+        await loadAccount();
+      } catch (error) {
+        showMessage('Deposit failed', 'error', 'flashLoanMessage');
+      }
+    }
+
+    async function withdrawal() {
+      const userId = getCurrentUserId();
+      const amount = parseInt(document.getElementById('operationAmount').value);
+
+      try {
+        const response = await fetch('/api/withdrawal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, amount }),
+        });
+
+        const data = await response.json();
+        showMessage(data.message, data.success ? 'success' : 'error', 'flashLoanMessage');
+        await loadAccount();
+      } catch (error) {
+        showMessage('Withdrawal failed', 'error', 'flashLoanMessage');
+      }
+    }
+
+    async function accessVault() {
+      const userId = getCurrentUserId();
+
+      try {
+        const response = await fetch(`/api/vault?userId=${userId}`);
+        const data = await response.json();
+
+        const vaultContent = document.getElementById('vaultContent');
+        
+        if (data.access) {
+          vaultContent.innerHTML = `
+            <p class="message success">${data.message}</p>
+            ${data.flag ? `<div class="flag-box">🏆 ${data.flag} 🏆</div>` : ''}
+            ${data.secrets ? `
+              <div class="info-box">
+                <p><strong>Secrets Revealed:</strong></p>
+                <ul>
+                  ${data.secrets.map(s => `<li>${s}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+          `;
+        } else {
+          vaultContent.innerHTML = `<p class="message error">${data.message}</p>`;
+        }
+      } catch (error) {
+        document.getElementById('vaultContent').innerHTML = 
+          '<p class="message error">Failed to access vault</p>';
+      }
+    }
+
+    async function loadTransactions() {
+      const userId = getCurrentUserId();
+
+      try {
+        const response = await fetch(`/api/account/${userId}/transactions`);
+        const data = await response.json();
+
+        const listDiv = document.getElementById('transactionList');
+        listDiv.classList.remove('hidden');
+
+        if (data.transactions.length === 0) {
+          listDiv.innerHTML = '<p>No transactions yet</p>';
+          return;
+        }
+
+        listDiv.innerHTML = data.transactions.reverse().map(txn => `
+          <div class="transaction-item">
+            <strong>${txn.type.toUpperCase()}</strong> - ${txn.amount} tokens<br>
+            <small>Status: ${txn.status} | ${new Date(txn.timestamp).toLocaleString()}</small>
+            ${txn.details ? `<br><small>${txn.details}</small>` : ''}
+          </div>
+        `).join('');
+      } catch (error) {
+        showMessage('Failed to load transactions', 'error', 'flashLoanMessage');
+      }
+    }
+
+    function showMessage(text, type = 'info', targetId = 'flashLoanMessage') {
+      const messageDiv = document.getElementById(targetId);
+      messageDiv.className = `message ${type}`;
+      messageDiv.innerHTML = text;
+    }
+
+    // Load account on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadAccount();
+    });
+  </script>
+</body>
+</html>

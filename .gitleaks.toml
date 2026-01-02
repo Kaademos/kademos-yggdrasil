@@ -1,0 +1,276 @@
+# Gitleaks Configuration for Project Yggdrasil (M8)
+# https://github.com/gitleaks/gitleaks
+#
+# This configuration defines rules for detecting secrets in the repository.
+# Yggdrasil is a vulnerable-by-design platform, so we carefully allowlist
+# intentional "vulnerabilities" while catching real credential leaks.
+
+title = "Gitleaks Config for Project Yggdrasil"
+
+# AWS Access Key
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key ID"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["aws", "critical"]
+
+  [[rules.allowlist]]
+  description = "AWS documentation example key"
+  regexes = ['''AKIAIOSFODNN7EXAMPLE''']
+  paths = [
+    '''realms/alfheim/.*''',
+    '''.*\.md$''',
+    '''.*\.example$'''
+  ]
+
+# AWS Secret Key
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Access Key"
+regex = '''(?i)aws_secret_access_key\s*=\s*['\"]?[A-Za-z0-9/+=]{40}['\"]?'''
+tags = ["aws", "critical"]
+
+# GitHub Personal Access Token
+[[rules]]
+id = "github-pat"
+description = "GitHub Personal Access Token"
+regex = '''ghp_[A-Za-z0-9]{36}'''
+tags = ["github", "critical"]
+
+# GitHub OAuth Token
+[[rules]]
+id = "github-oauth"
+description = "GitHub OAuth Token"
+regex = '''gho_[A-Za-z0-9]{36}'''
+tags = ["github", "critical"]
+
+# GitHub App Token
+[[rules]]
+id = "github-app-token"
+description = "GitHub App Token"
+regex = '''(ghu|ghs)_[A-Za-z0-9]{36}'''
+tags = ["github", "critical"]
+
+# NPM Token
+[[rules]]
+id = "npm-token"
+description = "NPM Access Token"
+regex = '''npm_[A-Za-z0-9]{36}'''
+tags = ["npm", "critical"]
+
+# OpenAI API Key
+[[rules]]
+id = "openai-api-key"
+description = "OpenAI API Key"
+regex = '''sk-[A-Za-z0-9]{48}'''
+tags = ["openai", "critical"]
+
+# Slack Token
+[[rules]]
+id = "slack-token"
+description = "Slack Token"
+regex = '''xox[pboa]-[0-9]{10,12}-[0-9]{10,12}-[A-Za-z0-9]{24,}'''
+tags = ["slack", "critical"]
+
+# Private Key
+[[rules]]
+id = "private-key"
+description = "Private Key"
+regex = '''-----BEGIN (RSA|DSA|EC|OPENSSH|PGP|ENCRYPTED) PRIVATE KEY-----'''
+tags = ["key", "critical"]
+
+  [[rules.allowlist]]
+  description = "Allow test/example keys in docs"
+  paths = [
+    '''.*\.md$''',
+    '''.*\.example$''',
+    '''tests/fixtures/.*'''
+  ]
+
+# Generic High-Entropy Strings
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey|api[_-]?secret)\s*[=:]\s*['\"]([A-Za-z0-9]{32,})['\"]'''
+tags = ["api", "high"]
+
+  [[rules.allowlist]]
+  description = "Allow example API keys"
+  regexes = [
+    '''example''',
+    '''placeholder''',
+    '''your-api-key-here''',
+    '''test-api-key''',
+  ]
+  paths = [
+    '''.*\.md$''',
+    '''.*\.example$''',
+    '''tests/.*'''
+  ]
+
+# Database Passwords
+[[rules]]
+id = "database-password"
+description = "Database Connection String with Password"
+regex = '''(?i)(postgres|mysql|mongodb)://[^/\s:]+:([^/\s@]+)@[^\s]+'''
+tags = ["database", "high"]
+
+  [[rules.allowlist]]
+  description = "Allow localhost and example database URLs"
+  regexes = [
+    '''localhost''',
+    '''127\.0\.0\.1''',
+    '''example\.com''',
+  ]
+  paths = [
+    '''docker-compose\.yml''',
+    '''.*\.md$''',
+    '''.*\.example$'''
+  ]
+
+# Yggdrasil Flags (Real Format)
+[[rules]]
+id = "yggdrasil-flag"
+description = "Yggdrasil Flag (Real Format)"
+regex = '''YGGDRASIL\{[A-Z_]+:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\}'''
+tags = ["flag", "high"]
+
+  [[rules.allowlist]]
+  description = "Flags in .env files are intentional (training platform)"
+  paths = [
+    '''\.env$''',
+    '''\.env\..*''',
+    '''docker-compose\.yml''',
+    '''config/.*''',
+    '''.*\.md$'''
+  ]
+
+# Generic Password
+[[rules]]
+id = "generic-password"
+description = "Generic Password Assignment"
+regex = '''(?i)password\s*[=:]\s*['\"]([^'\"]{12,})['\"]'''
+tags = ["password", "medium"]
+
+  [[rules.allowlist]]
+  description = "Allow test passwords and examples"
+  regexes = [
+    '''example''',
+    '''placeholder''',
+    '''your-password-here''',
+    '''change-me''',
+  ]
+  paths = [
+    '''tests/.*''',
+    '''.*\.test\..*''',
+    '''.*\.spec\..*''',
+    '''.*\.md$''',
+    '''.*\.example$''',
+    '''realms/.*/.*'''  # Realm services have intentional weak passwords
+  ]
+
+# Generic Secret
+[[rules]]
+id = "generic-secret"
+description = "Generic Secret Assignment"
+regex = '''(?i)secret\s*[=:]\s*['\"]([A-Za-z0-9]{32,})['\"]'''
+tags = ["secret", "medium"]
+
+  [[rules.allowlist]]
+  description = "Allow example secrets and environment configs"
+  regexes = [
+    '''example''',
+    '''placeholder''',
+    '''generate-strong-secret''',
+    '''<generate-.*>'''
+  ]
+  paths = [
+    '''.*\.example$''',
+    '''.*\.md$'''
+  ]
+
+# Bearer Token
+[[rules]]
+id = "bearer-token"
+description = "Bearer Token"
+regex = '''(?i)bearer\s+[A-Za-z0-9\-._~+/]{40,}'''
+tags = ["token", "high"]
+
+  [[rules.allowlist]]
+  description = "Allow example bearer tokens in docs and realm examples"
+  paths = [
+    '''.*\.md$''',
+    '''realms/.*/.*''',
+    '''tests/.*'''
+  ]
+
+# JWT Token
+[[rules]]
+id = "jwt-token"
+description = "JWT Token"
+regex = '''eyJ[A-Za-z0-9-_=]+\.eyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*'''
+tags = ["jwt", "medium"]
+
+  [[rules.allowlist]]
+  description = "Allow example JWTs in tests and docs"
+  paths = [
+    '''tests/.*''',
+    '''.*\.test\..*''',
+    '''.*\.md$'''
+  ]
+
+# Docker Registry Password
+[[rules]]
+id = "docker-password"
+description = "Docker Registry Password"
+regex = '''(?i)docker(_?password|_?registry)\s*[=:]\s*['\"]([^'\"]{8,})['\"]'''
+tags = ["docker", "critical"]
+
+# .env Files (Critical)
+[[rules]]
+id = "env-file"
+description = "Committed .env file (not .env.example)"
+fileNameRegex = '''(^|/)\.env$'''
+tags = ["env", "critical"]
+
+  [[rules.allowlist]]
+  description = "This is a development project, .env is acceptable"
+  paths = [
+    '''\.env$''',
+    '''\.env\.example$''',
+    '''\.env\..*\.example$'''
+  ]
+
+# Global Allowlist
+[allowlist]
+description = "Global allowlist for common false positives"
+paths = [
+  '''\.git/''',
+  '''node_modules/''',
+  '''vendor/''',
+  '''dist/''',
+  '''build/''',
+  '''coverage/''',
+  '''.next/''',
+  '''.cache/''',
+  '''\.factory/''',
+  '''package-lock\.json''',
+  '''yarn\.lock''',
+  '''.*\.log$''',
+  '''.*\.map$''',
+  '''.*\.min\.js$''',
+  '''\.gitleaks\.toml$''',  # Don't scan this file itself
+  '''scripts/scan-secrets.*'''  # Don't scan the scanner
+]
+
+regexes = [
+  '''EXAMPLE''',
+  '''example\.com''',
+  '''localhost''',
+  '''127\.0\.0\.1''',
+  '''placeholder''',
+  '''your-.*-here''',
+  '''change-me''',
+  '''TODO''',
+  '''FIXME'''
+]

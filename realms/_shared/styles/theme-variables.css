@@ -1,0 +1,253 @@
+/**
+ * Yggdrasil Shared Theme Variables
+ * 
+ * Base CSS variables used across all realms.
+ * Individual realms override these with their specific color palettes.
+ * 
+ * Usage:
+ *   Import this file in realm-specific CSS:
+ *   @import '/_shared/styles/theme-variables.css';
+ * 
+ * 
+ */
+
+:root {
+  /* ============================================
+     TYPOGRAPHY SCALE
+     Base: 16px (1rem)
+     Scale: Minor Third (1.2x)
+     ============================================ */
+  
+  --font-size-xs: 0.75rem;     /* 12px */
+  --font-size-sm: 0.875rem;    /* 14px */
+  --font-size-md: 1rem;        /* 16px - base */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+  --font-size-4xl: 2.25rem;    /* 36px */
+  --font-size-5xl: 3rem;       /* 48px */
+  --font-size-6xl: 3.75rem;    /* 60px */
+  
+  /* ============================================
+     SPACING SCALE
+     Base: 8px
+     Scale: Powers of 2
+     ============================================ */
+  
+  --space-0: 0;
+  --space-xs: 0.25rem;   /* 4px */
+  --space-sm: 0.5rem;    /* 8px */
+  --space-md: 1rem;      /* 16px */
+  --space-lg: 1.5rem;    /* 24px */
+  --space-xl: 2rem;      /* 32px */
+  --space-2xl: 3rem;     /* 48px */
+  --space-3xl: 4rem;     /* 64px */
+  --space-4xl: 6rem;     /* 96px */
+  --space-5xl: 8rem;     /* 128px */
+  
+  /* ============================================
+     SHADOWS
+     Light to heavy elevation
+     ============================================ */
+  
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  
+  /* ============================================
+     TRANSITIONS
+     Standard durations and easings
+     ============================================ */
+  
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 300ms ease-in-out;
+  --transition-slow: 500ms ease-in-out;
+  --transition-very-slow: 1000ms ease-in-out;
+  
+  --easing-in: cubic-bezier(0.4, 0, 1, 1);
+  --easing-out: cubic-bezier(0, 0, 0.2, 1);
+  --easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* ============================================
+     BORDER RADIUS
+     Consistent rounding
+     ============================================ */
+  
+  --radius-none: 0;
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+  --radius-2xl: 1.5rem;   /* 24px */
+  --radius-full: 9999px;  /* Pill shape */
+  
+  /* ============================================
+     Z-INDEX SCALE
+     Stacking order management
+     ============================================ */
+  
+  --z-base: 1;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-modal-backdrop: 1300;
+  --z-modal: 1400;
+  --z-popover: 1500;
+  --z-tooltip: 2000;
+  
+  /* ============================================
+     LAYOUT WIDTHS
+     Container and breakpoint references
+     ============================================ */
+  
+  --container-xs: 20rem;     /* 320px */
+  --container-sm: 24rem;     /* 384px */
+  --container-md: 28rem;     /* 448px */
+  --container-lg: 32rem;     /* 512px */
+  --container-xl: 36rem;     /* 576px */
+  --container-2xl: 42rem;    /* 672px */
+  --container-3xl: 48rem;    /* 768px */
+  --container-4xl: 56rem;    /* 896px */
+  --container-5xl: 64rem;    /* 1024px */
+  --container-6xl: 72rem;    /* 1152px */
+  --container-7xl: 80rem;    /* 1280px */
+  
+  /* ============================================
+     LINE HEIGHTS
+     Typography vertical rhythm
+     ============================================ */
+  
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+  
+  /* ============================================
+     FONT WEIGHTS
+     Semantic weight names
+     ============================================ */
+  
+  --font-thin: 100;
+  --font-extralight: 200;
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  --font-black: 900;
+  
+  /* ============================================
+     LETTER SPACING
+     For headers and emphasis
+     ============================================ */
+  
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+  
+  /* ============================================
+     OPACITY LEVELS
+     For overlays and transparency
+     ============================================ */
+  
+  --opacity-0: 0;
+  --opacity-5: 0.05;
+  --opacity-10: 0.1;
+  --opacity-20: 0.2;
+  --opacity-30: 0.3;
+  --opacity-40: 0.4;
+  --opacity-50: 0.5;
+  --opacity-60: 0.6;
+  --opacity-70: 0.7;
+  --opacity-80: 0.8;
+  --opacity-90: 0.9;
+  --opacity-100: 1;
+  
+  /* ============================================
+     SEMANTIC COLOR PLACEHOLDERS
+     
+     These are overridden by each realm's theme.
+     Default values provided as fallback.
+     ============================================ */
+  
+  /* Primary Colors */
+  --color-primary: #3498db;
+  --color-secondary: #2c3e50;
+  --color-accent: #e74c3c;
+  
+  /* Status Colors */
+  --color-danger: #e74c3c;
+  --color-warning: #f39c12;
+  --color-success: #27ae60;
+  --color-info: #3498db;
+  
+  /* Backgrounds */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #e0e0e0;
+  
+  /* Text */
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --text-inverse: #ffffff;
+  
+  /* Borders */
+  --border-color: #dddddd;
+  --border-color-hover: #999999;
+  
+  /* ============================================
+     ANIMATION DURATIONS
+     For keyframe animations
+     ============================================ */
+  
+  --duration-75: 75ms;
+  --duration-100: 100ms;
+  --duration-150: 150ms;
+  --duration-200: 200ms;
+  --duration-300: 300ms;
+  --duration-500: 500ms;
+  --duration-700: 700ms;
+  --duration-1000: 1000ms;
+}
+
+/* ============================================
+   DARK MODE SUPPORT (OPTIONAL)
+   
+   Realms can optionally support prefers-color-scheme.
+   Most realms have fixed themes regardless of OS preference.
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-normal: 0ms;
+    --transition-slow: 0ms;
+    --transition-very-slow: 0ms;
+  }
+}
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS (Reference)
+   
+   These are documented for media query usage.
+   Not CSS variables (media queries can't use them).
+   
+   Mobile:     320px+  (default, mobile-first)
+   Small:      640px+  (large phones)
+   Medium:     768px+  (tablets)
+   Large:      1024px+ (desktops)
+   XL:         1280px+ (large desktops)
+   2XL:        1536px+ (extra large)
+   ============================================ */

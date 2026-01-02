@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asgard HR Portal</title>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo">A</div>
+        <span class="app-title">Asgard HR Portal</span>
+      </div>
+      <div class="header-right">
+        <span class="user-name">Admin User <span class="user-role">Administrator</span></span>
+      </div>
+    </header>
+
+    <div class="main-wrapper">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <a href="#dashboard" class="nav-item" onclick="showSection('dashboard')">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Dashboard</span>
+          </a>
+          <a href="#employees" class="nav-item active" onclick="showSection('employees')">
+            <span class="nav-icon">👥</span>
+            <span class="nav-label">Employees</span>
+          </a>
+          <a href="#documents" class="nav-item" onclick="showSection('documents')">
+            <span class="nav-icon">📄</span>
+            <span class="nav-label">Documents</span>
+          </a>
+          <a href="#diagnostics" class="nav-item" onclick="showSection('diagnostics')">
+            <span class="nav-icon">🔧</span>
+            <span class="nav-label">System Diagnostics</span>
+          </a>
+          <a href="#reports" class="nav-item disabled">
+            <span class="nav-icon">📈</span>
+            <span class="nav-label">Reports</span>
+          </a>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard-section" class="content-section" style="display: none;">
+          <div class="content-header">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Overview of HR portal activity</p>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Welcome to Asgard HR Portal</h2>
+            </div>
+            <div class="card-body">
+              <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                Access employee records, manage documents, and monitor system health.
+              </p>
+              <button class="btn btn-primary" onclick="showSection('employees')">
+                View Employees
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Employees Section -->
+        <section id="employees-section" class="content-section">
+          <div class="content-header">
+            <h1 class="page-title">Employee Directory</h1>
+            <p class="page-subtitle">Manage employee records and profiles</p>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">All Employees</h2>
+              <div class="card-actions">
+                <input 
+                  type="text" 
+                  id="employee-search" 
+                  class="search-input" 
+                  placeholder="Search employees..."
+                  onkeyup="if(event.key==='Enter') searchEmployees()"
+                >
+                <button class="btn btn-secondary btn-sm" onclick="searchEmployees()">Search</button>
+                <button class="btn btn-primary btn-sm" onclick="loadEmployees()">Refresh</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="employees-table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th class="sortable">ID</th>
+                      <th class="sortable">Name</th>
+                      <th class="sortable">Department</th>
+                      <th>Role</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="employees-tbody">
+                    <tr>
+                      <td colspan="5" class="empty-state">
+                        <div class="loading"></div> Loading employees...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="search-results" style="display: none;"></div>
+        </section>
+
+        <!-- Documents Section -->
+        <section id="documents-section" class="content-section" style="display: none;">
+          <div class="content-header">
+            <h1 class="page-title">Document Management</h1>
+            <p class="page-subtitle">Access HR documents and records</p>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">All Documents</h2>
+              <div class="card-actions">
+                <button class="btn btn-primary btn-sm" onclick="loadDocuments()">Refresh</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="documents-list">
+                <div class="loading"></div> Loading documents...
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Diagnostics Section -->
+        <section id="diagnostics-section" class="content-section" style="display: none;">
+          <div class="content-header">
+            <h1 class="page-title">System Diagnostics</h1>
+            <p class="page-subtitle">Odin-View URL capture tool</p>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">URL Capture Service</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Target URL</label>
+                <input 
+                  type="text" 
+                  id="diagnostic-url" 
+                  class="form-control" 
+                  placeholder="http://example.com"
+                >
+              </div>
+              <button class="btn btn-primary" onclick="captureURL()">
+                Capture URL
+              </button>
+              
+              <div id="diagnostic-result"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal Template -->
+  <div id="modal-overlay" class="modal-overlay" style="display: none;" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">Modal Title</h3>
+        <button class="btn btn-sm" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        Modal content here
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script type="module" src="/js/config.js"></script>
+  <script type="module" src="/js/api-client.js"></script>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>

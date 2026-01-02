@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" data-realm="jotunheim">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jotunheim - Ice Giant Stronghold</title>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⚡ JOTUNHEIM ⚡</h1>
+      <p class="subtitle">Ice Giant Stronghold - Portal Access System</p>
+    </header>
+
+    <div class="panel">
+      <h2>🔒 Authentication Portal</h2>
+      <div id="loginArea">
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+          </div>
+          <button type="submit">Login</button>
+          <button type="button" onclick="showHints()">Show Hints</button>
+        </form>
+        <div id="hintsBox" class="hint hidden">
+          <strong>Available Users:</strong> <span id="hintsList">Loading...</span>
+        </div>
+      </div>
+      <div id="authenticatedArea" class="hidden">
+        <p class="message success">
+          <span class="status-indicator online"></span>
+          <strong>Authenticated as:</strong> <span id="authUsername"></span>
+        </p>
+        <button onclick="accessAdmin()">Access Admin Panel</button>
+        <button onclick="logout()">Logout</button>
+      </div>
+      <div id="message"></div>
+    </div>
+
+    <div class="panel" id="adminPanel" class="hidden">
+      <h2>🛡️ Admin Panel</h2>
+      <div id="adminContent"></div>
+    </div>
+
+    <div class="panel" id="sessionPanel">
+      <h2>📊 Session Information</h2>
+      <div class="info-box">
+        <p><strong>Session ID:</strong> <code id="sessionId">Loading...</code></p>
+        <p><strong>Authenticated:</strong> <span id="sessionAuth">No</span></p>
+        <p><strong>Username:</strong> <span id="sessionUser">-</span></p>
+        <p><strong>Role:</strong> <span id="sessionRole">-</span></p>
+      </div>
+      <button onclick="refreshSession()">Refresh Session Info</button>
+    </div>
+
+    <div class="panel">
+      <h2>📜 Challenge Information</h2>
+      <div class="info-box">
+        <p><strong>Realm:</strong> Jotunheim (Order: 7)</p>
+        <p><strong>Category:</strong> OWASP A07:2025 - Authentication Failures</p>
+        <p><strong>Vulnerability:</strong> Session Fixation</p>
+        <p><strong>Objective:</strong> Gain unauthorized access to the admin panel</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentSession = null;
+
+    // Load session info on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshSession();
+      loadHints();
+    });
+
+    async function loadHints() {
+      try {
+        const response = await fetch('/api/users/hints');
+        const data = await response.json();
+        document.getElementById('hintsList').textContent = data.hints.join(', ');
+      } catch (error) {
+        console.error('Failed to load hints:', error);
+      }
+    }
+
+    function showHints() {
+      const hintsBox = document.getElementById('hintsBox');
+      hintsBox.classList.toggle('hidden');
+    }
+
+    async function refreshSession() {
+      try {
+        const response = await fetch('/api/session');
+        const data = await response.json();
+        currentSession = data;
+
+        document.getElementById('sessionId').textContent = data.sessionId || 'None';
+        document.getElementById('sessionAuth').textContent = data.isAuthenticated ? 'Yes' : 'No';
+        document.getElementById('sessionUser').textContent = data.username || '-';
+        document.getElementById('sessionRole').textContent = data.role || '-';
+
+        if (data.isAuthenticated) {
+          document.getElementById('loginArea').classList.add('hidden');
+          document.getElementById('authenticatedArea').classList.remove('hidden');
+          document.getElementById('authUsername').textContent = data.username;
+        } else {
+          document.getElementById('loginArea').classList.remove('hidden');
+          document.getElementById('authenticatedArea').classList.add('hidden');
+        }
+      } catch (error) {
+        showMessage('Failed to fetch session info', 'error');
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showMessage(`Login successful! Welcome, ${data.username}`, 'success');
+          await refreshSession();
+        } else {
+          showMessage(data.error || 'Login failed', 'error');
+        }
+      } catch (error) {
+        showMessage('Login request failed', 'error');
+      }
+    });
+
+    async function accessAdmin() {
+      try {
+        const response = await fetch('/api/admin');
+        const data = await response.json();
+
+        if (response.ok) {
+          displayAdminPanel(data);
+        } else {
+          showMessage(data.error || 'Access denied', 'error');
+        }
+      } catch (error) {
+        showMessage('Failed to access admin panel', 'error');
+      }
+    }
+
+    function displayAdminPanel(data) {
+      const adminContent = document.getElementById('adminContent');
+      adminContent.innerHTML = `
+        <p class="message success">${data.message}</p>
+        ${data.flag ? `<div class="flag-box">🏆 ${data.flag} 🏆</div>` : ''}
+        <div class="info-box">
+          <p><strong>Vault Status:</strong> ${data.vault?.status || 'Unknown'}</p>
+          <p><strong>Secrets:</strong></p>
+          <ul>
+            ${data.vault?.secrets?.map(s => `<li>${s}</li>`).join('') || '<li>No secrets available</li>'}
+          </ul>
+        </div>
+      `;
+      document.getElementById('adminPanel').classList.remove('hidden');
+    }
+
+    async function logout() {
+      try {
+        const response = await fetch('/api/logout', { method: 'POST' });
+        if (response.ok) {
+          showMessage('Logged out successfully', 'success');
+          await refreshSession();
+          document.getElementById('adminPanel').classList.add('hidden');
+        }
+      } catch (error) {
+        showMessage('Logout failed', 'error');
+      }
+    }
+
+    function showMessage(text, type = 'info') {
+      const messageDiv = document.getElementById('message');
+      messageDiv.className = `message ${type}`;
+      messageDiv.textContent = text;
+      setTimeout(() => {
+        messageDiv.textContent = '';
+        messageDiv.className = 'message';
+      }, 5000);
+    }
+  </script>
+</body>
+</html>

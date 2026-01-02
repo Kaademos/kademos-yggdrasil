@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nidavellir - Mining Facility</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: monospace; background: linear-gradient(135deg, #0A0A0A 0%, #2C1810 50%, #0A0A0A 100%); color: #D4AF37; padding: 2rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 2rem; padding: 1.5rem; background: rgba(205, 127, 50, 0.1); border: 2px solid #CD7F32; border-radius: 10px; }
+    h1 { font-size: 2.5rem; color: #CD7F32; margin: 0; }
+    .panel { background: rgba(10, 10, 10, 0.8); border: 2px solid #CD7F32; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .panel h2 { color: #CD7F32; margin-top: 0; }
+    input[type="text"] { width: 100%; padding: 0.75rem; background: rgba(44, 24, 16, 0.5); border: 1px solid #CD7F32; color: #D4AF37; font-family: monospace; }
+    button { padding: 0.75rem 2rem; background: #CD7F32; border: none; color: #0A0A0A; font-weight: bold; cursor: pointer; margin-right: 0.5rem; }
+    button:hover { background: #D4AF37; }
+    .message { padding: 1rem; margin: 1rem 0; border-radius: 5px; }
+    .success { background: rgba(76, 175, 80, 0.2); border: 1px solid #4CAF50; color: #4CAF50; }
+    .error { background: rgba(244, 67, 54, 0.2); border: 1px solid #F44336; color: #F44336; }
+    .flag-box { background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(205, 127, 50, 0.2) 100%); border: 2px solid #D4AF37; padding: 1.5rem; margin: 1rem 0; font-size: 1.2rem; text-align: center; font-weight: bold; }
+    .hint { background: rgba(255, 193, 7, 0.1); border-left: 4px solid #FFC107; padding: 1rem; margin: 1rem 0; color: #FFC107; }
+    .results { background: rgba(44, 24, 16, 0.3); padding: 1rem; max-height: 400px; overflow-y: auto; }
+    .result-item { padding: 0.5rem; margin: 0.5rem 0; background: rgba(0, 0, 0, 0.3); border-left: 3px solid #CD7F32; }
+    code { background: rgba(0, 0, 0, 0.5); padding: 0.25rem 0.5rem; color: #CD7F32; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⛏️ NIDAVELLIR ⛏️</h1>
+      <p>Mining Facility - Sonic Drill Search Console</p>
+    </header>
+    <div class="panel">
+      <h2>🔍 Drill Operation Search</h2>
+      <input type="text" id="searchInput" placeholder="Search by location, operator, or notes..." value="North">
+      <br><br>
+      <button onclick="search()">Search</button>
+      <button onclick="loadAll()">Load All Drills</button>
+      <div class="hint">
+        <strong>💡 SQL Injection Hint:</strong> Try: <code>' OR '1'='1</code> or 
+        <code>' UNION SELECT secret_id, secret_type, secret_value, 0, null, null FROM vault_secrets--</code>
+      </div>
+      <div id="message"></div>
+      <div id="results" class="results hidden"></div>
+    </div>
+    <div class="panel">
+      <h2>ℹ️ Challenge Information</h2>
+      <p><strong>Realm:</strong> Nidavellir (Order: 5)</p>
+      <p><strong>Category:</strong> OWASP A05:2025 - Injection</p>
+      <p><strong>Vulnerability:</strong> SQL Injection in search query</p>
+      <p><strong>Objective:</strong> Extract the flag from the database</p>
+    </div>
+  </div>
+  <script>
+    async function search() {
+      const query = document.getElementById('searchInput').value;
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        if (data.success) {
+          displayResults(data.results, `Found ${data.count} results for "${data.query}"`);
+        } else {
+          showMessage(data.error + (data.message ? ': ' + data.message : ''), 'error');
+        }
+      } catch (error) {
+        showMessage('Search failed', 'error');
+      }
+    }
+    async function loadAll() {
+      try {
+        const response = await fetch('/api/drills');
+        const data = await response.json();
+        displayResults(data.drills, `Loaded ${data.count} drill operations`);
+      } catch (error) {
+        showMessage('Failed to load drills', 'error');
+      }
+    }
+    function displayResults(results, message) {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.classList.remove('hidden');
+      let html = `<div class="message success">${message}</div>`;
+      results.forEach(r => {
+        const hasFlag = JSON.stringify(r).includes('YGGDRASIL{');
+        html += `<div class="result-item ${hasFlag ? 'flag-box' : ''}">`;
+        Object.entries(r).forEach(([key, val]) => {
+          html += `<strong>${key}:</strong> ${val}<br>`;
+        });
+        html += '</div>';
+      });
+      resultsDiv.innerHTML = html;
+    }
+    function showMessage(text, type) {
+      document.getElementById('message').innerHTML = `<div class="message ${type}">${text}</div>`;
+    }
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') search();
+    });
+  </script>
+</body>
+</html>

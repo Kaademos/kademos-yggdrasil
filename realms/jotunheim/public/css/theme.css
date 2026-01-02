@@ -1,0 +1,518 @@
+/**
+ * Jotunheim Frost Theme
+ * Realm 7: Ice Giant Stronghold
+ * 
+ * 
+ */
+
+/* ============================================
+   JOTUNHEIM COLOR PALETTE
+   ============================================ */
+
+[data-realm="jotunheim"],
+body {
+  /* Primary Colors - Ice/Frost */
+  --color-primary: #4FC3F7;        /* Light blue (ice) */
+  --color-secondary: #81D4FA;      /* Lighter blue (frost) */
+  --color-accent: #B3E5FC;         /* Very light blue (crystal) */
+  
+  /* Status Colors */
+  --color-danger: #FF5252;         /* Red (danger) */
+  --color-warning: #FFAB40;        /* Orange (warning) */
+  --color-success: #69F0AE;        /* Mint green (success) */
+  --color-info: #40C4FF;           /* Bright blue (info) */
+  
+  /* Backgrounds - Frozen Depths */
+  --bg-primary: #0D1B2A;           /* Very dark blue */
+  --bg-secondary: #1B263B;         /* Dark blue */
+  --bg-tertiary: #415A77;          /* Medium blue-gray */
+  --bg-overlay: rgba(13, 27, 42, 0.8);
+  
+  /* Text Colors */
+  --text-primary: #E0E1DD;         /* Ice white */
+  --text-secondary: #B0BEC5;       /* Light blue-gray */
+  --text-muted: #78909C;           /* Medium blue-gray */
+  --text-inverse: #0D1B2A;         /* Dark */
+  
+  /* Borders */
+  --border-color: rgba(79, 195, 247, 0.4);
+  --border-color-hover: rgba(79, 195, 247, 0.8);
+  
+  /* Ice effects */
+  --ice-glow: rgba(79, 195, 247, 0.3);
+  --ice-glow-strong: rgba(79, 195, 247, 0.6);
+  
+  /* Special: Ice/crystal colors */
+  --ice-light: #E1F5FE;
+  --ice-medium: #B3E5FC;
+  --ice-dark: #0277BD;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(135deg, #0D1B2A 0%, #1B263B 50%, #415A77 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 2rem;
+  position: relative;
+}
+
+/* Frost overlay effect */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 20%, rgba(79, 195, 247, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(129, 212, 250, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: rgba(79, 195, 247, 0.1);
+  border: 2px solid var(--color-primary);
+  border-radius: 10px;
+  box-shadow: 0 0 20px var(--ice-glow);
+  animation: crystalPulse 4s ease-in-out infinite;
+}
+
+@keyframes crystalPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--ice-glow);
+  }
+  50% {
+    box-shadow: 0 0 30px var(--ice-glow-strong);
+  }
+}
+
+h1 {
+  font-size: 3rem;
+  color: var(--color-primary);
+  text-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+@media (max-width: 640px) {
+  h1 {
+    font-size: 2rem;
+    letter-spacing: 2px;
+  }
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+
+@media (max-width: 640px) {
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* ============================================
+   PANELS
+   ============================================ */
+
+.panel {
+  background: var(--bg-overlay);
+  border: 2px solid var(--color-primary);
+  border-radius: 10px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Crystalline corner accents */
+.panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    rgba(79, 195, 247, 0.05) 100%
+  );
+  pointer-events: none;
+}
+
+.panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(
+    -45deg,
+    transparent 0%,
+    rgba(79, 195, 247, 0.05) 100%
+  );
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .panel {
+    padding: 1.5rem;
+  }
+}
+
+.panel h2 {
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* ============================================
+   FORMS
+   ============================================ */
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(27, 38, 59, 0.9);
+  border: 1px solid var(--color-primary);
+  border-radius: 5px;
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 10px var(--ice-glow);
+  background: rgba(27, 38, 59, 1);
+}
+
+input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+button {
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #29B6F6 100%);
+  border: none;
+  border-radius: 5px;
+  color: var(--text-inverse);
+  font-weight: bold;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  transition: all 0.3s ease;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px var(--ice-glow-strong);
+}
+
+button:active:not(:disabled) {
+  transform: scale(1);
+}
+
+button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: linear-gradient(135deg, #607D8B 0%, #455A64 100%);
+  color: var(--text-primary);
+}
+
+button.secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #78909C 0%, #546E7A 100%);
+}
+
+@media (max-width: 640px) {
+  button {
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
+/* ============================================
+   INFO BOX
+   ============================================ */
+
+.info-box {
+  background: rgba(79, 195, 247, 0.1);
+  border-left: 4px solid var(--color-primary);
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 5px;
+  line-height: 1.6;
+}
+
+.info-box strong {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* ============================================
+   MESSAGES
+   ============================================ */
+
+.message {
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 5px;
+  font-weight: 500;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message.success {
+  background: rgba(76, 175, 80, 0.2);
+  border: 1px solid #4CAF50;
+  color: #4CAF50;
+}
+
+.message.error {
+  background: rgba(244, 67, 54, 0.2);
+  border: 1px solid #F44336;
+  color: #F44336;
+}
+
+/* ============================================
+   FLAG BOX
+   ============================================ */
+
+.flag-box {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.2) 0%,
+    rgba(255, 193, 7, 0.2) 100%
+  );
+  border: 2px solid #FFD700;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  font-size: 1.2rem;
+  text-align: center;
+  animation: goldShimmer 3s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+@keyframes goldShimmer {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.flag-box strong {
+  color: #FFD700;
+  font-size: 1.4rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* ============================================
+   SESSION INFO
+   ============================================ */
+
+.session-info {
+  background: rgba(79, 195, 247, 0.05);
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
+.session-info dt {
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.session-info dd {
+  color: var(--text-secondary);
+  margin-left: 1rem;
+  font-family: 'Courier New', monospace;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+footer {
+  text-align: center;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(79, 195, 247, 0.2);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
+  }
+  
+  header {
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .flag-box {
+    font-size: 1rem;
+  }
+  
+  .flag-box strong {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  .panel h2 {
+    font-size: 1.25rem;
+  }
+  
+  .panel {
+    padding: 1rem;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-contrast: high) {
+  .panel {
+    border-width: 3px;
+  }
+  
+  button {
+    border: 2px solid currentColor;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .panel {
+    border: 1px solid black;
+    box-shadow: none;
+  }
+  
+  button {
+    display: none;
+  }
+}

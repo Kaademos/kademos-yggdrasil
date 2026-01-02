@@ -1,0 +1,35 @@
+# Asgard HR Portal - Robots Exclusion Protocol
+# SPOILER: This file reveals interesting internal endpoints
+# SPOILER: Check .git directory for commit history about metadata service
+
+User-agent: *
+
+# Internal API endpoints (development/staging)
+# SPOILER: Try /api/internal/metadata-service for service discovery
+Disallow: /api/internal
+Disallow: /api/internal/
+
+# Git repository (accidentally exposed)
+# SPOILER: .git/logs/HEAD contains commit messages about port 9090
+Disallow: /.git
+Disallow: /.git/
+
+# Admin panel
+Disallow: /admin
+Disallow: /admin/
+
+# Config files
+Disallow: /config
+Disallow: /config/
+
+# IDOR-vulnerable endpoints
+Disallow: /api/employees/
+Disallow: /api/documents/
+
+# Allow public endpoints
+Allow: /api/stats
+Allow: /health
+Allow: /
+
+# Crawl-delay for search engines
+Crawl-delay: 10

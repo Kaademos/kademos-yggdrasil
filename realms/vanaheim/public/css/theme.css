@@ -1,0 +1,153 @@
+/**
+ * Vanaheim Nature Theme
+ * Realm 4: Nature/Mystical/Merchant
+ * 
+ * 
+ */
+
+[data-realm="vanaheim"],
+body {
+  --color-primary: #FFB300;
+  --color-secondary: #FFA000;
+  --color-accent: #FFD54F;
+  --color-danger: #D32F2F;
+  --color-warning: #F57C00;
+  --color-success: #689F38;
+  --color-info: #795548;
+  --bg-primary: #3E2723;
+  --bg-secondary: #5D4037;
+  --bg-tertiary: #6D4C41;
+  --text-primary: #FFF8E1;
+  --text-secondary: #FFE0B2;
+  --text-muted: #BCAAA4;
+  --text-inverse: #3E2723;
+  --border-color: rgba(255, 179, 0, 0.4);
+  --border-color-hover: #FFB300;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Georgia', serif;
+  background: linear-gradient(135deg, #3E2723 0%, #5D4037 50%, #6D4C41 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.container { max-width: 1200px; margin: 0 auto; }
+
+header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(255, 179, 0, 0.3);
+}
+
+h1 {
+  font-size: 3rem;
+  color: var(--text-inverse);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #5D4037;
+  font-style: italic;
+}
+
+.card {
+  background: rgba(255, 248, 225, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--border-color);
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.card:hover {
+  border-color: var(--border-color-hover);
+  box-shadow: 0 8px 32px rgba(255, 179, 0, 0.3);
+}
+
+.card h2 {
+  color: var(--color-accent);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: 0.75rem;
+}
+
+.form-group { margin-bottom: 1rem; }
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+input, select {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 10px rgba(255, 179, 0, 0.3);
+}
+
+button {
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  border: none;
+  border-radius: 8px;
+  color: var(--text-inverse);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 179, 0, 0.4);
+}
+
+.token-display {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 179, 0, 0.2));
+  border: 2px solid var(--color-accent);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  text-align: center;
+  font-family: monospace;
+  font-size: 1.2rem;
+  color: var(--color-accent);
+}
+
+@media (max-width: 768px) {
+  body { padding: 1rem; }
+  h1 { font-size: 2rem; }
+  .card { padding: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

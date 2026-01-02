@@ -1,0 +1,57 @@
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Build artifacts
+dist/
+coverage/
+*.tsbuildinfo
+*.d.ts
+*.js.map
+
+# Tests
+tests/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+test-results/
+playwright-report/
+
+# Documentation
+.docs/
+*.md
+!README.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Git
+.git/
+.gitignore
+
+# Environment (use build args instead)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Temporary
+tmp/
+*.tmp
+*.bak
+*-old.*
+
+# CI
+.github/
+.gitlab-ci.yml
+
+# Docker
+.dockerignore
+docker-compose*.yml
+Dockerfile.dev

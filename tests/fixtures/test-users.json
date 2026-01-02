@@ -1,0 +1,17 @@
+{
+  "journeyUser": {
+    "username": "journey_test_user",
+    "password": "TestPassword123!",
+    "email": "journey@test.local"
+  },
+  "isolationUser": {
+    "username": "isolation_test_user",
+    "password": "TestPassword123!",
+    "email": "isolation@test.local"
+  },
+  "skipUser": {
+    "username": "skip_attempt_user",
+    "password": "TestPassword123!",
+    "email": "skip@test.local"
+  }
+}

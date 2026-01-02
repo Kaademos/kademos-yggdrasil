@@ -1,0 +1,15 @@
+# Snyk (https://snyk.io) policy file
+
+version: v1.25.0
+
+# Ignore specific vulnerabilities
+exclude:
+  code:
+    # Test data configuration - not a real production secret
+    # The 'yggdrasil123' password is:
+    # - Only used for seeding test users in development/CTF environment
+    # - Configurable via TEST_USER_PASSWORD environment variable
+    # - Not used in any production deployment
+    # - Intentionally weak for CTF training purposes
+    - src/repositories/user-repository.ts
+    - src/config/index.ts

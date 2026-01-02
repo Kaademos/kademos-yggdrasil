@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Helheim Admin - Log Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #eaeaea;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(26, 26, 46, 0.95);
+      border: 2px solid #9d4edd;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(157, 78, 221, 0.3);
+    }
+    h1 {
+      color: #9d4edd;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #9d4edd;
+      padding-bottom: 1rem;
+    }
+    .log-viewer-section {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid #9d4edd;
+      border-radius: 4px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    h2 {
+      color: #c77dff;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+    .form-group {
+      margin: 1rem 0;
+    }
+    label {
+      display: block;
+      color: #c77dff;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(157, 78, 221, 0.5);
+      border-radius: 4px;
+      color: #eaeaea;
+      font-size: 1rem;
+    }
+    button {
+      background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
+      border: 1px solid #c77dff;
+      color: white;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #c77dff 0%, #9d4edd 100%);
+      box-shadow: 0 4px 15px rgba(199, 125, 255, 0.5);
+    }
+    #log-content {
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 1rem;
+      min-height: 400px;
+      max-height: 600px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: #0f0;
+    }
+    .sensitive { color: #ff006e; font-weight: bold; }
+    .warn { color: #ffbe0b; }
+    .info { color: #3a86ff; }
+    .hint {
+      color: #9db4c4;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+    .message {
+      padding: 1rem;
+      border-radius: 4px;
+      margin: 1rem 0;
+      display: none;
+    }
+    .message.error {
+      background: rgba(255, 68, 68, 0.1);
+      border: 1px solid #ff4444;
+      color: #ff4444;
+      display: block;
+    }
+    .message.success {
+      background: rgba(68, 255, 68, 0.1);
+      border: 1px solid #44ff44;
+      color: #44ff44;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ Helheim System Administration</h1>
+    <p style="color: #9db4c4; margin-bottom: 2rem;">
+      Memorial Monitoring & Diagnostics Control Panel
+    </p>
+
+    <div class="log-viewer-section">
+      <h2>📁 Log File Viewer</h2>
+      
+      <div class="form-group">
+        <label for="log-select">Select Log File:</label>
+        <select id="log-select">
+          <option value="">-- Select a log file --</option>
+          <option value="app.log">app.log</option>
+          <option value="error.log">error.log</option>
+          <option value="memorial.log">memorial.log</option>
+        </select>
+        <p class="hint">Or enter a custom path below</p>
+      </div>
+
+      <div class="form-group">
+        <label for="custom-path">Custom Log Path:</label>
+        <input type="text" id="custom-path" placeholder="e.g., app.log or ../sensitive/niflheim_correlation.log">
+        <p class="hint">
+          💡 Tip: Logs are stored in <code>/logs/</code> directory. 
+          Use relative paths for advanced access.
+        </p>
+      </div>
+
+      <button onclick="viewLog()">View Log</button>
+      <button onclick="downloadLog()" style="margin-left: 1rem; background: linear-gradient(135deg, #3a86ff 0%, #0066cc 100%);">
+        Download
+      </button>
+
+      <div id="message" class="message"></div>
+    </div>
+
+    <div class="log-viewer-section">
+      <h2>📄 Log Content</h2>
+      <div id="log-content">No log file selected. Choose a log file above to view its contents.</div>
+    </div>
+  </div>
+
+  <script>
+    let currentLogContent = '';
+
+    document.getElementById('log-select').addEventListener('change', (e) => {
+      document.getElementById('custom-path').value = e.target.value;
+    });
+
+    async function viewLog() {
+      const path = document.getElementById('custom-path').value;
+      const messageEl = document.getElementById('message');
+      const contentEl = document.getElementById('log-content');
+      
+      if (!path) {
+        showMessage('Please enter a log file path', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/admin/logs?file=${encodeURIComponent(path)}`, {
+          headers: {
+            'Authorization': btoa('admin:IceBound2025').includes('Basic') ? 
+              'Basic ' + btoa('admin:IceBound2025') : 
+              'Basic YWRtaW46SWNlQm91bmQyMDI1'
+          }
+        });
+
+        if (response.ok) {
+          currentLogContent = await response.text();
+          contentEl.innerHTML = highlightLog(currentLogContent);
+          showMessage(`Loaded: ${path}`, 'success');
+        } else {
+          const error = await response.json();
+          showMessage(error.message || 'Failed to load log', 'error');
+          contentEl.textContent = 'Error loading log file.';
+        }
+      } catch (error) {
+        showMessage('Network error', 'error');
+        contentEl.textContent = 'Failed to fetch log file.';
+      }
+    }
+
+    function highlightLog(content) {
+      return content
+        .replace(/SENSITIVE:/g, '<span class="sensitive">SENSITIVE:</span>')
+        .replace(/WARN:/g, '<span class="warn">WARN:</span>')
+        .replace(/INFO:/g, '<span class="info">INFO:</span>')
+        .replace(/YGGDRASIL\{[^}]+\}/g, '<span class="sensitive">$&</span>');
+    }
+
+    function downloadLog() {
+      if (!currentLogContent) {
+        showMessage('No log loaded to download', 'error');
+        return;
+      }
+      
+      const blob = new Blob([currentLogContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = document.getElementById('custom-path').value || 'log.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+      showMessage('Log downloaded', 'success');
+    }
+
+    function showMessage(text, type) {
+      const el = document.getElementById('message');
+      el.textContent = text;
+      el.className = `message ${type}`;
+      setTimeout(() => {
+        el.className = 'message';
+      }, 5000);
+    }
+  </script>
+</body>
+</html>

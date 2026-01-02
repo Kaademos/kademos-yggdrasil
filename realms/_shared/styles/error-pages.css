@@ -1,0 +1,490 @@
+/**
+ * Yggdrasil Error Pages Base Styles
+ * 
+ * Shared styling for all error pages (404, 500, 403, 401, 429).
+ * Each realm customizes colors via CSS variables.
+ * 
+ * M13: Immersion & Final Polish
+ */
+
+/* ============================================
+   BASE ERROR PAGE LAYOUT
+   ============================================ */
+
+.error-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background: var(--bg-primary);
+  
+  /* Realm-specific backgrounds can override this */
+  background-image: radial-gradient(
+    circle at 20% 50%,
+    rgba(var(--color-primary-rgb, 52, 152, 219), 0.1) 0%,
+    transparent 50%
+  ),
+  radial-gradient(
+    circle at 80% 80%,
+    rgba(var(--color-secondary-rgb, 44, 62, 80), 0.1) 0%,
+    transparent 50%
+  );
+}
+
+.error-container {
+  max-width: var(--container-md);
+  width: 100%;
+  text-align: center;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   ERROR HEADER
+   ============================================ */
+
+.error-header {
+  margin-bottom: var(--space-2xl);
+}
+
+.error-code {
+  font-size: var(--font-size-6xl);
+  font-weight: var(--font-extrabold);
+  line-height: 1;
+  color: var(--color-primary);
+  margin-bottom: var(--space-md);
+  text-shadow: 0 2px 10px rgba(var(--color-primary-rgb, 52, 152, 219), 0.3);
+  
+  /* Realm-specific styling */
+  letter-spacing: var(--tracking-tight);
+}
+
+@media (max-width: 640px) {
+  .error-code {
+    font-size: var(--font-size-5xl);
+  }
+}
+
+.error-title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm);
+  line-height: var(--leading-tight);
+}
+
+@media (max-width: 640px) {
+  .error-title {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+/* ============================================
+   ERROR CONTENT
+   ============================================ */
+
+.error-content {
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  box-shadow: var(--shadow-xl);
+  margin-bottom: var(--space-xl);
+}
+
+@media (max-width: 640px) {
+  .error-content {
+    padding: var(--space-lg);
+  }
+}
+
+.error-description {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-xl);
+  max-width: 60ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 640px) {
+  .error-description {
+    font-size: var(--font-size-md);
+  }
+}
+
+/* ============================================
+   ERROR VISUAL (Realm-Specific Graphics)
+   ============================================ */
+
+.error-visual {
+  margin: var(--space-2xl) 0;
+  min-height: 10rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: var(--opacity-70);
+}
+
+.error-icon {
+  font-size: var(--font-size-6xl);
+  color: var(--color-primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ASCII Art / Visual Container */
+.error-ascii {
+  font-family: 'Courier New', monospace;
+  font-size: var(--font-size-sm);
+  line-height: 1.2;
+  color: var(--color-primary);
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* Realm-specific graphic placeholder */
+.error-graphic {
+  width: 100%;
+  max-width: 20rem;
+  height: auto;
+  margin: 0 auto;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+/* ============================================
+   ERROR ACTIONS
+   ============================================ */
+
+.error-actions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: var(--space-xl);
+}
+
+@media (max-width: 640px) {
+  .error-actions {
+    flex-direction: column;
+  }
+  
+  .error-actions .btn {
+    width: 100%;
+  }
+}
+
+/* ============================================
+   ERROR DETAILS (Optional, for debugging)
+   ============================================ */
+
+.error-details {
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.error-details-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  margin-bottom: var(--space-sm);
+}
+
+.error-details-content {
+  font-family: 'Courier New', monospace;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  background-color: var(--bg-tertiary);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+/* ============================================
+   PROGRESSION INFO (403 Forbidden)
+   ============================================ */
+
+.error-progression {
+  margin: var(--space-xl) 0;
+  padding: var(--space-lg);
+  background-color: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--border-color);
+}
+
+.error-progression-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.error-progression-status {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.error-progression-bar {
+  width: 100%;
+  height: 1.5rem;
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin: var(--space-md) 0;
+  box-shadow: var(--shadow-inner);
+}
+
+.error-progression-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary),
+    var(--color-accent)
+  );
+  border-radius: var(--radius-full);
+  transition: width var(--transition-slow);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: var(--space-sm);
+}
+
+.error-progression-text {
+  color: var(--text-inverse);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-bold);
+}
+
+.error-progression-hint {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: var(--space-sm);
+}
+
+/* ============================================
+   RETRY INFO (429 Rate Limit)
+   ============================================ */
+
+.error-retry {
+  margin: var(--space-xl) 0;
+}
+
+.error-retry-timer {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-bold);
+  color: var(--color-warning);
+  font-family: 'Courier New', monospace;
+  margin: var(--space-md) 0;
+}
+
+.error-retry-message {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   LOGIN PROMPT (401 Unauthorized)
+   ============================================ */
+
+.error-login-prompt {
+  margin: var(--space-xl) 0;
+  padding: var(--space-lg);
+  background-color: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--color-info);
+}
+
+.error-login-prompt p {
+  margin-bottom: var(--space-md);
+  color: var(--text-secondary);
+}
+
+.error-login-form {
+  text-align: left;
+  max-width: var(--container-sm);
+  margin: var(--space-lg) auto 0;
+}
+
+/* ============================================
+   REALM-SPECIFIC DECORATIONS
+   ============================================ */
+
+/* Niflheim: Industrial warnings */
+[data-realm="niflheim"] .error-code {
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+}
+
+[data-realm="niflheim"] .error-content {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.3);
+}
+
+/* Helheim: Dark memorial */
+[data-realm="helheim"] .error-page {
+  background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+}
+
+[data-realm="helheim"] .error-content {
+  border-color: var(--color-primary);
+  box-shadow: 0 10px 40px rgba(var(--color-primary-rgb), 0.3);
+}
+
+/* Svartalfheim: Forge failure */
+[data-realm="svartalfheim"] .error-code {
+  color: var(--color-primary);
+  text-shadow: 0 0 10px rgba(255, 140, 0, 0.5);
+}
+
+/* Jotunheim: Icy barriers */
+[data-realm="jotunheim"] .error-content {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 30px rgba(var(--color-primary-rgb), 0.4);
+}
+
+/* Muspelheim: Fire warnings */
+[data-realm="muspelheim"] .error-code {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-accent)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Asgard: Corporate */
+[data-realm="asgard"] .error-page {
+  background: var(--bg-primary);
+}
+
+[data-realm="asgard"] .error-content {
+  border: 1px solid var(--border-color);
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 640px) {
+  .error-page {
+    padding: var(--space-md);
+  }
+  
+  .error-visual {
+    min-height: 6rem;
+    margin: var(--space-lg) 0;
+  }
+  
+  .error-progression-bar {
+    height: 1rem;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .error-content {
+    border-width: 3px;
+  }
+  
+  .error-code {
+    text-shadow: none;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .error-container {
+    animation: none;
+  }
+  
+  .error-icon {
+    animation: none;
+  }
+  
+  .error-progression-fill {
+    transition: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .error-page {
+    background: white;
+    color: black;
+  }
+  
+  .error-actions {
+    display: none;
+  }
+  
+  .error-content {
+    box-shadow: none;
+    border: 1px solid black;
+  }
+}
+
+/* ============================================
+   FOCUS MANAGEMENT
+   ============================================ */
+
+.error-page:focus {
+  outline: none;
+}
+
+.error-page [tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* Skip to content link for screen readers */
+.skip-to-actions {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-to-actions:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  display: block;
+  padding: var(--space-sm);
+  background: var(--bg-primary);
+  color: var(--color-primary);
+  text-decoration: underline;
+}

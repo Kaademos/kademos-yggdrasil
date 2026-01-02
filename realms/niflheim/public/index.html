@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Niflheim Cryo-Stasis Control - SCADA</title>
+  <link rel="stylesheet" href="/css/scada.css">
+</head>
+<body>
+  <div class="scada-container">
+    <!-- Header -->
+    <header class="scada-header">
+      <div class="header-content">
+        <h1>NIFLHEIM CRYO-STASIS CONTROL</h1>
+        <div class="header-info">
+          <span class="facility">Facility: ALPHA-07</span>
+          <span class="separator">|</span>
+          <span class="operator">Operator: SYSTEM</span>
+          <span class="separator">|</span>
+          <span class="status-indicator">
+            <span class="status-dot" id="system-status-dot"></span>
+            <span id="system-status-text">ONLINE</span>
+          </span>
+          <span class="separator">|</span>
+          <span class="timestamp" id="header-timestamp">00:00:00 UTC</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-content">
+      <!-- Visualization Section -->
+      <section class="visualization-section">
+        <div class="gauge-container">
+          <h2>PRESSURE GAUGE</h2>
+          <canvas id="pressure-gauge" width="280" height="180"></canvas>
+          <div class="gauge-readout">
+            <span id="pressure-value">500</span> PSI
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h2>PRESSURE TREND (Last 10 Readings)</h2>
+          <canvas id="trend-chart" width="500" height="180"></canvas>
+        </div>
+      </section>
+
+      <!-- Control Section -->
+      <section class="control-section">
+        <h2>REGULATION CONTROLS</h2>
+        <form id="regulation-form">
+          <div class="control-group">
+            <label for="pressure-input">Pressure (PSI):</label>
+            <input 
+              type="number" 
+              id="pressure-input" 
+              name="pressure" 
+              value="500" 
+              min="0" 
+              max="1000"
+              step="1"
+              required
+            >
+            <span class="range-hint">Range: 0-1000</span>
+          </div>
+
+          <div class="control-group">
+            <label for="temperature-input">Temperature (°C):</label>
+            <input 
+              type="number" 
+              id="temperature-input" 
+              name="temperature" 
+              value="-200" 
+              min="-273" 
+              max="0"
+              step="1"
+              required
+            >
+            <span class="range-hint">Range: -273 to 0</span>
+          </div>
+
+          <div class="control-group">
+            <label for="flowrate-input">Flow Rate (L/min):</label>
+            <input 
+              type="number" 
+              id="flowrate-input" 
+              name="flowRate" 
+              value="50" 
+              min="0" 
+              max="100"
+              step="1"
+              required
+            >
+            <span class="range-hint">Range: 0-100</span>
+          </div>
+
+          <button type="submit" class="regulate-button">REGULATE SYSTEM</button>
+        </form>
+
+        <div id="control-message" class="control-message"></div>
+      </section>
+
+      <!-- Status Section -->
+      <section class="status-section">
+        <h2>SYSTEM STATUS</h2>
+        <div class="status-grid">
+          <div class="status-item">
+            <span class="status-label">Cooling System:</span>
+            <span class="status-value" id="cooling-status">
+              <span class="indicator-dot operational"></span> OPERATIONAL
+            </span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Valves:</span>
+            <span class="status-value" id="valve-status">
+              <span class="indicator-dot operational"></span> NOMINAL
+            </span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Door Status:</span>
+            <span class="status-value" id="door-status">
+              <span class="indicator-dot locked"></span> LOCKED
+            </span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Last Update:</span>
+            <span class="status-value" id="last-update">--</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Configuration Section -->
+      <section class="config-section">
+        <h2>CONFIGURATION FILES</h2>
+        <div class="config-buttons">
+          <button class="config-button" onclick="viewConfig('pressure.conf')">
+            View: pressure.conf
+          </button>
+          <button class="config-button" onclick="viewConfig('system.conf')">
+            View: system.conf
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Config Modal -->
+  <div id="config-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="config-modal-title">Configuration File</h3>
+        <button class="modal-close" onclick="closeConfigModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <pre id="config-content"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crash Report Modal -->
+  <div id="crash-modal" class="modal">
+    <div class="modal-content crash-modal-content">
+      <div class="modal-header crash-header">
+        <h3>⚠️ CRITICAL SYSTEM FAILURE</h3>
+      </div>
+      <div class="modal-body">
+        <div class="crash-details">
+          <p class="crash-message">Cryo-system integrity breach detected</p>
+          <div class="crash-info">
+            <p><strong>Facility:</strong> <span id="crash-facility">NIFLHEIM_ALPHA</span></p>
+            <p><strong>Error Code:</strong> <span id="crash-error-code">--</span></p>
+            <p><strong>Timestamp:</strong> <span id="crash-timestamp">--</span></p>
+          </div>
+          <p class="crash-description">
+            A diagnostic bundle has been generated for analysis by the central monitoring service.
+          </p>
+          <div class="crash-actions">
+            <button id="download-crash-report" class="crash-button">
+              Download Diagnostic Report
+            </button>
+          </div>
+          <p class="crash-report-id">
+            Report ID: <span id="crash-report-id">--</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/pressure-gauge.js"></script>
+  <script src="/js/trend-chart.js"></script>
+  <script src="/js/niflheim-scada.js"></script>
+</body>
+</html>

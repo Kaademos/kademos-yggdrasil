@@ -1,0 +1,148 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json.bak
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+*.d.ts
+*.js.map
+.next/
+out/
+realms/*/dist/
+realms/*/build/
+realms/*/coverage/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+*.env.bak
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+ci-audit-*.log
+loki_data/
+prometheus_data/
+grafana_data/
+
+# IDE & Editors
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+.atom/
+.sublime-project
+.sublime-workspace
+*.code-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+*.lcov
+.playwright/
+test-results/
+playwright-report/
+
+# Docker
+.docker-data/
+*.pid
+docker-compose.override.yml
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+*-old.*
+*~
+*.swp
+*.swo
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Project specific
+progress_data/
+cookies.txt
+.curl-cookies
+
+# Secrets and sensitive data (extra safety)
+secrets/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+credentials
+credentials.json
+secrets.yml
+secrets.yaml
+.secrets/
+
+# SSH keys
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*.ppk
+.ssh/config
+
+# Cloud provider credentials
+.aws/
+.gcloud/
+.azure/
+gcloud-credentials.json
+aws-credentials
+
+# Package manager credentials
+.npmrc
+.yarnrc.yml
+.dockercfg
+.docker/config.json
+
+# M8: Secrets scanning artifacts
+.gitleaks-report.json
+scan-secrets-report.json
+
+# M8: Build artifacts
+realms/*/strip-comments.js
+
+.docs/milestones/
+.env

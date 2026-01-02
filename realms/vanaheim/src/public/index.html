@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vanaheim - Merchant Realm</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(135deg, #3E2723 0%, #5D4037 50%, #6D4C41 100%);
+      color: #FFF8E1;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 2rem;
+      background: linear-gradient(135deg, #FFB300 0%, #FFA000 100%);
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(255, 179, 0, 0.3);
+    }
+
+    h1 {
+      font-size: 3rem;
+      color: #3E2723;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #5D4037;
+      font-style: italic;
+    }
+
+    .owasp-badge {
+      display: inline-block;
+      background: #D32F2F;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: rgba(255, 248, 225, 0.1);
+      backdrop-filter: blur(10px);
+      border: 2px solid #FFB300;
+      border-radius: 15px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .card h2 {
+      color: #FFD54F;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      border-bottom: 2px solid #FFB300;
+      padding-bottom: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      color: #FFE082;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #FFB300;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #3E2723;
+      font-size: 1rem;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #FFA000;
+      box-shadow: 0 0 10px rgba(255, 179, 0, 0.5);
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      border: none;
+      border-radius: 8px;
+      color: #3E2723;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(255, 215, 0, 0.5);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .hint {
+      background: rgba(33, 150, 243, 0.2);
+      border-left: 4px solid #2196F3;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      color: #B3E5FC;
+    }
+
+    .token-list {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 1rem;
+    }
+
+    .token-item {
+      background: rgba(255, 179, 0, 0.1);
+      border: 1px solid #FFB300;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .token-value {
+      font-family: 'Courier New', monospace;
+      color: #FFD54F;
+      font-weight: bold;
+      font-size: 1.1rem;
+      word-break: break-all;
+    }
+
+    .token-meta {
+      font-size: 0.85rem;
+      color: #BCAAA4;
+      margin-top: 0.5rem;
+    }
+
+    .success {
+      background: rgba(76, 175, 80, 0.2);
+      border-left: 4px solid #4CAF50;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 5px;
+      color: #A5D6A7;
+    }
+
+    .error {
+      background: rgba(244, 67, 54, 0.2);
+      border-left: 4px solid #F44336;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 5px;
+      color: #FFCDD2;
+    }
+
+    .flag-display {
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      border: 3px solid #FF6F00;
+      border-radius: 15px;
+      padding: 2rem;
+      text-align: center;
+      margin-top: 1rem;
+      animation: glow 2s ease-in-out infinite;
+    }
+
+    .flag-display h3 {
+      color: #3E2723;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .flag-value {
+      font-family: 'Courier New', monospace;
+      font-size: 1.2rem;
+      color: #BF360C;
+      font-weight: bold;
+      word-break: break-all;
+    }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+      50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
+    }
+
+    .stats {
+      background: rgba(255, 179, 0, 0.1);
+      border: 2px solid #FFB300;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .stats strong {
+      color: #FFD54F;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⚖️ VANAHEIM</h1>
+      <p class="subtitle">Merchant Realm of the Vanir</p>
+      <span class="owasp-badge">OWASP A04:2025 - Cryptographic Failures</span>
+    </header>
+
+    <div class="grid">
+      <!-- Token Generation -->
+      <div class="card">
+        <h2>🪙 Generate Token</h2>
+        <div class="form-group">
+          <label for="userId">User ID (Merchant Name):</label>
+          <input type="text" id="userId" placeholder="e.g., merchant1, trader42">
+        </div>
+        <button onclick="generateToken()">Generate Authentication Token</button>
+        <div id="tokenResult"></div>
+        <div class="hint">
+          <strong>💡 Hint:</strong> Tokens are generated using a time-based seed. Each token is unique but follows a mathematical pattern...
+        </div>
+      </div>
+
+      <!-- Token History -->
+      <div class="card">
+        <h2>📜 Token History</h2>
+        <button onclick="fetchTokenHistory()">View Recent Tokens</button>
+        <div id="tokenHistory"></div>
+        <div class="hint">
+          <strong>💡 Hint:</strong> Study the timestamps and token values. Can you detect a pattern? The seed values might be particularly revealing...
+        </div>
+      </div>
+
+      <!-- Admin Login -->
+      <div class="card">
+        <h2>🔐 Admin Login</h2>
+        <div class="form-group">
+          <label for="adminToken">Admin Token:</label>
+          <input type="text" id="adminToken" placeholder="VAN-XXXXXXXXXXXXXXXX">
+        </div>
+        <button onclick="adminLogin()">Authenticate as Admin</button>
+        <div id="loginResult"></div>
+        <div class="hint">
+          <strong>💡 Hint:</strong> You need a valid token to gain admin access. Try predicting the next token based on the history pattern!
+        </div>
+      </div>
+    </div>
+
+    <!-- Vault Access (hidden until authenticated) -->
+    <div id="vaultSection" style="display: none;">
+      <div class="card">
+        <h2>🏦 Treasury Vault</h2>
+        <button onclick="accessVault()">Access Vault</button>
+        <div id="vaultResult"></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card">
+      <h2>📊 Realm Statistics</h2>
+      <div id="stats"></div>
+    </div>
+  </div>
+
+  <script>
+    let sessionToken = null;
+
+    // Generate Token
+    async function generateToken() {
+      const userId = document.getElementById('userId').value.trim();
+      
+      if (!userId) {
+        showResult('tokenResult', 'Please enter a User ID', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/generate-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showResult('tokenResult', `
+            <div class="success">
+              <strong>✅ Token Generated Successfully!</strong>
+              <div class="token-item">
+                <div class="token-value">${data.token.value}</div>
+                <div class="token-meta">
+                  User: ${data.token.userId} | 
+                  Timestamp: ${data.token.timestamp} | 
+                  Time: ${new Date(data.token.timestamp).toLocaleTimeString()}
+                </div>
+              </div>
+              <p>${data.hint}</p>
+            </div>
+          `);
+        } else {
+          showResult('tokenResult', data.error, 'error');
+        }
+      } catch (error) {
+        showResult('tokenResult', 'Network error', 'error');
+      }
+    }
+
+    // Fetch Token History
+    async function fetchTokenHistory() {
+      try {
+        const response = await fetch('/api/token-history');
+        const data = await response.json();
+
+        if (data.success && data.tokens.length > 0) {
+          const html = `
+            <div class="success">
+              <strong>Total Tokens: ${data.count}</strong>
+              <div class="token-list">
+                ${data.tokens.map(token => `
+                  <div class="token-item">
+                    <div class="token-value">${token.value}</div>
+                    <div class="token-meta">
+                      User: ${token.userId} | 
+                      Timestamp: ${token.timestamp} | 
+                      Seed: ${token.seed}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+              <p style="margin-top: 1rem;"><em>${data.hint}</em></p>
+            </div>
+          `;
+          showResult('tokenHistory', html);
+        } else {
+          showResult('tokenHistory', 'No tokens generated yet. Generate some tokens first!', 'hint');
+        }
+      } catch (error) {
+        showResult('tokenHistory', 'Network error', 'error');
+      }
+    }
+
+    // Admin Login
+    async function adminLogin() {
+      const token = document.getElementById('adminToken').value.trim();
+      
+      if (!token) {
+        showResult('loginResult', 'Please enter a token', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/admin-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          sessionToken = data.sessionToken;
+          document.getElementById('vaultSection').style.display = 'block';
+          
+          showResult('loginResult', `
+            <div class="success">
+              <strong>✅ Authentication Successful!</strong>
+              <p>Welcome, ${data.user.userId}!</p>
+              <p>Role: ${data.user.role}</p>
+              <p>You now have access to the Treasury Vault below.</p>
+            </div>
+          `);
+        } else {
+          showResult('loginResult', `
+            <div class="error">
+              <strong>❌ Authentication Failed</strong>
+              <p>${data.error}</p>
+              <p><em>${data.hint}</em></p>
+            </div>
+          `);
+        }
+      } catch (error) {
+        showResult('loginResult', 'Network error', 'error');
+      }
+    }
+
+    // Access Vault
+    async function accessVault() {
+      if (!sessionToken) {
+        showResult('vaultResult', 'Please login first', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/vault', {
+          headers: { 'Authorization': `Bearer ${sessionToken}` }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showResult('vaultResult', `
+            <div class="flag-display">
+              <h3>🏆 Vault Unlocked!</h3>
+              <p><strong>Realm:</strong> ${data.vault.realm}</p>
+              <p><strong>Description:</strong> ${data.vault.description}</p>
+              <div style="margin-top: 1rem;">
+                <strong>FLAG:</strong>
+                <div class="flag-value">${data.vault.flag}</div>
+              </div>
+            </div>
+          `);
+        } else {
+          showResult('vaultResult', data.error, 'error');
+        }
+      } catch (error) {
+        showResult('vaultResult', 'Network error', 'error');
+      }
+    }
+
+    // Helper: Show Result
+    function showResult(elementId, message, type = '') {
+      const element = document.getElementById(elementId);
+      if (type === 'error') {
+        element.innerHTML = `<div class="error">${message}</div>`;
+      } else if (type === 'hint') {
+        element.innerHTML = `<div class="hint">${message}</div>`;
+      } else {
+        element.innerHTML = message;
+      }
+    }
+
+    // Load stats on page load
+    async function loadStats() {
+      try {
+        const response = await fetch('/api/stats');
+        const data = await response.json();
+        
+        if (data.success) {
+          document.getElementById('stats').innerHTML = `
+            <div class="stats">
+              <p><strong>Realm:</strong> ${data.stats.realm}</p>
+              <p><strong>Tokens Generated:</strong> ${data.stats.tokensGenerated}</p>
+              <p><strong>Vulnerability:</strong> ${data.stats.vulnerability}</p>
+              <p><strong>Description:</strong> ${data.stats.description}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Failed to load stats');
+      }
+    }
+
+    // Initialize
+    loadStats();
+  </script>
+</body>
+</html>

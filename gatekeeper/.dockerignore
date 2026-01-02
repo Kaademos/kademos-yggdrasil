@@ -1,0 +1,56 @@
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dependencies (will be installed in container)
+node_modules/
+npm-debug.log*
+package-lock.json.bak
+
+# Build artifacts (will be built in container)
+dist/
+coverage/
+.nyc_output/
+
+# Environment files
+.env
+.env.*
+
+# Testing
+tests/
+*.test.ts
+*.spec.ts
+test-results/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Frontend build artifacts (will be built in container)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# TypeScript
+*.tsbuildinfo

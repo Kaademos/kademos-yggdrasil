@@ -1,0 +1,342 @@
+version: 2.1
+
+jobs:
+  # ----------------------
+  # LINT JOB
+  # ----------------------
+  lint:
+    docker:
+      - image: cimg/node:20.17.0
+    working_directory: ~/project
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-npm-deps-{{ checksum "gatekeeper/package-lock.json" }}-{{ checksum "flag-oracle/package-lock.json" }}
+            - v1-npm-deps-
+
+      - run:
+          name: Install gatekeeper dependencies
+          command: |
+            cd gatekeeper
+            npm ci
+
+      - run:
+          name: Install flag-oracle dependencies
+          command: |
+            cd flag-oracle
+            npm ci
+
+      - save_cache:
+          key: v1-npm-deps-{{ checksum "gatekeeper/package-lock.json" }}-{{ checksum "flag-oracle/package-lock.json" }}
+          paths:
+            - gatekeeper/node_modules
+            - flag-oracle/node_modules
+
+      - run:
+          name: Lint gatekeeper
+          command: |
+            cd gatekeeper
+            npm run lint
+
+      - run:
+          name: Lint flag-oracle
+          command: |
+            cd flag-oracle
+            npm run lint
+
+      - run:
+          name: Check formatting (Prettier)
+          command: |
+            cd gatekeeper
+            npx prettier --check "src/**/*.ts"
+
+  # ----------------------
+  # UNIT TEST JOB
+  # ----------------------
+  test:
+    docker:
+      - image: cimg/node:20.17.0
+    working_directory: ~/project
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-npm-deps-{{ checksum "gatekeeper/package-lock.json" }}-{{ checksum "flag-oracle/package-lock.json" }}
+            - v1-npm-deps-
+
+      - run:
+          name: Install gatekeeper dependencies
+          command: |
+            cd gatekeeper
+            npm ci
+
+      - run:
+          name: Install flag-oracle dependencies
+          command: |
+            cd flag-oracle
+            npm ci
+
+      - run:
+          name: Test flag-oracle (with coverage)
+          command: |
+            cd flag-oracle
+            npm test -- --coverage
+
+      - run:
+          name: Test gatekeeper (with coverage)
+          command: |
+            cd gatekeeper
+            npm test -- --coverage
+
+      - store_artifacts:
+          path: flag-oracle/coverage
+          destination: flag-oracle-coverage
+
+      - store_artifacts:
+          path: gatekeeper/coverage
+          destination: gatekeeper-coverage
+
+      - run:
+          name: Upload coverage to Codecov
+          command: |
+            curl -s https://uploader.codecov.io/latest/linux/codecov -o /tmp/codecov
+            chmod +x /tmp/codecov
+            /tmp/codecov \
+              -f flag-oracle/coverage/lcov.info \
+              -f gatekeeper/coverage/lcov.info \
+              -F unittests \
+              -n codecov-umbrella
+
+  # ----------------------
+  # SECURITY JOB (M8 Enhanced: secrets + CI policy validation + npm audit)
+  # ----------------------
+  security:
+    docker:
+      - image: cimg/node:20.17.0
+    working_directory: ~/project
+
+    steps:
+      - checkout
+
+      - run:
+          name: Validate CI configuration (M8)
+          command: |
+            chmod +x ./scripts/validate-circleci.sh
+            ./scripts/validate-circleci.sh
+
+      - run:
+          name: Scan for secrets (M8 Enhanced Scanner)
+          command: |
+            chmod +x ./scripts/scan-secrets-enhanced.sh
+            ./scripts/scan-secrets-enhanced.sh
+
+      - run:
+          name: Audit dependencies (gatekeeper - non-blocking, complements Snyk)
+          command: |
+            cd gatekeeper
+            npm audit --audit-level=high || true
+
+      - run:
+          name: Audit dependencies (flag-oracle - non-blocking, complements Snyk)
+          command: |
+            cd flag-oracle
+            npm audit --audit-level=high || true
+
+  # ----------------------
+  # SNYK SECURITY GATE (blocking for Gatekeeper + Flag-Oracle)
+  # ----------------------
+  snyk-secure-core:
+    docker:
+      - image: cimg/node:20.17.0
+    working_directory: ~/project
+    # SNYK_TOKEN must be defined in CircleCI project settings
+    # The CLI will automatically use it for authentication
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install Snyk CLI
+          command: |
+            sudo npm install -g snyk
+
+      # --- Gatekeeper scans ---
+
+      - run:
+          name: Snyk Open Source (deps) - gatekeeper
+          command: |
+            cd gatekeeper
+            snyk test --severity-threshold=high
+
+      - run:
+          name: Snyk Code (SAST) - gatekeeper
+          command: |
+            cd gatekeeper
+            # Exclude test data files that contain intentional weak credentials for CTF
+            snyk code test --severity-threshold=high --exclude=src/repositories/user-repository.ts,src/config/index.ts
+
+      # --- Flag-Oracle scans ---
+
+      - run:
+          name: Snyk Open Source (deps) - flag-oracle
+          command: |
+            cd flag-oracle
+            snyk test --severity-threshold=high
+
+      - run:
+          name: Snyk Code (SAST) - flag-oracle
+          command: |
+            cd flag-oracle
+            # Exclude test data files that contain intentional example flags for CTF
+            snyk code test --severity-threshold=high --exclude=src/repositories/flag-repository.ts
+
+      # Optional: send snapshots to Snyk UI (non-blocking)
+      - run:
+          name: Snyk monitor snapshots (non-blocking)
+          command: |
+            set +e
+            cd gatekeeper
+            snyk monitor || echo "Snyk monitor failed for gatekeeper (non-blocking)."
+            cd ../flag-oracle
+            snyk monitor || echo "Snyk monitor failed for flag-oracle (non-blocking)."
+
+  # ----------------------
+  # BUILD + INTEGRATION / E2E JOB
+  # ----------------------
+  build-and-integration:
+    machine:
+      image: ubuntu-2204:current
+    working_directory: ~/project
+
+    steps:
+      - checkout
+
+      - run:
+          name: Create .env from example
+          command: |
+            if [ -f .env.example ]; then
+              cp .env.example .env
+            else
+              echo ".env.example not found" >&2
+              exit 1
+            fi
+
+      - run:
+          name: Build Docker images
+          command: docker-compose build
+
+      - run:
+          name: Start services
+          command: docker-compose up -d
+
+      - run:
+          name: Wait for services to be ready
+          command: sleep 30
+
+      - run:
+          name: Check service health
+          command: |
+            set -e
+            docker-compose ps
+            curl -f http://localhost:8080/health || (docker-compose logs && exit 1)
+            echo "Gatekeeper is healthy - all dependent services are operational"
+
+      - run:
+          name: Run smoke tests
+          command: |
+            chmod +x ./scripts/smoke-test.sh
+            ./scripts/smoke-test.sh
+
+      - run:
+          name: Install Playwright
+          command: |
+            npm install -D @playwright/test
+            # Set environment to avoid interactive prompts and service restarts
+            export DEBIAN_FRONTEND=noninteractive
+            export NEEDRESTART_MODE=a
+            export NEEDRESTART_SUSPEND=1
+            # Install system dependencies non-interactively (skip service restarts)
+            # Use full path to npx with sudo
+            sudo -E bash -c "export PATH=$PATH && $(which npx) playwright install-deps chromium"
+            # Install Playwright browsers
+            npx playwright install chromium
+
+      - run:
+          name: Run security header tests (Playwright)
+          command: |
+            npx playwright test tests/security/headers.spec.ts --reporter=list
+
+      - run:
+          name: Run rate limiting tests (Playwright)
+          command: |
+            npx playwright test tests/security/rate-limiting.spec.ts --reporter=list
+
+      - run:
+          name: Realm vulnerability regression checks (non-blocking)
+          command: |
+            if [ -x ./scripts/verify-realms.sh ]; then
+              echo "Running realm vulnerability regression checks..."
+              ./scripts/verify-realms.sh || echo "Realm regression checks FAILED (non-blocking) – investigate but pipeline continues."
+            else
+              echo "No ./scripts/verify-realms.sh found – skipping realm regression checks."
+            fi
+
+      - run:
+          name: Cleanup Docker resources
+          when: always
+          command: docker-compose down -v
+
+workflows:
+  version: 2
+
+  build-and-test:
+    jobs:
+      - lint:
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+
+      - test:
+          requires:
+            - lint
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+
+      - security:
+          requires:
+            - lint
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+
+      - snyk-secure-core:
+          requires:
+            - lint
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+
+      - build-and-integration:
+          requires:
+            - test
+            - security
+            - snyk-secure-core
+          filters:
+            branches:
+              only:
+                - main
+                - develop

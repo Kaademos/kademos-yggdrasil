@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Midgard - Package Marketplace</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #2196F3 0%, #1976D2 50%, #0D47A1 100%);
+      color: #E3F2FD;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 2rem;
+      background: linear-gradient(135deg, #795548 0%, #5D4037 100%);
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(121, 85, 72, 0.3);
+    }
+    h1 { font-size: 2.5rem; color: #FFEB3B; margin-bottom: 0.5rem; }
+    .owasp-badge {
+      display: inline-block;
+      background: #D32F2F;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 2px solid #2196F3;
+      border-radius: 15px;
+      padding: 1.5rem;
+    }
+    .card h2 { color: #64B5F6; margin-bottom: 1rem; border-bottom: 2px solid #2196F3; padding-bottom: 0.5rem; }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    button:hover { transform: translateY(-2px); }
+    .package-item {
+      background: rgba(33, 150, 243, 0.1);
+      border: 1px solid #2196F3;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.8rem; font-weight: bold; }
+    .badge.public { background: #FF9800; color: white; }
+    .badge.private { background: #4CAF50; color: white; }
+    .hint { background: rgba(255, 193, 7, 0.2); border-left: 4px solid #FFC107; padding: 1rem; margin-top: 1rem; border-radius: 5px; }
+    input { width: 100%; padding: 0.75rem; border: 2px solid #2196F3; border-radius: 8px; background: rgba(255, 255, 255, 0.9); color: #0D47A1; margin-bottom: 1rem; }
+    .success { background: rgba(76, 175, 80, 0.2); border-left: 4px solid #4CAF50; padding: 1rem; margin-top: 1rem; border-radius: 5px; }
+    .error { background: rgba(244, 67, 54, 0.2); border-left: 4px solid #F44336; padding: 1rem; margin-top: 1rem; border-radius: 5px; }
+    .flag { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border: 3px solid #FF6F00; border-radius: 15px; padding: 2rem; text-align: center; margin-top: 1rem; }
+    .flag h3 { color: #3E2723; font-size: 1.5rem; margin-bottom: 1rem; }
+    .flag-value { font-family: monospace; font-size: 1.2rem; color: #BF360C; font-weight: bold; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌍 MIDGARD</h1>
+      <p>Human Realm Package Marketplace</p>
+      <span class="owasp-badge">OWASP A03:2025 - Supply Chain Failures</span>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h2>📦 Package Registry</h2>
+        <button onclick="listPackages()">View Available Packages</button>
+        <div id="packageList"></div>
+        <div class="hint"><strong>💡 Hint:</strong> Notice the naming similarities between public and private packages. What happens if you install the wrong one?</div>
+      </div>
+
+      <div class="card">
+        <h2>⬇️ Install Package</h2>
+        <input type="text" id="packageName" placeholder="e.g., midgard-ui-kit or @midgard/ui-kit">
+        <button onclick="installPackage()">Install Package</button>
+        <div id="installResult"></div>
+        <div class="hint"><strong>💡 Hint:</strong> Try installing "midgard-ui-kit" (without @midgard/ scope). Which registry does it come from?</div>
+      </div>
+
+      <div class="card">
+        <h2>⚙️ Execute Package Function</h2>
+        <input type="text" id="execPackage" placeholder="Package name">
+        <input type="text" id="execFunction" placeholder="Function name (e.g., getSecretConfig)">
+        <button onclick="executeFunction()">Execute</button>
+        <div id="execResult"></div>
+        <div class="hint"><strong>💡 Hint:</strong> If you installed the malicious package, try calling "getSecretConfig" function...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function listPackages() {
+      try {
+        const res = await fetch('/api/packages');
+        const data = await res.json();
+        
+        if (data.success) {
+          const html = `
+            <div class="success">
+              <h4>Private Packages (Internal):</h4>
+              ${data.packages.private.map(p => `
+                <div class="package-item">
+                  <strong>${p.name}</strong> <span class="badge private">PRIVATE</span><br>
+                  <small>${p.description}</small>
+                </div>
+              `).join('')}
+              <h4 style="margin-top:1rem;">Public Packages (npm):</h4>
+              ${data.packages.public.map(p => `
+                <div class="package-item">
+                  <strong>${p.name}</strong> <span class="badge public">PUBLIC</span><br>
+                  <small>${p.description}</small>
+                </div>
+              `).join('')}
+              <p style="margin-top:1rem;"><em>${data.hint}</em></p>
+            </div>
+          `;
+          document.getElementById('packageList').innerHTML = html;
+        }
+      } catch (error) {
+        document.getElementById('packageList').innerHTML = '<div class="error">Failed to load packages</div>';
+      }
+    }
+
+    async function installPackage() {
+      const packageName = document.getElementById('packageName').value.trim();
+      if (!packageName) return alert('Enter package name');
+
+      try {
+        const res = await fetch('/api/install', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ packageName })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          document.getElementById('installResult').innerHTML = `
+            <div class="success">
+              <strong>✅ ${data.message}</strong><br>
+              Registry: <span class="badge ${data.package.registry}">${data.package.registry.toUpperCase()}</span><br>
+              ${data.warning ? `<p style="color:#FF9800;margin-top:0.5rem;">⚠️ ${data.warning}</p>` : ''}
+            </div>
+          `;
+        } else {
+          document.getElementById('installResult').innerHTML = `<div class="error">${data.error}</div>`;
+        }
+      } catch (error) {
+        document.getElementById('installResult').innerHTML = '<div class="error">Installation failed</div>';
+      }
+    }
+
+    async function executeFunction() {
+      const packageName = document.getElementById('execPackage').value.trim();
+      const functionName = document.getElementById('execFunction').value.trim();
+      if (!packageName || !functionName) return alert('Enter both package and function name');
+
+      try {
+        const res = await fetch('/api/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ packageName, functionName })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          if (data.result.backdoor) {
+            document.getElementById('execResult').innerHTML = `
+              <div class="flag">
+                <h3>🚨 MALICIOUS CODE EXECUTED!</h3>
+                <p><strong>Attack:</strong> ${data.result.attacker}</p>
+                <p><strong>Message:</strong> ${data.result.message}</p>
+                <div style="margin-top:1rem;"><strong>FLAG:</strong></div>
+                <div class="flag-value">${data.result.flag}</div>
+                ${data.warning ? `<p style="margin-top:1rem;color:#D32F2F;">${data.warning}</p>` : ''}
+              </div>
+            `;
+          } else {
+            document.getElementById('execResult').innerHTML = `<div class="success">Result: ${JSON.stringify(data.result)}</div>`;
+          }
+        } else {
+          document.getElementById('execResult').innerHTML = `<div class="error">${data.error}</div>`;
+        }
+      } catch (error) {
+        document.getElementById('execResult').innerHTML = '<div class="error">Execution failed</div>';
+      }
+    }
+  </script>
+</body>
+</html>

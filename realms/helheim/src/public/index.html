@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Helheim Memorial - Yggdrasil</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      background: linear-gradient(180deg, #0a0a0a 0%, #1a0f1f 50%, #0d0a0f 100%);
+      color: #b8a8c8;
+      min-height: 100vh;
+      padding: 2rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(167, 139, 250, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 2px solid rgba(139, 92, 246, 0.2);
+    }
+
+    h1 {
+      font-size: 3rem;
+      color: #a78bfa;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+      font-weight: normal;
+    }
+
+    .subtitle {
+      color: #9ca3af;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      font-style: italic;
+    }
+
+    .system-status {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .status-light {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-text {
+      color: #9ca3af;
+      font-size: 0.9rem;
+    }
+
+    .hint-box {
+      background: rgba(139, 92, 246, 0.1);
+      border-left: 3px solid #a78bfa;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      color: #d1c4e3;
+    }
+
+    .hint-box strong {
+      color: #a78bfa;
+    }
+
+    .memorials-section {
+      margin-bottom: 3rem;
+    }
+
+    .section-title {
+      color: #a78bfa;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: normal;
+    }
+
+    .memorials-list {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: 8px;
+      padding: 1.5rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .memorial-item {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 2px solid rgba(139, 92, 246, 0.3);
+      border-radius: 4px;
+    }
+
+    .memorial-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .memorial-name {
+      color: #a78bfa;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .memorial-message {
+      color: #d1c4e3;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .memorial-time {
+      color: #6b7280;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+    }
+
+    .create-memorial {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: 8px;
+      padding: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      color: #a78bfa;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    input, textarea {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 4px;
+      padding: 0.75rem;
+      color: #d1c4e3;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #a78bfa;
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-family: 'Georgia', 'Times New Roman', serif;
+    }
+
+    button {
+      background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+      border: 1px solid rgba(139, 92, 246, 0.5);
+      border-radius: 4px;
+      padding: 0.75rem 2rem;
+      color: #fff;
+      font-family: inherit;
+      font-size: 1rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .response {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .response.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      display: block;
+    }
+
+    .response.success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #86efac;
+      display: block;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(139, 92, 246, 0.2);
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: #a78bfa;
+      text-decoration: none;
+      margin: 0 0.5rem;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 92, 246, 0.3);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(139, 92, 246, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔥 Helheim</h1>
+      <div class="subtitle">Memorial of the Fallen - Realm 9</div>
+    </div>
+
+    <div class="system-status">
+      <div class="status-indicator">
+        <div class="status-light"></div>
+        <div class="status-text">System Status: <strong style="color: #22c55e;">Operational</strong></div>
+      </div>
+      <div class="status-text">Monitoring: <strong>Active</strong></div>
+    </div>
+
+    <div class="hint-box">
+      💀 <strong>Notice:</strong> All memorial submissions are logged for moderation. System errors are recorded in /temp_logs/ for administrative review.
+    </div>
+
+    <div class="memorials-section">
+      <h2 class="section-title">Recent Memorials</h2>
+      <div class="memorials-list" id="memorials-list">
+        <div class="memorial-item">
+          <div class="memorial-name">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="create-memorial">
+      <h2 class="section-title">Create Memorial</h2>
+      <form id="memorial-form">
+        <div class="form-group">
+          <label for="name">Your Name</label>
+          <input type="text" id="name" name="name" placeholder="Enter your name" maxlength="100">
+        </div>
+        <div class="form-group">
+          <label for="message">Memorial Message</label>
+          <textarea id="message" name="message" placeholder="Write your memorial message..." maxlength="500"></textarea>
+        </div>
+        <button type="submit">Submit Memorial</button>
+        <div id="response" class="response"></div>
+      </form>
+    </div>
+
+    <div class="footer">
+      Helheim Memorial Forum v1.2.0 
+      <span>|</span>
+      <a href="/api/system-status">System Status</a>
+      <span>|</span>
+      <a href="/temp_logs/">System Logs</a>
+    </div>
+  </div>
+
+  <script>
+    const memorialsListDiv = document.getElementById('memorials-list');
+    const memorialForm = document.getElementById('memorial-form');
+    const responseDiv = document.getElementById('response');
+
+    async function loadMemorials() {
+      try {
+        const response = await fetch('/api/memorials');
+        const data = await response.json();
+        
+        if (data.memorials && data.memorials.length > 0) {
+          memorialsListDiv.innerHTML = data.memorials.map(m => `
+            <div class="memorial-item">
+              <div class="memorial-name">${m.name}</div>
+              <div class="memorial-message">${m.message}</div>
+              <div class="memorial-time">${new Date(m.timestamp).toLocaleString()}</div>
+            </div>
+          `).join('');
+        } else {
+          memorialsListDiv.innerHTML = '<div class="memorial-item"><div class="memorial-name">No memorials yet</div></div>';
+        }
+      } catch (error) {
+        console.error('Failed to load memorials:', error);
+      }
+    }
+
+    memorialForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      responseDiv.style.display = 'none';
+
+      const name = document.getElementById('name').value;
+      const message = document.getElementById('message').value;
+
+      try {
+        const response = await fetch('/api/memorial', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, message }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          responseDiv.className = 'response success';
+          responseDiv.textContent = data.message || 'Memorial created successfully';
+          responseDiv.style.display = 'block';
+          
+          memorialForm.reset();
+          
+          setTimeout(() => {
+            loadMemorials();
+            responseDiv.style.display = 'none';
+          }, 2000);
+        } else {
+          responseDiv.className = 'response error';
+          responseDiv.textContent = data.message || data.error || 'Failed to create memorial';
+          responseDiv.style.display = 'block';
+        }
+      } catch (error) {
+        responseDiv.className = 'response error';
+        responseDiv.textContent = 'Network error: ' + error.message;
+        responseDiv.style.display = 'block';
+      }
+    });
+
+    loadMemorials();
+  </script>
+</body>
+</html>

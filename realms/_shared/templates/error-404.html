@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" data-realm="{REALM_NAME}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - Not Found | {REALM_NAME}</title>
+  <link rel="stylesheet" href="/_shared/styles/theme-variables.css">
+  <link rel="stylesheet" href="/_shared/styles/error-pages.css">
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body class="error-page">
+  <div class="error-container">
+    <div class="error-header">
+      <div class="error-code">404</div>
+      <h1 class="error-title">Resource Not Found</h1>
+    </div>
+    
+    <div class="error-content">
+      <p class="error-description">
+        The resource you requested could not be found. 
+        This path does not exist in the {REALM_NAME} realm.
+      </p>
+      
+      <div class="error-visual">
+        <div class="error-icon">🔍</div>
+      </div>
+      
+      <div class="error-actions">
+        <a href="/" class="btn btn-primary">Return Home</a>
+        <a href="/realms" class="btn btn-secondary">View Realms</a>
+      </div>
+    </div>
+  </div>
+  
+  <!-- INSTRUCTOR: Error tracking ID for debugging -->
+  <!-- SPOILER: Check server logs for request details -->
+</body>
+</html>

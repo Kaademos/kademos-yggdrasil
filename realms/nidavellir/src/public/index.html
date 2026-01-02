@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-realm="nidavellir">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nidavellir - Dwarven Forge Artifact Catalog</title>
+    <link rel="stylesheet" href="/css/theme.css">
+            box-shadow: 0 2px 8px rgba(126, 211, 33, 0.4);
+        }
+
+        .rarity.common {
+            background: linear-gradient(135deg, #9b9b9b 0%, #7a7a7a 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(155, 155, 155, 0.3);
+        }
+
+        .message {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.success {
+            background: rgba(76, 175, 80, 0.15);
+            border: 2px solid #4caf50;
+            color: #4caf50;
+        }
+
+        .message.error {
+            background: rgba(244, 67, 54, 0.15);
+            border: 2px solid #f44336;
+            color: #ff6b6b;
+        }
+
+        .message pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 0.75rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+            color: #ffcccc;
+            font-size: 0.9rem;
+        }
+
+        .info-panel {
+            background: var(--forge-stone);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid var(--forge-iron);
+            margin-top: 2rem;
+        }
+
+        .info-panel h2 {
+            color: var(--forge-gold);
+            margin-bottom: 1rem;
+        }
+
+        .info-panel p {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+
+        .info-panel strong {
+            color: #cd7f32;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--forge-gold);
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="forge-container">
+        <header class="forge-header">
+            <h1>🔨 NIDAVELLIR 🔨</h1>
+            <p class="subtitle">Dwarven Forge - Artifact Catalog Search Console</p>
+        </header>
+
+        <div class="search-panel">
+            <h2>🔍 Search Forge Artifacts</h2>
+            <form class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    name="query"
+                    placeholder="Search by name, description, or forge master..." 
+                    value="sword"
+                    autocomplete="off"
+                >
+                <button type="submit">Search</button>
+            </form>
+
+            <div class="hint-box">
+                <strong>💡 SQL Injection Challenge:</strong>
+                <p>The search endpoint is vulnerable to UNION-based SQL injection.</p>
+                <p>Try these payloads:</p>
+                <ul style="margin-left: 2rem; margin-top: 0.5rem;">
+                    <li><code>' OR '1'='1</code> - Basic SQLi test</li>
+                    <li><code>' ORDER BY 7--</code> - Find column count (try 1-10)</li>
+                    <li><code>' UNION SELECT NULL,NULL,NULL,NULL,NULL,NULL,NULL--</code> - UNION template</li>
+                    <li><code>' UNION SELECT id,realm,access_code,security_level,NULL,NULL,NULL FROM secrets--</code> - Extract flag!</li>
+                </ul>
+            </div>
+
+            <div id="message"></div>
+        </div>
+
+        <div id="loading" class="loading hidden">
+            ⚙️ Searching the forge archives...
+        </div>
+
+        <div id="results" class="results-grid"></div>
+
+        <div class="info-panel">
+            <h2>ℹ️ Challenge Information</h2>
+            <p><strong>Realm:</strong> Nidavellir (Level: 5)</p>
+            <p><strong>Category:</strong> OWASP A03:2025 - Injection</p>
+            <p><strong>Vulnerability:</strong> UNION-based SQL Injection in search query</p>
+            <p><strong>Objective:</strong> Use UNION SELECT to extract the flag from the secrets table</p>
+            <p><strong>Learning Goals:</strong> Multi-step SQLi, schema enumeration, UNION queries</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        // Search artifacts
+        async function search(event) {
+            if (event) event.preventDefault();
+            
+            const query = document.getElementById('searchInput').value;
+            const messageDiv = document.getElementById('message');
+            const resultsDiv = document.getElementById('results');
+            const loadingDiv = document.getElementById('loading');
+
+            // Show loading
+            loadingDiv.classList.remove('hidden');
+            resultsDiv.innerHTML = '';
+            messageDiv.innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_BASE}/search?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                // Hide loading
+                loadingDiv.classList.add('hidden');
+
+                if (data.success) {
+                    showSuccess(`Found ${data.count} result(s) for "${data.query}"`);
+                    displayArtifacts(data.artifacts);
+                } else {
+                    // SQL error - show detailed error for learning
+                    showError(data, query);
+                }
+            } catch (error) {
+                loadingDiv.classList.add('hidden');
+                showMessage('Network error occurred', 'error');
+            }
+        }
+
+        // Display artifacts in grid
+        function displayArtifacts(artifacts) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (artifacts.length === 0) {
+                resultsDiv.innerHTML = '<p style="text-align:center; color: var(--forge-text);">No artifacts found.</p>';
+                return;
+            }
+
+            resultsDiv.innerHTML = artifacts.map(artifact => {
+                const hasFlag = JSON.stringify(artifact).toLowerCase().includes('yggdrasil{');
+                const cardClass = hasFlag ? 'artifact-card flag-card' : 'artifact-card';
+                
+                return `
+                    <div class="${cardClass}">
+                        ${hasFlag ? '<div style="color: var(--forge-fire); font-weight: bold; margin-bottom: 0.5rem;">🚩 FLAG FOUND!</div>' : ''}
+                        <h3>${escapeHtml(artifact.name || 'Unknown')}</h3>
+                        ${artifact.rarity ? `<div class="property"><span class="rarity ${(artifact.rarity || '').toLowerCase()}">${artifact.rarity}</span></div>` : ''}
+                        ${artifact.description ? `<div class="property"><span class="property-label">Description:</span> ${escapeHtml(artifact.description)}</div>` : ''}
+                        ${artifact.forgeMaster ? `<div class="property"><span class="property-label">Forge Master:</span> ${escapeHtml(artifact.forgeMaster)}</div>` : ''}
+                        ${artifact.material ? `<div class="property"><span class="property-label">Material:</span> ${escapeHtml(artifact.material)}</div>` : ''}
+                        ${artifact.forgeDate ? `<div class="property"><span class="property-label">Forged:</span> ${artifact.forgeDate}</div>` : ''}
+                        ${artifact.id ? `<div class="property" style="margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.7;"><span class="property-label">ID:</span> ${artifact.id}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="message success">${escapeHtml(message)}</div>`;
+        }
+
+        // Show SQL error with details (educational)
+        function showError(data, query) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `
+                <div class="message error">
+                    <strong>❌ ${data.error}</strong>
+                    ${data.details ? `<pre>${escapeHtml(data.details)}</pre>` : ''}
+                    ${data.hint ? `<p style="margin-top: 0.5rem;"><strong>Hint:</strong> ${escapeHtml(data.hint)}</p>` : ''}
+                    ${data.sqlState ? `<p style="font-size: 0.9rem; margin-top: 0.5rem;">SQL State: ${data.sqlState}</p>` : ''}
+                    ${data.query ? `<p style="font-size: 0.9rem;">Query: <code>${escapeHtml(data.query)}</code></p>` : ''}
+                </div>
+            `;
+        }
+
+        // Show generic message
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="message ${type}">${escapeHtml(text)}</div>`;
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Event listeners
+        document.getElementById('searchForm').addEventListener('submit', search);
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') search(e);
+        });
+
+        // Load initial search on page load
+        window.addEventListener('load', () => {
+            search();
+        });
+    </script>
+</body>
+</html>
