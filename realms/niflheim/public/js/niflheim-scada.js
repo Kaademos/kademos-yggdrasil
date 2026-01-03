@@ -68,7 +68,7 @@ async function handleRegulation(event) {
   button.textContent = 'REGULATING...';
 
   try {
-    const response = await fetch('/api/regulate', {
+    const response = await fetch('api/regulate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -98,7 +98,7 @@ async function handleRegulation(event) {
  */
 async function fetchSystemStatus() {
   try {
-    const response = await fetch('/api/status');
+    const response = await fetch('api/status');
     if (response.ok) {
       const status = await response.json();
       updateSystemState(status);
@@ -200,7 +200,7 @@ function showError(message) {
  */
 async function viewConfig(filename) {
   try {
-    const response = await fetch(`/api/config/${filename}`);
+    const response = await fetch(`api/config/${filename}`);
     if (response.ok) {
       const content = await response.text();
       
@@ -244,7 +244,7 @@ function showCrashModal(crashData) {
  */
 async function downloadCrashReport(reportId) {
   try {
-    const response = await fetch(`/api/crash-report/${reportId}`);
+    const response = await fetch(`api/crash-report/${reportId}`);
     if (response.ok) {
       const data = await response.json();
       

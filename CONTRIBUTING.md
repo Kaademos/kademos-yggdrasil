@@ -55,15 +55,14 @@ cd project_yggdrasil
 # Add upstream remote
 git remote add upstream https://github.com/ORIGINAL_OWNER/project_yggdrasil.git
 
-# Install dependencies
-make install
-
-# Start platform
-make up
+# Single command to setup AND start everything
+make yggdrasil
 
 # Run tests
 make test
 ```
+
+> **Alternative:** You can also run `make setup` then `make up` separately if you prefer.
 
 ---
 

@@ -34,6 +34,33 @@ describe('ProgressionService', () => {
       expect(canAccess).toBe(true);
     });
 
+    it('should allow access to NIFLHEIM realm always (entry realm)', async () => {
+      mockProgressionClient.getProgression.mockResolvedValue({
+        userId: 'user1',
+        unlockedRealms: [],
+        flags: [],
+        lastUpdated: new Date().toISOString(),
+      });
+
+      const canAccess = await progressionService.canAccessRealm(
+        'user1',
+        'niflheim'
+      );
+      expect(canAccess).toBe(true);
+    });
+
+    it('should allow anonymous session access to niflheim', async () => {
+      // Simulate anonymous user with session ID
+      const sessionId = 'anon-session-abc123';
+      mockProgressionClient.getProgression.mockResolvedValue(null);
+
+      const canAccess = await progressionService.canAccessRealm(
+        sessionId,
+        'niflheim'
+      );
+      expect(canAccess).toBe(true);
+    });
+
     it('should allow access to unlocked realm', async () => {
       mockProgressionClient.getProgression.mockResolvedValue({
         userId: 'user1',

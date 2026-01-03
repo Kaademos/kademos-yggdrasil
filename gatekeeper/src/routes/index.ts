@@ -139,6 +139,15 @@ export function createRoutes(
       },
     });
 
+    // Redirect to trailing slash for base realm URL (ensures relative paths work)
+    router.get(`/realms/${realm.name}`, (req: Request, res: Response, next) => {
+      // Only redirect if there's no trailing slash
+      if (req.originalUrl === `/realms/${realm.name}`) {
+        return res.redirect(301, `/realms/${realm.name}/`);
+      }
+      next();
+    });
+
     // Realms are accessible to everyone - use session for progression tracking
     router.use(
       `/realms/${realm.name}`,

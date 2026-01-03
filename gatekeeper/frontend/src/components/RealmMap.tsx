@@ -51,22 +51,22 @@ export const RealmMap: React.FC = () => {
 
         {/* Realm Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {sortedRealms.map((realm) => (
-            <div
-              key={realm.name}
-              className={`group relative rounded-lg overflow-hidden border-2 transition-all duration-300
-                ${realm.locked 
-                  ? 'border-red-900/50 opacity-60 grayscale hover:grayscale-0' 
-                  : 'border-green-500/50 hover:border-green-400 hover:scale-105'
-                }
-                ${!realm.locked && 'animate-pulse hover:animate-none'}
-              `}
-              style={{
-                boxShadow: realm.locked 
-                  ? '0 0 10px rgba(127, 29, 29, 0.3)' 
-                  : '0 0 20px rgba(34, 197, 94, 0.4)',
-              }}
-            >
+          {sortedRealms.map((realm) => {
+            const cardClasses = `group relative rounded-lg overflow-hidden border-2 transition-all duration-300
+              ${realm.locked 
+                ? 'border-red-900/50 opacity-60 grayscale hover:grayscale-0 cursor-not-allowed' 
+                : 'border-green-500/50 hover:border-green-400 hover:scale-105 cursor-pointer'
+              }
+              ${!realm.locked && 'animate-pulse hover:animate-none'}
+            `;
+            const cardStyle = {
+              boxShadow: realm.locked 
+                ? '0 0 10px rgba(127, 29, 29, 0.3)' 
+                : '0 0 20px rgba(34, 197, 94, 0.4)',
+            };
+
+            const cardContent = (
+              <>
               {/* Realm Image Placeholder */}
               <div 
                 className="h-48 bg-gradient-to-br flex items-center justify-center"
@@ -109,8 +109,25 @@ export const RealmMap: React.FC = () => {
                   {realm.theme.category}
                 </p>
               </div>
-            </div>
-          ))}
+              </>
+            );
+
+            // Render clickable link for unlocked realms, div for locked
+            return realm.locked ? (
+              <div key={realm.name} className={cardClasses} style={cardStyle}>
+                {cardContent}
+              </div>
+            ) : (
+              <a
+                key={realm.name}
+                href={`/realms/${realm.name}/`}
+                className={cardClasses}
+                style={cardStyle}
+              >
+                {cardContent}
+              </a>
+            );
+          })}
         </div>
 
         {/* Entry Point Hint */}

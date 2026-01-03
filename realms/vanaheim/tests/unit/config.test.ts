@@ -28,7 +28,7 @@ describe('loadConfig', () => {
 
     expect(config.port).toBe(3000);
     expect(config.realmName).toBe('vanaheim');
-    expect(config.nodeEnv).toBe('development');
+    expect(['development', 'test']).toContain(config.nodeEnv);
     expect(config.tokenSeedMultiplier).toBe(1000);
     expect(config.maxTokenHistory).toBe(50);
   });

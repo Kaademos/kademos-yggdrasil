@@ -211,8 +211,11 @@ grep "FLAG=" .env | wc -l
 ### Service Startup
 
 ```bash
-# 1. Start platform
-make up
+# 1. Start platform (single command for setup + start)
+make yggdrasil
+
+# Or if already setup:
+# make up
 
 # 2. Wait for healthy services
 sleep 15
@@ -397,7 +400,7 @@ make up
 
 **Next Steps:**
 1. Initialize git repository (if desired): `git init`
-2. Start services: `make up`
+2. Start services: `make yggdrasil` (or `make up` if already setup)
 3. Begin manual testing: `open http://localhost:8080/`
 4. Explore realms: Start with Niflheim (Realm 10)
 

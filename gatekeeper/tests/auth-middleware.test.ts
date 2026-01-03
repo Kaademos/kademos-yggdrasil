@@ -17,6 +17,7 @@ describe('Auth Middleware', () => {
 
     mockReq = {
       session: {} as any,
+      sessionID: 'test-session-id',
       path: '/test',
       ip: '127.0.0.1',
     };
@@ -164,6 +165,102 @@ describe('Auth Middleware', () => {
 
       expect(nextFn).toHaveBeenCalled();
       expect(mockReq.user).toBeUndefined();
+    });
+  });
+
+  describe('ensureSession', () => {
+    it('should call next() for anonymous user with session', async () => {
+      mockReq.session = {} as any;
+      mockReq.sessionID = 'anon-session-123';
+
+      await middleware.ensureSession(
+        mockReq as Request,
+        mockRes as Response,
+        nextFn
+      );
+
+      expect(nextFn).toHaveBeenCalled();
+      expect(mockReq.user).toBeUndefined();
+    });
+
+    it('should attach user if logged in', async () => {
+      const user = await userRepository.create('testuser', 'password123');
+      mockReq.session = { userId: user.id } as any;
+      mockReq.sessionID = 'logged-in-session';
+
+      await middleware.ensureSession(
+        mockReq as Request,
+        mockRes as Response,
+        nextFn
+      );
+
+      expect(nextFn).toHaveBeenCalled();
+      expect(mockReq.user).toBeTruthy();
+      expect(mockReq.user?.id).toBe(user.id);
+    });
+
+    it('should call next() without user if userId invalid', async () => {
+      mockReq.session = { userId: 'invalid-id' } as any;
+      mockReq.sessionID = 'session-with-invalid-user';
+
+      await middleware.ensureSession(
+        mockReq as Request,
+        mockRes as Response,
+        nextFn
+      );
+
+      expect(nextFn).toHaveBeenCalled();
+      expect(mockReq.user).toBeUndefined();
+    });
+
+    it('should return 500 if no session', async () => {
+      mockReq.session = undefined as any;
+
+      await middleware.ensureSession(
+        mockReq as Request,
+        mockRes as Response,
+        nextFn
+      );
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Session initialization failed',
+      });
+      expect(nextFn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('requireAdmin', () => {
+    it('should call next() for authenticated admin', async () => {
+      const user = await userRepository.create('admin', 'password123');
+      mockReq.session = { userId: user.id } as any;
+
+      await middleware.requireAdmin(
+        mockReq as Request,
+        mockRes as Response,
+        nextFn
+      );
+
+      expect(nextFn).toHaveBeenCalled();
+      expect(mockReq.user?.id).toBe(user.id);
+    });
+
+    it('should return 401 for unauthenticated request', async () => {
+      mockReq.session = {} as any;
+
+      await middleware.requireAdmin(
+        mockReq as Request,
+        mockRes as Response,
+        nextFn
+      );
+
+      expect(mockRes.status).toHaveBeenCalledWith(401);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Admin authentication required',
+      });
+      expect(nextFn).not.toHaveBeenCalled();
     });
   });
 });
