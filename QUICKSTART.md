@@ -13,30 +13,38 @@
 git clone <your-repo-url>
 cd project_yggdrasil
 
-# One-command setup (creates .env with secrets, installs dependencies)
-make setup
-
-# Start all services
-make up
+# Single command to setup AND start everything
+make yggdrasil
 ```
 
 **That's it!** The platform is now running.
+
+> **Note:** This single command handles environment generation, dependency installation, and startup.
+> 
+> **Alternative:** You can also run `make setup` then `make up` separately if you prefer.
 
 ---
 
 ## 2️⃣ Access the Platform
 
-After `make up`, you'll see:
+After startup, you'll see:
 
+**Community Edition (default):**
 ```
 ════════════════════════════════════════════════════════════════
 ✅ Project Yggdrasil is running!
 ════════════════════════════════════════════════════════════════
 
 🌐 Landing Page:  http://localhost:8080/
-🔐 Login:         http://localhost:8080/login
 🏥 Health Check:  http://localhost:8080/health
+
+💡 Quick Start:
+   1. Visit http://localhost:8080/ to see the landing page
+   2. Click 'INITIATE ASCENSION' to begin
+════════════════════════════════════════════════════════════════
 ```
+
+> **Enterprise Edition:** Set `YGGDRASIL_EDITION=enterprise` in `.env` to see additional features like Login page and Observability stack URLs.
 
 ### Try It Out
 
@@ -85,6 +93,7 @@ This shows:
 | Command | Description |
 |---------|-------------|
 | `make help` | Show all available commands |
+| `make yggdrasil` | One command to setup AND start everything |
 | `make up` | Start all services |
 | `make down` | Stop all services |
 | `make logs` | View live logs |

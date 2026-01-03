@@ -63,7 +63,7 @@ describe('AuthService', () => {
     });
 
     it('should return false for null session', () => {
-      expect(authService.isAuthenticated(null)).toBe(false);
+      expect(authService.isAuthenticated(null as any)).toBe(false);
     });
   });
 

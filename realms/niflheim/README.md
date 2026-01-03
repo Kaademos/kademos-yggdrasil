@@ -260,7 +260,7 @@ Tests cover:
 Integration tests verify the exploit path and require running services:
 
 ```bash
-# Start services
+# Start services (use 'make yggdrasil' for first-time setup)
 make up
 
 # Run integration test script
@@ -368,7 +368,7 @@ Ensure you're sending an invalid pressure value:
 
 Ensure services are running:
 ```bash
-make up
+make yggdrasil  # or 'make up' if already setup
 curl http://localhost:8080/realms/niflheim/health
 ```
 

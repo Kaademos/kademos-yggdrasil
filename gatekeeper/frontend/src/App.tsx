@@ -28,13 +28,8 @@ function App() {
   }, []);
 
   const handleCTAClick = () => {
-    if (isAuthenticated) {
-      // Redirect to realms dashboard (will be implemented in M7 continuation)
-      window.location.href = '/realms/niflheim';
-    } else {
-      // Redirect to login
-      window.location.href = '/login';
-    }
+    // Navigate directly to Niflheim (trailing slash ensures correct asset paths)
+    window.location.href = '/realms/niflheim/';
   };
 
   if (checking) {

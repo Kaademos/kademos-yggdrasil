@@ -22,7 +22,13 @@ Essential commands, API endpoints, and configuration reference.
 ### Make Targets
 
 ```bash
-# Start platform
+# Single command to setup AND start everything (Community Edition - default)
+make yggdrasil
+
+# Start in Enterprise Mode (full features)
+YGGDRASIL_EDITION=enterprise make yggdrasil
+
+# Start platform (if already setup)
 make up
 
 # Stop platform

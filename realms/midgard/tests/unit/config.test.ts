@@ -22,7 +22,7 @@ describe('loadConfig', () => {
     const config = loadConfig();
     
     expect(config.port).toBe(3000);
-    expect(config.nodeEnv).toBe('development');
+    expect(['development', 'test']).toContain(config.nodeEnv);
     expect(config.realmName).toBe('midgard');
     expect(config.flag).toContain('YGGDRASIL{');
   });

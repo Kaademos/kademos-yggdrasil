@@ -1,4 +1,4 @@
-.PHONY: help setup up down restart clean logs test validate-env install dev-gatekeeper dev-flag-oracle info urls build-player build-instructor copy-stripper
+.PHONY: help setup up down restart clean logs test validate-env install dev-gatekeeper dev-flag-oracle info urls build-player build-instructor copy-stripper yggdrasil
 
 help:
 	@echo "╔════════════════════════════════════════════════════════════════╗"
@@ -6,6 +6,7 @@ help:
 	@echo "╚════════════════════════════════════════════════════════════════╝"
 	@echo ""
 	@echo "📦 Setup & Installation:"
+	@echo "  make yggdrasil     - One command to setup and start everything"
 	@echo "  make setup         - First-time setup (create .env, install deps)"
 	@echo "  make install       - Install dependencies for all services"
 	@echo ""
@@ -96,18 +97,24 @@ up: validate-env
 	@echo "════════════════════════════════════════════════════════════════"
 	@echo ""
 	@echo "🌐 Landing Page:  http://localhost:8080/"
-	@echo "🔐 Login:         http://localhost:8080/login"
+	@if [ "$${YGGDRASIL_EDITION:-community}" = "enterprise" ]; then \
+		echo "🔐 Login:         http://localhost:8080/login"; \
+	fi
 	@echo "🏥 Health Check:  http://localhost:8080/health"
 	@echo ""
-	@echo "📊 Observability:"
-	@echo "   Grafana:       http://localhost:3200 (admin/admin)"
-	@echo "   Prometheus:    http://localhost:9090"
-	@echo "   Loki:          http://localhost:3100"
-	@echo ""
+	@if [ "$${YGGDRASIL_EDITION:-community}" = "enterprise" ]; then \
+		echo "📊 Observability:"; \
+		echo "   Grafana:       http://localhost:3200 (admin/admin)"; \
+		echo "   Prometheus:    http://localhost:9090"; \
+		echo "   Loki:          http://localhost:3100"; \
+		echo ""; \
+	fi
 	@echo "💡 Quick Start:"
 	@echo "   1. Visit http://localhost:8080/ to see the landing page"
 	@echo "   2. Click 'INITIATE ASCENSION' to begin"
-	@echo "   3. Register/Login and start with Niflheim (Realm 10)"
+	@if [ "$${YGGDRASIL_EDITION:-community}" = "enterprise" ]; then \
+		echo "   3. Register/Login and start with Niflheim (Realm 10)"; \
+	fi
 	@echo ""
 	@echo "📖 Run 'make urls' to see all available endpoints"
 	@echo "════════════════════════════════════════════════════════════════"
@@ -286,3 +293,7 @@ test-realms-api:
 quick-test: test-health test-landing test-realms-api
 	@echo ""
 	@echo "✅ Quick tests completed!"
+
+yggdrasil: setup up
+	@echo ""
+	@echo "🌳 Yggdrasil is ready!"

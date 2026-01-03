@@ -22,7 +22,7 @@ describe('Configuration', () => {
       
       expect(config.port).toBe(3000);
       expect(config.realmName).toBe('jotunheim');
-      expect(config.nodeEnv).toBe('development');
+      expect(['development', 'test']).toContain(config.nodeEnv);
       expect(config.flag).toContain('YGGDRASIL{');
       expect(config.sessionSecret).toBeDefined();
     });

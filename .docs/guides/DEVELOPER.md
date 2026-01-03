@@ -32,27 +32,35 @@ Welcome to Project Yggdrasil! This guide will help you get up and running quickl
 git clone <repository-url>
 cd project_yggdrasil
 
-# 2. Copy environment template
-cp .env.example .env
+# 2. Single command to setup AND start everything
+make yggdrasil
 
-# 3. Generate secrets (optional for development)
-# SESSION_SECRET: openssl rand -hex 32
-# JOTUNHEIM_SESSION_SECRET: openssl rand -hex 32
-# Database passwords: openssl rand -base64 24
-
-# 4. Install dependencies (optional, happens in Docker)
-npm install
-cd gatekeeper && npm install && cd ..
-cd flag-oracle && npm install && cd ..
-
-# 5. Start the platform
-make up
-
-# 6. Verify services are running
+# 3. Verify services are running
 make logs
 
-# 7. Access the platform
+# 4. Access the platform
 open http://localhost:8080
+```
+
+> **Alternative:** You can also run `make setup` then `make up` separately, or manually:
+> ```bash
+> cp .env.example .env
+> # Generate secrets: openssl rand -hex 32
+> cd gatekeeper && npm install && cd ..
+> cd flag-oracle && npm install && cd ..
+> make up
+> ```
+
+### Testing Edition Behavior
+
+Developers should verify behavior with both editions before submitting PRs:
+
+```bash
+# Test Community Edition (default)
+YGGDRASIL_EDITION=community make yggdrasil
+
+# Test Enterprise Edition
+YGGDRASIL_EDITION=enterprise make yggdrasil
 ```
 
 ### Verify Installation

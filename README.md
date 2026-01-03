@@ -115,19 +115,34 @@ Ensure you have the following installed:
 git clone https://github.com/your-org/project_yggdrasil.git
 cd project_yggdrasil
 
-# First-time setup (creates .env, generates secrets, installs dependencies)
-make setup
-
-# Start the platform
-make up
+# Single command to setup AND start everything
+make yggdrasil
 ```
 
 That's it! The platform will be running at **http://localhost:8080/**
 
+> **Alternative:** You can also run `make setup` then `make up` separately if you prefer.
+
 ### Verification
 
-After `make up`, you should see:
+After startup, you should see:
 
+**Community Edition (default):**
+```
+════════════════════════════════════════════════════════════════
+✅ Project Yggdrasil is running!
+════════════════════════════════════════════════════════════════
+
+🌐 Landing Page:  http://localhost:8080/
+🏥 Health Check:  http://localhost:8080/health
+
+💡 Quick Start:
+   1. Visit http://localhost:8080/ to see the landing page
+   2. Click 'INITIATE ASCENSION' to begin
+════════════════════════════════════════════════════════════════
+```
+
+**Enterprise Edition** (set `YGGDRASIL_EDITION=enterprise` in `.env`):
 ```
 ════════════════════════════════════════════════════════════════
 ✅ Project Yggdrasil is running!
@@ -136,9 +151,33 @@ After `make up`, you should see:
 🌐 Landing Page:  http://localhost:8080/
 🔐 Login:         http://localhost:8080/login
 🏥 Health Check:  http://localhost:8080/health
+
+📊 Observability:
+   Grafana:       http://localhost:3200 (admin/admin)
+   Prometheus:    http://localhost:9090
+   Loki:          http://localhost:3100
+
+💡 Quick Start:
+   1. Visit http://localhost:8080/ to see the landing page
+   2. Click 'INITIATE ASCENSION' to begin
+   3. Register/Login and start with Niflheim (Realm 10)
+════════════════════════════════════════════════════════════════
 ```
 
 Visit the landing page and click **"INITIATE ASCENSION"** to begin your journey!
+
+### Configuration
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `YGGDRASIL_EDITION` | Selects edition: `community` (standard) or `enterprise` (full features) | `community` |
+
+**Community Edition** (default): Streamlined experience for guest users with landing page and basic quickstart.
+
+**Enterprise Edition**: Full features including login page, observability dashboards (Grafana, Prometheus, Loki), and extended quickstart steps. Set in `.env`:
+```bash
+YGGDRASIL_EDITION=enterprise
+```
 
 ### Manual Setup (Without Make)
 
@@ -353,6 +392,7 @@ Run `make help` to see all commands. Key commands:
 
 | Command | Description |
 |---------|-------------|
+| `make yggdrasil` | One command to setup AND start everything |
 | `make setup` | First-time setup (creates .env, installs deps) |
 | `make up` | Build and start all services |
 | `make down` | Stop all services |
