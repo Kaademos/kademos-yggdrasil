@@ -17,14 +17,15 @@ export class ProgressionService {
   }
 
   async canAccessRealm(userId: string, realmName: string): Promise<boolean> {
-    const unlockedRealms = await this.getUnlockedRealms(userId);
+    const normalizedName = realmName.toLowerCase();
 
-    // First realm (SAMPLE) is always accessible
-    if (realmName.toLowerCase() === 'sample') {
+    // Sample realm and Niflheim (entry realm) are always accessible
+    if (normalizedName === 'sample' || normalizedName === 'niflheim') {
       return true;
     }
 
-    // Check if realm is in the unlocked list
+    // For other realms, check progression
+    const unlockedRealms = await this.getUnlockedRealms(userId);
     return unlockedRealms.includes(realmName.toUpperCase());
   }
 

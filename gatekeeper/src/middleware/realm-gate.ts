@@ -6,18 +6,21 @@ export function createRealmGate(progressionService: ProgressionService) {
   return (realmName: string) => {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {
-        if (!req.user) {
-          return res.status(401).json({
+        // Use logged-in user ID if available, otherwise use session ID for anonymous users
+        const progressionId = req.user?.id || req.sessionID;
+
+        if (!progressionId) {
+          return res.status(500).json({
             status: 'error',
-            message: 'Authentication required',
+            message: 'Session not initialized',
           });
         }
 
-        const canAccess = await progressionService.canAccessRealm(req.user.id, realmName);
+        const canAccess = await progressionService.canAccessRealm(progressionId, realmName);
 
         if (!canAccess) {
           const ip = req.ip || 'unknown';
-          Logger.logAccessDenied(req.user.id, realmName, ip);
+          Logger.logAccessDenied(progressionId, realmName, ip);
 
           return res.status(403).json({
             status: 'error',

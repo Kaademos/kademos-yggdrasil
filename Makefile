@@ -71,7 +71,7 @@ setup: validate-env
 validate-env:
 	@echo "🔍 Validating environment..."
 	@command -v docker >/dev/null 2>&1 || (echo "❌ Error: Docker not installed. Please install Docker first." && exit 1)
-	@command -v docker-compose >/dev/null 2>&1 || docker compose version >/dev/null 2>&1 || (echo "❌ Error: docker-compose not installed" && exit 1)
+	@command -v docker compose >/dev/null 2>&1 || docker compose version >/dev/null 2>&1 || (echo "❌ Error: docker compose not installed" && exit 1)
 	@echo "   ✅ Docker installed"
 	@if [ ! -f .env ]; then \
 		echo "   ⚠️  .env not found. Run 'make setup' to create it."; \
@@ -84,12 +84,12 @@ validate-env:
 up: validate-env
 	@echo "🚀 Building and starting all services..."
 	@echo ""
-	docker-compose up --build -d
+	docker compose up --build -d
 	@echo ""
 	@echo "⏳ Waiting for services to become healthy..."
 	@sleep 15
 	@echo ""
-	@docker-compose ps
+	@docker compose ps
 	@echo ""
 	@echo "════════════════════════════════════════════════════════════════"
 	@echo "✅ Project Yggdrasil is running!"
@@ -115,7 +115,7 @@ up: validate-env
 
 restart:
 	@echo "🔄 Restarting all services..."
-	docker-compose restart
+	docker compose restart
 	@echo "✅ Services restarted"
 
 # Build modes for comment stripping
@@ -130,7 +130,7 @@ copy-stripper:
 
 build-player: copy-stripper
 	@echo "🎮 Building PLAYER images (comments stripped)..."
-	@BUILD_MODE=player docker-compose build
+	@BUILD_MODE=player docker compose build
 	@echo ""
 	@echo "✅ Player build complete!"
 	@echo "   All instructor comments have been stripped from realm images"
@@ -138,7 +138,7 @@ build-player: copy-stripper
 
 build-instructor:
 	@echo "👨‍🏫 Building INSTRUCTOR images (comments retained)..."
-	@BUILD_MODE=instructor docker-compose build
+	@BUILD_MODE=instructor docker compose build
 	@echo ""
 	@echo "✅ Instructor build complete!"
 	@echo "   All instructor comments and hints have been retained"
@@ -146,19 +146,19 @@ build-instructor:
 
 down:
 	@echo "🛑 Stopping all services..."
-	docker-compose down
+	docker compose down
 	@echo "✅ Services stopped"
 
 clean:
 	@echo "🧹 Cleaning up..."
-	docker-compose down -v
+	docker compose down -v
 	@echo "📦 Removing build artifacts..."
 	@find . -name "node_modules" -type d -prune -exec rm -rf {} + 2>/dev/null || true
 	@find . -name "dist" -type d -prune -exec rm -rf {} + 2>/dev/null || true
 	@echo "✅ Cleanup complete"
 
 logs:
-	docker-compose logs -f
+	docker compose logs -f
 
 install:
 	@echo "📦 Installing dependencies..."
@@ -176,7 +176,7 @@ info:
 	@echo "╚════════════════════════════════════════════════════════════════╝"
 	@echo ""
 	@echo "📊 Service Status:"
-	@docker-compose ps
+	@docker compose ps
 	@echo ""
 	@echo "💾 Docker Resources:"
 	@echo "Volumes:"
