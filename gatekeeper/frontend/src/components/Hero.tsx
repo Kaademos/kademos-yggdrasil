@@ -19,53 +19,28 @@ export const Hero: React.FC<HeroProps> = ({ onCTAClick }) => {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
-        {/* Yggdrasil Illustration Placeholder */}
+        {/* Yggdrasil Image */}
         <div className="mb-12 flex justify-center">
           <div className="relative">
-            {/* SVG Tree Illustration - Simplified */}
-            <svg
-              width="300"
-              height="300"
-              viewBox="0 0 300 300"
-              className="opacity-90"
+            {/* Glow effect behind image */}
+            <div 
+              className="absolute inset-0 blur-3xl opacity-40"
               style={{
-                filter: 'drop-shadow(0 0 30px rgba(59, 130, 246, 0.3))'
+                background: 'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.4) 0%, rgba(234, 179, 8, 0.2) 40%, transparent 70%)',
+                transform: 'scale(1.5)',
               }}
-            >
-              {/* Roots (frozen blue) */}
-              <g stroke="#60a5fa" strokeWidth="3" fill="none" opacity="0.8">
-                <path d="M 150 250 Q 120 270 90 290" />
-                <path d="M 150 250 Q 150 275 150 300" />
-                <path d="M 150 250 Q 180 270 210 290" />
-              </g>
-              
-              {/* Trunk (fiery orange gradient) */}
-              <defs>
-                <linearGradient id="trunkGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#f97316" />
-                  <stop offset="100%" stopColor="#ea580c" />
-                </linearGradient>
-              </defs>
-              <rect x="140" y="100" width="20" height="150" fill="url(#trunkGradient)" rx="2" />
-              
-              {/* Canopy (golden) */}
-              <g fill="#eab308" opacity="0.9">
-                <circle cx="150" cy="100" r="50" />
-                <circle cx="120" cy="80" r="35" />
-                <circle cx="180" cy="80" r="35" />
-                <circle cx="130" cy="60" r="25" />
-                <circle cx="170" cy="60" r="25" />
-              </g>
-              
-              {/* Glow effect */}
-              <circle cx="150" cy="150" r="120" fill="url(#glowGradient)" opacity="0.1" />
-              <defs>
-                <radialGradient id="glowGradient">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="transparent" />
-                </radialGradient>
-              </defs>
-            </svg>
+            />
+            {/* Yggdrasil Image with blending */}
+            <img
+              src="/assets/ygg.webp"
+              alt="Yggdrasil - The World Tree"
+              className="relative z-10 w-auto max-w-md md:max-w-lg lg:max-w-xl h-auto"
+              style={{
+                filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.4)) drop-shadow(0 0 80px rgba(234, 179, 8, 0.2))',
+                maskImage: 'radial-gradient(ellipse 90% 90% at center, black 50%, transparent 100%)',
+                WebkitMaskImage: 'radial-gradient(ellipse 90% 90% at center, black 50%, transparent 100%)',
+              }}
+            />
           </div>
         </div>
 

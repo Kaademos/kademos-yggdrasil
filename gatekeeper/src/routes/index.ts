@@ -40,17 +40,18 @@ export function createRoutes(
 
   router.post(
     '/submit-flag',
-    authMiddleware.requireAuth,
+    authMiddleware.ensureSession,
     csrfProtection,
     async (req: Request, res: Response) => {
       try {
         const { flag } = req.body;
-        const userId = req.user?.id;
+        // Use logged-in user ID if available, otherwise use session ID for anonymous users
+        const progressionId = req.user?.id || req.sessionID;
 
-        if (!userId) {
-          return res.status(401).json({
+        if (!progressionId) {
+          return res.status(500).json({
             status: 'error',
-            message: 'Authentication required',
+            message: 'Session not initialized',
           });
         }
 
@@ -61,11 +62,11 @@ export function createRoutes(
           });
         }
 
-        const result = await progressionClient.validateFlag(userId, flag);
+        const result = await progressionClient.validateFlag(progressionId, flag);
 
         // Invalidate progression cache on successful flag submission
         if (result.status === 'success') {
-          progressionService.invalidateCache(userId);
+          progressionService.invalidateCache(progressionId);
         }
 
         res.status(result.status === 'success' ? 200 : 400).json(result);
@@ -79,19 +80,22 @@ export function createRoutes(
     }
   );
 
-  router.get('/realms', authMiddleware.optionalAuth, async (req: Request, res: Response) => {
+  router.get('/realms', authMiddleware.ensureSession, async (req: Request, res: Response) => {
     try {
-      const userId = req.user?.id;
+      // Use logged-in user ID if available, otherwise use session ID for anonymous users
+      const progressionId = req.user?.id || req.sessionID;
       let unlockedRealms: string[] = [];
 
-      if (userId) {
-        unlockedRealms = await progressionService.getUnlockedRealms(userId);
+      if (progressionId) {
+        unlockedRealms = await progressionService.getUnlockedRealms(progressionId);
       }
 
       const realmList = REALMS_METADATA.map((r) => {
-        const isLocked = userId
-          ? !unlockedRealms.includes(r.name.toUpperCase()) && r.name.toLowerCase() !== 'sample'
-          : r.order !== 10 && r.name.toLowerCase() !== 'sample'; // Only Niflheim unlocked by default
+        // Sample realm and Niflheim (order 10, the entry realm) are always accessible
+        const isAlwaysAccessible = r.name.toLowerCase() === 'sample' || r.order === 10;
+        const isLocked = isAlwaysAccessible
+          ? false
+          : !unlockedRealms.includes(r.name.toUpperCase());
 
         return {
           name: r.name,
@@ -135,9 +139,10 @@ export function createRoutes(
       },
     });
 
+    // Realms are accessible to everyone - use session for progression tracking
     router.use(
       `/realms/${realm.name}`,
-      authMiddleware.requireAuth,
+      authMiddleware.ensureSession,
       realmGate(realm.name),
       proxyMiddleware
     );

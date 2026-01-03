@@ -12,7 +12,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-20.10+-blue.svg)](https://www.docker.com/)
-[![OWASP](https://img.shields.io/badge/OWASP-Top%2010%202025-red.svg)](https://owasp.org/)
+[![OWASP](https://img.shields.io/badge/OWASP-Top%2010%202025-red.svg)](https://owasp.org/Top10/2025/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue.svg)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-20+-green.svg)](https://nodejs.org/)
 
