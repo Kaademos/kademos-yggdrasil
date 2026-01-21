@@ -1,4 +1,5 @@
 import { createHmac } from 'crypto';
+import { injectable, inject } from 'tsyringe';
 
 export interface FlagConfig {
   masterSecret: string;
@@ -19,14 +20,16 @@ export interface FlagVerificationResult {
  * - Secure: Cannot reverse-engineer master secret from flag
  * - Reproducible: Can verify flags without storing them
  */
+@injectable()
 export class FlagService {
   private readonly masterSecret: string;
 
-  constructor(config: FlagConfig) {
-    if (!config.masterSecret || config.masterSecret.length < 32) {
+  constructor(@inject('Config') private config: any) {
+    const secret = config.flagMasterSecret || config.masterSecret;
+    if (!secret || secret.length < 32) {
       throw new Error('Master secret must be at least 32 characters for security');
     }
-    this.masterSecret = config.masterSecret;
+    this.masterSecret = secret;
   }
 
   /**

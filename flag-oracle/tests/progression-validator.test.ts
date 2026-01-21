@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { ProgressionValidator } from '../src/services/progression-validator';
 import { REALM_ORDER } from '../src/config/realm-order';
 
@@ -5,7 +6,7 @@ describe('ProgressionValidator', () => {
   let validator: ProgressionValidator;
 
   beforeEach(() => {
-    validator = new ProgressionValidator(REALM_ORDER);
+    validator = new ProgressionValidator();
   });
 
   describe('canAccessRealm', () => {

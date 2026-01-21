@@ -287,6 +287,17 @@ jobs:
             fi
 
       - run:
+          name: Run exploit tests (Automated exploitation)
+          command: |
+            if [ -x ./scripts/test-e2e-journey.sh ]; then
+              echo "Running automated exploit journey..."
+              ./scripts/test-e2e-journey.sh
+            else
+              echo "Exploit journey script not found."
+              exit 1
+            fi
+
+      - run:
           name: Cleanup Docker resources
           when: always
           command: docker-compose down -v

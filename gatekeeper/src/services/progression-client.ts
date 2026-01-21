@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { injectable, inject } from 'tsyringe';
 
 export interface ProgressionData {
   userId: string;
@@ -7,8 +8,13 @@ export interface ProgressionData {
   lastUpdated: string;
 }
 
+@injectable()
 export class ProgressionClient {
-  constructor(private flagOracleUrl: string) {}
+  constructor(@inject('Config') private config: any) {
+    this.flagOracleUrl = config.flagOracleUrl;
+  }
+
+  private flagOracleUrl: string;
 
   async getProgression(userId: string): Promise<ProgressionData | null> {
     try {

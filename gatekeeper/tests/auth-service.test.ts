@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { AuthService } from '../src/services/auth-service';
 import { InMemoryUserRepository } from '../src/repositories/user-repository';
 
@@ -8,7 +9,7 @@ describe('AuthService', () => {
   beforeEach(async () => {
     userRepository = new InMemoryUserRepository(4, false); // Use low rounds for faster tests, disable auto-seed
     await userRepository.clear();
-    authService = new AuthService(userRepository, 4);
+    authService = new AuthService(userRepository, { bcryptRounds: 4 });
   });
 
   describe('authenticate', () => {

@@ -1,3 +1,4 @@
+import { injectable, inject } from 'tsyringe';
 import bcrypt from 'bcrypt';
 import { User } from '../models/user';
 import { IUserRepository } from '../repositories/user-repository';
@@ -8,11 +9,16 @@ export interface AuthResult {
   message?: string;
 }
 
+@injectable()
 export class AuthService {
   constructor(
-    private userRepository: IUserRepository,
-    private bcryptRounds: number = 10
-  ) {}
+    @inject('IUserRepository') private userRepository: IUserRepository,
+    @inject('Config') private config: any = { bcryptRounds: 10 }
+  ) {
+    this.bcryptRounds = config.bcryptRounds || 10;
+  }
+  
+  private bcryptRounds: number;
 
   async authenticate(username: string, password: string): Promise<User | null> {
     // Find user

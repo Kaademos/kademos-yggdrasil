@@ -1,3 +1,5 @@
+import { injectable } from 'tsyringe';
+
 const FLAG_REGEX =
   /^YGGDRASIL\{([A-Z_]+):([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\}$/i;
 
@@ -8,6 +10,7 @@ export interface FlagValidationResult {
   error?: string;
 }
 
+@injectable()
 export class FlagValidator {
   validate(flag: string): FlagValidationResult {
     if (!flag || typeof flag !== 'string') {

@@ -1,3 +1,4 @@
+import { injectable, inject } from 'tsyringe';
 import { ProgressionClient } from './progression-client';
 
 interface CacheEntry {
@@ -5,15 +6,16 @@ interface CacheEntry {
   timestamp: number;
 }
 
+@injectable()
 export class ProgressionService {
   private cache: Map<string, CacheEntry> = new Map();
   private readonly cacheTTLMs: number;
 
   constructor(
-    private progressionClient: ProgressionClient,
-    cacheTTLMs: number = 30000 // 30 seconds default
+    @inject(ProgressionClient) private progressionClient: ProgressionClient,
+    @inject('Config') private config: any = { cacheTTLMs: 30000 }
   ) {
-    this.cacheTTLMs = cacheTTLMs;
+    this.cacheTTLMs = config.cacheTTLMs || 30000;
   }
 
   async canAccessRealm(userId: string, realmName: string): Promise<boolean> {
