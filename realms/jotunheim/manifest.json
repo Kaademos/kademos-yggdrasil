@@ -1,0 +1,161 @@
+{
+  "realm": "JOTUNHEIM",
+  "level": 7,
+  "owasp": "A07:2025",
+  "title": "Identification and Authentication Failures",
+  "description": "Jotunheim demonstrates session fixation vulnerabilities through a giant fortress authentication system that accepts client-provided session IDs.",
+  "theme": "Norse realm of giants - representing oversized trust in client inputs",
+  "difficulty": "Medium",
+  "estimated_time_minutes": 20,
+  "vulnerabilities": [
+    {
+      "id": "JOT-001",
+      "type": "Session Fixation",
+      "cwe": "CWE-384",
+      "cwe_name": "Session Fixation",
+      "cvss": {
+        "version": "3.1",
+        "score": 8.1,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "None",
+          "user_interaction": "Required",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "High",
+          "availability": "None"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/login",
+          "vulnerable": true,
+          "parameters": {
+            "username": "string",
+            "password": "string",
+            "sessionId": "string (optional, client-controlled)"
+          },
+          "description": "Login endpoint that accepts client-provided session IDs"
+        },
+        {
+          "method": "GET",
+          "path": "/api/session-info",
+          "vulnerable": true,
+          "description": "Exposes session information including whether session was client-fixed"
+        },
+        {
+          "method": "GET",
+          "path": "/api/fortress-status",
+          "vulnerable": true,
+          "description": "Returns flag if authenticated with admin role"
+        },
+        {
+          "method": "POST",
+          "path": "/api/logout",
+          "vulnerable": false
+        }
+      ],
+      "description": "The authentication system accepts session IDs from the client during login. An attacker can provide a known session ID, have an admin log in with it, then reuse that session to gain admin access.",
+      "impact": "Session hijacking, unauthorized access to admin accounts, privilege escalation, account takeover",
+      "exploit_steps": [
+        "Generate a valid session ID format (e.g., 'attack-session-12345')",
+        "Send login request with attacker-controlled sessionId in body",
+        "System creates session with the provided ID",
+        "Wait for admin to log in (or social engineer admin to use the fixed session)",
+        "Reuse the known session ID to access admin-only endpoints",
+        "Access /api/fortress-status with admin session to retrieve flag"
+      ],
+      "exploit_indicators": [
+        "sessionId parameter in login request body",
+        "Session ID format validation bypassed",
+        "Session marked as 'fixedByClient: true'",
+        "Warning message: 'Session ID was provided by client'",
+        "Reuse of session ID across different connections"
+      ],
+      "remediation": "Always generate session IDs server-side using cryptographically secure random generators. Never accept session identifiers from clients. Regenerate session IDs after authentication. Implement session binding to IP/User-Agent. Use secure session management frameworks.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/384.html",
+        "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html"
+      ]
+    }
+  ],
+  "flags": {
+    "format": "YGGDRASIL\\{JOTUNHEIM:[a-f0-9-]{36}\\}",
+    "location": "fortress_status_endpoint",
+    "retrieval_method": "Exploit session fixation to gain admin access, then access /api/fortress-status"
+  },
+  "realm_chaining": {
+    "unlocks": "MUSPELHEIM",
+    "unlocked_by": "SVARTALFHEIM"
+  },
+  "learning_objectives": [
+    "Understand session fixation attack vectors",
+    "Learn why client-provided session IDs are dangerous",
+    "Practice exploiting authentication weaknesses",
+    "Understand proper session management",
+    "Learn about session lifecycle security"
+  ],
+  "technologies": [
+    "Node.js",
+    "Express",
+    "TypeScript",
+    "express-session"
+  ],
+  "scanner_test_cases": [
+    {
+      "name": "Detect session fixation vulnerability",
+      "request": {
+        "method": "POST",
+        "path": "/api/login",
+        "body": {
+          "username": "visitor",
+          "password": "guestpass",
+          "sessionId": "test-fixed-session-123"
+        }
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": ["sessionId", "test-fixed-session-123"]
+      }
+    },
+    {
+      "name": "Verify session ID is returned in response",
+      "request": {
+        "method": "POST",
+        "path": "/api/login",
+        "body": {
+          "username": "visitor",
+          "password": "guestpass"
+        }
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": ["sessionId", "success"]
+      }
+    },
+    {
+      "name": "Test admin access with fixed session",
+      "request": {
+        "method": "GET",
+        "path": "/api/fortress-status",
+        "headers": {
+          "Cookie": "connect.sid=s%3Aattacker-session.signature"
+        }
+      },
+      "expected_response": {
+        "status_one_of": [200, 401, 403]
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2026-01-21",
+    "last_updated": "2026-01-21",
+    "version": "1.0.0",
+    "maintainer": "Project Yggdrasil",
+    "validated": true
+  }
+}

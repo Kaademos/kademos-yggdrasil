@@ -37,6 +37,10 @@ COPY --from=backend-builder /app/dist ./dist
 # Copy frontend build  
 COPY --from=frontend-builder /app/dist/public ./dist/public
 
+# Create logs directory with proper permissions
+RUN mkdir -p /app/logs/attack-traces/gatekeeper && \
+    chown -R node:node /app/logs
+
 USER node
 
 EXPOSE 8080

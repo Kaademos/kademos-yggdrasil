@@ -8,6 +8,7 @@ import { createSessionMiddleware } from './middleware/session';
 import { createCorsMiddleware } from './middleware/cors-config';
 import { createAuthMiddleware } from './middleware/auth';
 import { requestLogger } from './middleware/logging';
+import { captureAttackTrace } from './middleware/attack-trace';
 import { logger } from './utils/logger';
 import { ProgressionClient } from './services/progression-client';
 import { ProgressionService } from './services/progression-service';
@@ -49,6 +50,9 @@ async function main() {
 
   // Request logging
   app.use(requestLogger);
+
+  // Attack trace logging (for AI training)
+  app.use(captureAttackTrace);
 
   // Resolve services from container
   const userRepository = container.resolve<IUserRepository>('IUserRepository');

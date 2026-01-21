@@ -1,0 +1,181 @@
+{
+  "realm": "NIFLHEIM",
+  "level": 10,
+  "owasp": "A10:2025",
+  "title": "Exceptional Conditions",
+  "description": "Niflheim demonstrates exceptional condition handling failures through a vulnerable cryogenic pressure regulation system. Insufficient input validation allows triggering crash reports that leak sensitive diagnostic information.",
+  "theme": "Norse realm of ice and mist - symbolizing frozen/crashed systems",
+  "difficulty": "Beginner",
+  "estimated_time_minutes": 15,
+  "vulnerabilities": [
+    {
+      "id": "NIF-001",
+      "type": "Insufficient Input Validation",
+      "cwe": "CWE-755",
+      "cwe_name": "Improper Handling of Exceptional Conditions",
+      "cvss": {
+        "version": "3.1",
+        "score": 7.5,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "None",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "None",
+          "availability": "None"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/regulate",
+          "vulnerable": true,
+          "parameters": {
+            "pressure": "number",
+            "temperature": "number",
+            "flowRate": "number"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/status",
+          "vulnerable": false
+        },
+        {
+          "method": "GET",
+          "path": "/api/trends",
+          "vulnerable": false
+        },
+        {
+          "method": "GET",
+          "path": "/api/crash-report/:id",
+          "vulnerable": true,
+          "description": "Exposed after crash - contains diagnostic information"
+        }
+      ],
+      "description": "The pressure regulation endpoint lacks proper range validation for multi-parameter input. Extreme values trigger crash report generation that exposes system internals and credentials for realm chaining.",
+      "impact": "Information disclosure through crash reports, exposure of internal service URLs and credentials, enables lateral movement to Helheim realm",
+      "exploit_steps": [
+        "Access /api/status to understand normal operating parameters",
+        "Send extreme values to /api/regulate (pressure > 10000, temperature < -500, or flowRate > 9999)",
+        "System returns crash report with diagnostic information",
+        "Download crash report from /api/crash-report/:id endpoint",
+        "Extract Helheim admin panel URL and credentials from crash dump",
+        "Retrieve flag from crash report metadata"
+      ],
+      "exploit_indicators": [
+        "pressure > 10000",
+        "temperature < -500",
+        "flowRate > 9999",
+        "HTTP 500 response with crashReportId",
+        "errorCode: PRESSURE_OVERFLOW | TEMPERATURE_UNDERFLOW | FLOW_RATE_EXCEEDED"
+      ],
+      "remediation": "Implement comprehensive input validation with strict range checks before processing. Sanitize error messages and crash reports to prevent information leakage. Use structured logging that separates diagnostic data from user-facing errors.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/755.html",
+        "https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html"
+      ]
+    }
+  ],
+  "flags": {
+    "format": "YGGDRASIL\\{NIFLHEIM:[a-f0-9-]{36}\\}",
+    "location": "crash_report_download",
+    "retrieval_method": "Trigger crash by sending out-of-range values, download crash report containing flag"
+  },
+  "realm_chaining": {
+    "unlocks": "HELHEIM",
+    "clues_in_exploit": [
+      "Crash report contains Helheim admin panel URL (http://helheim:3000/admin)",
+      "Diagnostic data includes default credentials for Helheim service"
+    ]
+  },
+  "learning_objectives": [
+    "Understand importance of input validation and range checking",
+    "Recognize dangers of verbose error messages in production",
+    "Learn about information disclosure through crash reports",
+    "Practice exploiting exceptional condition handling failures",
+    "Understand principle of graceful degradation vs catastrophic failure"
+  ],
+  "technologies": [
+    "Node.js",
+    "Express",
+    "TypeScript"
+  ],
+  "scanner_test_cases": [
+    {
+      "name": "Detect integer overflow vulnerability",
+      "request": {
+        "method": "POST",
+        "path": "/api/regulate",
+        "body": {
+          "pressure": 999999,
+          "temperature": -200,
+          "flowRate": 50
+        }
+      },
+      "expected_response": {
+        "status": 500,
+        "body_contains": ["CRITICAL_SYSTEM_FAILURE", "crashReportId"]
+      }
+    },
+    {
+      "name": "Detect temperature underflow vulnerability",
+      "request": {
+        "method": "POST",
+        "path": "/api/regulate",
+        "body": {
+          "pressure": 500,
+          "temperature": -999,
+          "flowRate": 50
+        }
+      },
+      "expected_response": {
+        "status": 500,
+        "body_contains": ["TEMPERATURE_UNDERFLOW"]
+      }
+    },
+    {
+      "name": "Detect flow rate overflow vulnerability",
+      "request": {
+        "method": "POST",
+        "path": "/api/regulate",
+        "body": {
+          "pressure": 500,
+          "temperature": -200,
+          "flowRate": 99999
+        }
+      },
+      "expected_response": {
+        "status": 500,
+        "body_contains": ["FLOW_RATE_EXCEEDED"]
+      }
+    },
+    {
+      "name": "Verify normal operation with valid values",
+      "request": {
+        "method": "POST",
+        "path": "/api/regulate",
+        "body": {
+          "pressure": 500,
+          "temperature": -200,
+          "flowRate": 50
+        }
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": ["regulated successfully"]
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2026-01-21",
+    "last_updated": "2026-01-21",
+    "version": "1.0.0",
+    "maintainer": "Project Yggdrasil",
+    "validated": true
+  }
+}

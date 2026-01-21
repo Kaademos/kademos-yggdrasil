@@ -1,0 +1,201 @@
+{
+  "realm": "SVARTALFHEIM",
+  "level": 8,
+  "owasp": "A08:2025",
+  "title": "Software and Data Integrity Failures",
+  "description": "Svartalfheim demonstrates insecure deserialization vulnerabilities through a Java-based guild system that deserializes untrusted cookie data without integrity checks.",
+  "theme": "Norse realm of dark elves/dwarves - where objects are crafted (serialized) and can be corrupted",
+  "difficulty": "Hard",
+  "estimated_time_minutes": 35,
+  "vulnerabilities": [
+    {
+      "id": "SVA-001",
+      "type": "Insecure Deserialization",
+      "cwe": "CWE-502",
+      "cwe_name": "Deserialization of Untrusted Data",
+      "cvss": {
+        "version": "3.1",
+        "score": 9.8,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "None",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "High",
+          "availability": "High"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/badge",
+          "vulnerable": true,
+          "description": "Deserializes guild badge from cookie without validation"
+        },
+        {
+          "method": "POST",
+          "path": "/join-guild",
+          "vulnerable": true,
+          "description": "Creates serialized badge stored in cookie"
+        },
+        {
+          "method": "GET",
+          "path": "/vault",
+          "vulnerable": true,
+          "description": "Vault access controlled by deserialized badge rank"
+        }
+      ],
+      "description": "The guild badge system serializes Java objects to cookies and deserializes them without integrity checks or type validation. Attackers can craft malicious serialized objects to manipulate their guild rank or execute arbitrary code.",
+      "impact": "Remote code execution, privilege escalation, authentication bypass, complete system compromise",
+      "exploit_steps": [
+        "Join a guild to receive serialized badge cookie",
+        "Decode and analyze the serialized Java object",
+        "Modify the badge object to elevate rank to 'MASTER'",
+        "Re-serialize the malicious object",
+        "Replace cookie with crafted payload",
+        "Access /vault with elevated privileges to retrieve flag",
+        "Alternative: Craft RCE payload using gadget chains (advanced)"
+      ],
+      "exploit_indicators": [
+        "Modified guildBadge cookie values",
+        "Base64-encoded serialized Java objects in cookies",
+        "ObjectInputStream deserialization in logs",
+        "Rank escalation from MEMBER to MASTER",
+        "Suspicious serialization magic bytes (0xACED...)",
+        "Known gadget chain patterns (Commons Collections, Spring)",
+        "Cookie tampering attempts"
+      ],
+      "remediation": "Never deserialize untrusted data. Use safe serialization formats (JSON, Protocol Buffers). Implement HMAC or digital signatures for integrity. Use allowlists for deserializable classes. Apply deserialization filters (ObjectInputFilter in Java 9+). Validate object types before deserialization. Use secure alternatives to Java serialization.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/502.html",
+        "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
+        "https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html",
+        "https://portswigger.net/web-security/deserialization"
+      ]
+    },
+    {
+      "id": "SVA-002",
+      "type": "Missing Integrity Verification",
+      "cwe": "CWE-354",
+      "cwe_name": "Improper Validation of Integrity Check Value",
+      "cvss": {
+        "version": "3.1",
+        "score": 7.5,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "None",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "None",
+          "integrity": "High",
+          "availability": "None"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/badge",
+          "vulnerable": true,
+          "description": "No HMAC or signature verification on cookie"
+        }
+      ],
+      "description": "The application lacks integrity verification (HMAC, digital signature) for serialized data stored in cookies, allowing attackers to modify the data without detection.",
+      "impact": "Data tampering, privilege escalation, authentication bypass",
+      "exploit_indicators": [
+        "Modified cookies without signature validation",
+        "No HMAC computation or verification",
+        "Cookie manipulation successful without errors"
+      ],
+      "remediation": "Implement HMAC-SHA256 for cookie integrity. Use JWT with proper signatures. Apply digital signatures for critical data. Validate signatures before deserialization.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/354.html"
+      ]
+    }
+  ],
+  "flags": {
+    "format": "YGGDRASIL\\{SVARTALFHEIM:[a-f0-9-]{36}\\}",
+    "location": "vault_access",
+    "retrieval_method": "Modify serialized guild badge to MASTER rank, access /vault endpoint"
+  },
+  "realm_chaining": {
+    "unlocks": "JOTUNHEIM",
+    "unlocked_by": "HELHEIM"
+  },
+  "learning_objectives": [
+    "Understand insecure deserialization risks",
+    "Learn Java serialization format",
+    "Practice object manipulation",
+    "Understand gadget chains (advanced)",
+    "Learn secure serialization alternatives",
+    "Practice integrity verification bypasses"
+  ],
+  "technologies": [
+    "Java 17",
+    "Spring Boot 3.2",
+    "Maven",
+    "Thymeleaf",
+    "Java Serialization",
+    "ObjectInputStream"
+  ],
+  "scanner_test_cases": [
+    {
+      "name": "Detect Java serialization in cookies",
+      "request": {
+        "method": "GET",
+        "path": "/badge"
+      },
+      "expected_response": {
+        "status": 200,
+        "headers_contain": {
+          "Set-Cookie": "guildBadge"
+        },
+        "notes": "Cookie should contain Base64-encoded Java serialized object"
+      }
+    },
+    {
+      "name": "Test cookie manipulation",
+      "request": {
+        "method": "GET",
+        "path": "/vault",
+        "headers": {
+          "Cookie": "guildBadge=<modified_serialized_object>"
+        }
+      },
+      "expected_response": {
+        "status_one_of": [200, 403],
+        "notes": "Modified cookie may grant unauthorized access"
+      }
+    },
+    {
+      "name": "Verify deserialization endpoint",
+      "request": {
+        "method": "POST",
+        "path": "/join-guild",
+        "body": {
+          "guildName": "TestGuild"
+        }
+      },
+      "expected_response": {
+        "status": 200,
+        "headers_contain": {
+          "Set-Cookie": "guildBadge"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2026-01-21",
+    "last_updated": "2026-01-21",
+    "version": "1.0.0",
+    "maintainer": "Project Yggdrasil",
+    "validated": true,
+    "language": "Java",
+    "framework": "Spring Boot"
+  }
+}

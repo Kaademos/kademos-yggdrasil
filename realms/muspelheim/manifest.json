@@ -1,0 +1,166 @@
+{
+  "realm": "MUSPELHEIM",
+  "level": 6,
+  "owasp": "A06:2025",
+  "title": "Insecure Design",
+  "description": "Muspelheim demonstrates insecure design through a trading system with race conditions and business logic flaws in flash loan handling.",
+  "theme": "Norse realm of fire - symbolizing the rapid, chaotic nature of race conditions",
+  "difficulty": "Hard",
+  "estimated_time_minutes": 30,
+  "vulnerabilities": [
+    {
+      "id": "MUS-001",
+      "type": "Race Condition (TOCTOU)",
+      "cwe": "CWE-367",
+      "cwe_name": "Time-of-check Time-of-use (TOCTOU) Race Condition",
+      "cvss": {
+        "version": "3.1",
+        "score": 8.1,
+        "vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "High",
+          "privileges_required": "Low",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "High",
+          "availability": "High"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/withdraw",
+          "vulnerable": true,
+          "description": "Withdrawal endpoint with race condition between balance check and update"
+        },
+        {
+          "method": "GET",
+          "path": "/api/balance",
+          "vulnerable": false
+        },
+        {
+          "method": "POST",
+          "path": "/api/flash-loan",
+          "vulnerable": true,
+          "description": "Flash loan with premature collateral release"
+        }
+      ],
+      "description": "The trading system has a TOCTOU race condition in the withdrawal logic. Balance is checked, then an async delay occurs before the update, allowing concurrent requests to bypass the check.",
+      "impact": "Users can withdraw more funds than available balance. Multiple concurrent requests can drain account beyond limits.",
+      "exploit_steps": [
+        "Deposit initial funds to get a positive balance",
+        "Send multiple concurrent withdrawal requests",
+        "Exploit the time gap between balance check and update",
+        "Accumulate more funds than should be possible",
+        "Access vault when balance exceeds threshold"
+      ],
+      "exploit_indicators": [
+        "Multiple concurrent POST requests to /api/withdraw",
+        "Withdrawal amount greater than current balance",
+        "Negative balance after withdrawals",
+        "Rapid succession of requests (< 100ms apart)"
+      ],
+      "remediation": "Use database transactions with row-level locking. Implement optimistic locking with version numbers. Use atomic operations for balance updates. Add distributed locks for critical sections.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/367.html",
+        "https://owasp.org/Top10/A04_2021-Insecure_Design/",
+        "https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use"
+      ]
+    },
+    {
+      "id": "MUS-002",
+      "type": "Business Logic Flaw",
+      "cwe": "CWE-840",
+      "cwe_name": "Business Logic Errors",
+      "cvss": {
+        "version": "3.1",
+        "score": 7.5,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:N",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "Low",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "None",
+          "integrity": "High",
+          "availability": "None"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/flash-loan",
+          "vulnerable": true,
+          "description": "Flash loan releases collateral before verifying repayment"
+        }
+      ],
+      "description": "Flash loan system releases collateral immediately, then checks repayment after. This violates secure transaction ordering.",
+      "impact": "Users can obtain funds without proper collateral. Business logic can be exploited to gain unauthorized access.",
+      "exploit_steps": [
+        "Request flash loan",
+        "Receive funds immediately as collateral is released first",
+        "System checks repayment after funds are already available",
+        "Exploit the reversed order of operations"
+      ],
+      "exploit_indicators": [
+        "Flash loan requests",
+        "Balance increases before repayment verification",
+        "Loan marked active before collateral check"
+      ],
+      "remediation": "Implement proper transaction ordering. Verify all preconditions before state changes. Use formal verification for critical business logic. Implement proper state machine for loan lifecycle.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/840.html",
+        "https://owasp.org/Top10/A04_2021-Insecure_Design/"
+      ]
+    }
+  ],
+  "flags": {
+    "format": "YGGDRASIL\\{MUSPELHEIM:[a-f0-9-]{36}\\}",
+    "location": "vault_access",
+    "retrieval_method": "Exploit race condition to achieve impossible balance, access vault"
+  },
+  "realm_chaining": {
+    "unlocks": "NIDAVELLIR",
+    "unlocked_by": "JOTUNHEIM"
+  },
+  "learning_objectives": [
+    "Understand TOCTOU race conditions",
+    "Learn about business logic vulnerabilities",
+    "Practice exploiting timing windows",
+    "Understand importance of atomic operations",
+    "Learn about transaction ordering in secure systems"
+  ],
+  "technologies": [
+    "Node.js",
+    "Express",
+    "TypeScript",
+    "Async/Await patterns"
+  ],
+  "scanner_test_cases": [
+    {
+      "name": "Detect race condition vulnerability",
+      "request": {
+        "method": "POST",
+        "path": "/api/withdraw",
+        "body": {
+          "amount": 100
+        },
+        "concurrent_requests": 5
+      },
+      "expected_response": {
+        "status": 200,
+        "notes": "Should allow over-withdrawal if race condition exists"
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2026-01-21",
+    "last_updated": "2026-01-21",
+    "version": "1.0.0",
+    "maintainer": "Project Yggdrasil",
+    "validated": true
+  }
+}

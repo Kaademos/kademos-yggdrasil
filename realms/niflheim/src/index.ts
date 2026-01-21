@@ -50,11 +50,22 @@ function createApp(config: RealmConfig): express.Application {
   // Mount crash report router (M9)
   app.use(createCrashReportRouter());
 
-  // M9: Root route now serves static index.html from public/
-  // The static middleware above will handle this automatically
-  // Keeping this route for explicit control if needed
+  // Root route serves marketing landing page
   app.get('/', (_req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
+  });
+
+  // Console routes with security logging (observability for attack tracing)
+  app.get('/console', (req: Request, res: Response) => {
+    const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+    console.info(`[SECURITY] Console accessed from IP: ${clientIp}`);
+    res.sendFile(path.join(__dirname, '../public/console.html'));
+  });
+
+  app.get('/console.html', (req: Request, res: Response) => {
+    const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+    console.info(`[SECURITY] Console.html accessed from IP: ${clientIp}`);
+    res.sendFile(path.join(__dirname, '../public/console.html'));
   });
 
   // Legacy inline HTML route (M9: Replaced with proper SCADA UI)

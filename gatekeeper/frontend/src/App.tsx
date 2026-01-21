@@ -36,8 +36,19 @@ function App() {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading the Bifröst Gate...</p>
+          <div className="relative inline-block mb-6">
+            {/* Outer pulsing ring */}
+            <div className="absolute inset-0 rounded-full border-4 border-blue-400/30 animate-ping"></div>
+            {/* Main spinning ring */}
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-transparent border-t-blue-400 border-r-blue-500 relative z-10"></div>
+          </div>
+          <p 
+            className="text-xl text-gray-300 font-semibold tracking-wide"
+            style={{ fontFamily: 'Cinzel, serif' }}
+          >
+            Loading the Bifröst Gate...
+          </p>
+          <p className="text-sm text-gray-500 mt-2">Connecting to the Nine Realms</p>
         </div>
       </div>
     );

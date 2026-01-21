@@ -76,6 +76,15 @@ Each realm unlocks only after the previous realm's flag is successfully submitte
 - **🧪 Comprehensive Testing**: Unit, integration, E2E, and security tests
 - **📖 Documentation**: Complete developer and operator guides
 
+### 🤖 AI & Research Features (New!)
+
+- **🎓 Attack Trace Generation**: Automatic logging in OpenAI fine-tuning format
+- **📊 Scanner Benchmarking**: Test Nuclei, ZAP, and custom scanners
+- **📋 Vulnerability Manifests**: Comprehensive CWE/CVSS documentation for all 10 realms
+- **🔬 Research Tools**: Example notebooks and scripts for AI training
+- **📈 Detection Metrics**: Automated scorecard generation for scanner evaluation
+- **🌐 Community Datasets**: Share and access attack traces for research
+
 ---
 
 ## 📦 Editions & Roadmap
@@ -299,7 +308,7 @@ asgard_net (isolated)
 
 ```
 project_yggdrasil/
-├── .docs/                        # Documentation
+├── docs/                        # Documentation
 │   ├── instructor/               # Instructor teaching materials
 │   │   ├── README.md             # Instructor notes overview
 │   │   └── TEMPLATE.md           # Template for realm guides
@@ -543,11 +552,11 @@ Comprehensive documentation is available in the [`.docs/`](.docs/) directory:
 | Document | Description |
 |----------|-------------|
 | [QUICKSTART.md](QUICKSTART.md) | 5-minute setup guide |
-| [OPERATOR_GUIDE.md](.docs/guides/OPERATOR_GUIDE.md) | Production deployment and operations |
-| [DEVELOPER.md](.docs/guides/DEVELOPER.md) | Getting started for developers |
+| [OPERATOR_GUIDE.md](docs/guides/OPERATOR_GUIDE.md) | Production deployment and operations |
+| [DEVELOPER.md](docs/guides/DEVELOPER.md) | Getting started for developers |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines |
-| [QUICK_REFERENCE.md](.docs/workflows/QUICK_REFERENCE.md) | Commands, APIs, and configs |
-| [ASVS_COMPLIANCE.md](.docs/workflows/ASVS_COMPLIANCE.md) | Security controls matrix |
+| [QUICK_REFERENCE.md](docs/workflows/QUICK_REFERENCE.md) | Commands, APIs, and configs |
+| [ASVS_COMPLIANCE.md](docs/workflows/ASVS_COMPLIANCE.md) | Security controls matrix |
 
 ### Per-Realm Documentation
 
@@ -557,7 +566,7 @@ Each realm has detailed documentation:
 - **Flag location**: Where the flag is revealed
 - **Learning objectives**: What to learn from this realm
 
-Example: [.docs/realms/10-niflheim.md](.docs/realms/10-niflheim.md)
+Example: [.docs/realms/10-niflheim.md](docs/realms/10-niflheim.md)
 
 ---
 
@@ -665,7 +674,7 @@ We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before 
 - ✅ **Troubleshooting** - Documented common issues and resolutions
 
 **Documentation:**
-- [Operator Guide](.docs/guides/OPERATOR_GUIDE.md)
+- [Operator Guide](docs/guides/OPERATOR_GUIDE.md)
 - [Error Handling README](realms/_shared/ERROR-HANDLING-README.md)
 
 **Status:** Production-ready, visually polished, fully documented, zero regressions.

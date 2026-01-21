@@ -1,6 +1,6 @@
 import { container } from 'tsyringe';
 import { loadConfig } from '../config';
-import { UserRepository, UserRepositoryFactory } from '../repositories/user-repository';
+import { IUserRepository, UserRepositoryFactory } from '../repositories/user-repository';
 import { AuthService } from '../services/auth-service';
 import { AuthRateLimiter } from '../services/auth-rate-limiter';
 import { ProgressionClient } from '../services/progression-client';

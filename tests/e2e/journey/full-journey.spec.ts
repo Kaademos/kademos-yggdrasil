@@ -2,11 +2,35 @@ import { test, expect } from '@playwright/test';
 import { exploits } from './helpers/exploit-helpers';
 import { loginViaUI, submitFlagViaUI, verifyRealmUnlocked } from './helpers/api-client';
 import testUsers from '../../fixtures/test-users.json';
+import * as fs from 'fs';
+import * as path from 'path';
 
 test.describe('Yggdrasil Full Journey (10→1)', () => {
   test.setTimeout(300000); // 5 minutes for full journey
 
   test('completes all realms in order from Niflheim to Asgard', async ({ page, context }) => {
+    const LOGS_DIR = path.join(__dirname, '../../../logs/attack-traces');
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Helper function to count traces
+    const getTraceCount = () => {
+      let totalTraces = 0;
+      const services = ['gatekeeper', 'flag-oracle'];
+      
+      for (const service of services) {
+        const traceFile = path.join(LOGS_DIR, service, `attack-traces-${today}.jsonl`);
+        if (fs.existsSync(traceFile)) {
+          const content = fs.readFileSync(traceFile, 'utf-8');
+          const lines = content.trim().split('\n').filter(line => line);
+          totalTraces += lines.length;
+        }
+      }
+      
+      return totalTraces;
+    };
+    
+    // Count initial traces
+    const initialTraceCount = getTraceCount();
     const { username, password } = testUsers.journeyUser;
     
     // Login
@@ -118,5 +142,94 @@ test.describe('Yggdrasil Full Journey (10→1)', () => {
     expect(completionMessage).toBeTruthy();
     
     console.log('🎉 FULL JOURNEY COMPLETE! All 10 realms conquered.');
+    
+    // Wait for traces to be written
+    await page.waitForTimeout(2000);
+    
+    // Verify attack traces were generated
+    const finalTraceCount = getTraceCount();
+    const newTraces = finalTraceCount - initialTraceCount;
+    
+    console.log(`📊 Attack Traces Generated: ${newTraces} traces`);
+    
+    // Should have generated traces for:
+    // - 1 login
+    // - 10 flag submissions (one per realm)
+    // - Multiple realm access events
+    expect(newTraces).toBeGreaterThan(10);
+    
+    // Verify trace file format
+    const traceFile = path.join(LOGS_DIR, 'flag-oracle', `attack-traces-${today}.jsonl`);
+    if (fs.existsSync(traceFile)) {
+      const content = fs.readFileSync(traceFile, 'utf-8');
+      const traces = content.trim().split('\n').filter(line => line);
+      
+      // Verify at least some traces exist
+      expect(traces.length).toBeGreaterThan(0);
+      
+      // Verify last trace is valid JSON
+      const lastTrace = JSON.parse(traces[traces.length - 1]);
+      expect(lastTrace).toHaveProperty('messages');
+      expect(lastTrace).toHaveProperty('metadata');
+      expect(lastTrace.metadata).toHaveProperty('timestamp');
+      expect(lastTrace.metadata).toHaveProperty('event_type');
+      
+      console.log('✅ Attack traces validated');
+    }
+  });
+  
+  test('generates correct attack trace metadata for each realm', async ({ page, context }) => {
+    const LOGS_DIR = path.join(__dirname, '../../../logs/attack-traces');
+    const today = new Date().toISOString().split('T')[0];
+    const { username, password } = testUsers.journeyUser;
+    
+    // Login
+    await loginViaUI(page, username, password);
+    
+    // Complete first realm to generate traces
+    console.log('🧊 Testing attack trace metadata for Niflheim...');
+    const niflheimResult = await exploits.niflheim(page);
+    await submitFlagViaUI(page, niflheimResult.flag);
+    
+    // Wait for traces to be written
+    await page.waitForTimeout(1500);
+    
+    // Read and verify traces
+    const traceFile = path.join(LOGS_DIR, 'flag-oracle', `attack-traces-${today}.jsonl`);
+    
+    if (fs.existsSync(traceFile)) {
+      const content = fs.readFileSync(traceFile, 'utf-8');
+      const traces = content.trim().split('\n').filter(line => line);
+      
+      // Find trace for Niflheim
+      const niflheimTraces = traces
+        .map(line => JSON.parse(line))
+        .filter(trace => trace.metadata.realm === 'NIFLHEIM');
+      
+      expect(niflheimTraces.length).toBeGreaterThan(0);
+      
+      const trace = niflheimTraces[niflheimTraces.length - 1];
+      
+      // Verify OpenAI format
+      expect(trace.messages).toBeInstanceOf(Array);
+      expect(trace.messages.length).toBeGreaterThan(0);
+      
+      trace.messages.forEach((msg: any) => {
+        expect(msg).toHaveProperty('role');
+        expect(msg).toHaveProperty('content');
+        expect(['system', 'user', 'assistant']).toContain(msg.role);
+      });
+      
+      // Verify metadata includes CWE and CVSS
+      expect(trace.metadata).toHaveProperty('realm', 'NIFLHEIM');
+      expect(trace.metadata).toHaveProperty('cwe');
+      expect(trace.metadata).toHaveProperty('cvss');
+      expect(trace.metadata.cwe).toMatch(/CWE-\d+/);
+      expect(typeof trace.metadata.cvss).toBe('number');
+      
+      console.log('✅ Attack trace metadata validated');
+      console.log(`   CWE: ${trace.metadata.cwe}`);
+      console.log(`   CVSS: ${trace.metadata.cvss}`);
+    }
   });
 });

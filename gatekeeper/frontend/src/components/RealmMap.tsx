@@ -54,62 +54,99 @@ export const RealmMap: React.FC = () => {
           {sortedRealms.map((realm) => {
             const cardClasses = `group relative rounded-lg overflow-hidden border-2 transition-all duration-300
               ${realm.locked 
-                ? 'border-red-900/50 opacity-60 grayscale hover:grayscale-0 cursor-not-allowed' 
-                : 'border-green-500/50 hover:border-green-400 hover:scale-105 cursor-pointer'
+                ? 'border-red-900/50 cursor-not-allowed' 
+                : 'hover:scale-105 cursor-pointer'
               }
-              ${!realm.locked && 'animate-pulse hover:animate-none'}
             `;
             const cardStyle = {
               boxShadow: realm.locked 
-                ? '0 0 10px rgba(127, 29, 29, 0.3)' 
-                : '0 0 20px rgba(34, 197, 94, 0.4)',
+                ? '0 0 15px rgba(127, 29, 29, 0.4)' 
+                : `0 0 20px ${realm.theme.primaryColor}40`,
+              borderColor: realm.locked ? 'rgba(127, 29, 29, 0.5)' : realm.theme.primaryColor,
             };
 
             const cardContent = (
-              <>
-              {/* Realm Image Placeholder */}
-              <div 
-                className="h-48 bg-gradient-to-br flex items-center justify-center"
-                style={{
-                  backgroundImage: `linear-gradient(135deg, ${realm.theme.primaryColor}20, ${realm.theme.primaryColor}40)`,
-                }}
-              >
-                {/* Lock Icon for locked realms */}
+              <div className="relative h-80 overflow-hidden">
+                {/* Background Image with Ken Burns Effect */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110"
+                  style={{
+                    backgroundImage: `url(${realm.theme.image})`,
+                    filter: realm.locked ? 'grayscale(100%) brightness(0.4)' : 'none',
+                  }}
+                />
+                
+                {/* Scrim Gradient for Text Readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+                
+                {/* Lock Overlay for Locked Realms */}
                 {realm.locked && (
-                  <svg className="w-12 h-12 text-red-400 absolute" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center z-10">
+                    <div className="text-center">
+                      <svg 
+                        className="w-20 h-20 text-red-400 mx-auto mb-2" 
+                        fill="currentColor" 
+                        viewBox="0 0 20 20"
+                        style={{ filter: 'drop-shadow(0 0 10px rgba(248, 113, 113, 0.6))' }}
+                      >
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                      </svg>
+                      <p className="text-red-300 font-semibold text-sm">CLASSIFIED</p>
+                    </div>
+                  </div>
                 )}
                 
-                {/* Realm Order Badge */}
-                <div className="absolute top-2 right-2 bg-black/70 px-3 py-1 rounded-full text-sm font-bold">
-                  #{realm.order}
+                {/* Content Overlay */}
+                <div className="absolute inset-0 flex flex-col justify-between p-4 z-20">
+                  {/* Top: Realm Order Badge */}
+                  <div className="flex justify-end">
+                    <div 
+                      className="bg-black/80 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-bold border"
+                      style={{ 
+                        borderColor: realm.locked ? 'rgba(239, 68, 68, 0.5)' : `${realm.theme.primaryColor}60`,
+                        color: realm.locked ? '#fca5a5' : realm.theme.primaryColor,
+                      }}
+                    >
+                      #{realm.order}
+                    </div>
+                  </div>
+                  
+                  {/* Bottom: Realm Info */}
+                  <div className="space-y-2">
+                    <h3 
+                      className="font-bold text-2xl text-white drop-shadow-lg" 
+                      style={{ fontFamily: 'Cinzel, serif' }}
+                    >
+                      {realm.displayName}
+                    </h3>
+                    <p className="text-sm text-gray-200 line-clamp-2 drop-shadow-md">
+                      {realm.description}
+                    </p>
+                    
+                    {/* Status Badge */}
+                    <div className="flex items-center gap-2">
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm
+                        ${realm.locked ? 'bg-red-900/60 text-red-200' : 'bg-green-900/60 text-green-200'}
+                      `}>
+                        <span 
+                          className={`w-2 h-2 rounded-full ${realm.locked ? 'bg-red-400' : 'bg-green-400'}`}
+                          style={{ 
+                            boxShadow: realm.locked 
+                              ? '0 0 8px rgba(248, 113, 113, 0.8)' 
+                              : '0 0 8px rgba(74, 222, 128, 0.8)' 
+                          }}
+                        ></span>
+                        {realm.locked ? 'Classified' : 'Available'}
+                      </div>
+                    </div>
+
+                    {/* OWASP Category */}
+                    <p className="text-xs text-gray-300 font-medium drop-shadow-md">
+                      {realm.theme.category}
+                    </p>
+                  </div>
                 </div>
               </div>
-
-              {/* Realm Info */}
-              <div className="p-4 bg-slate-950/90">
-                <h3 className="font-bold text-lg mb-1" style={{ fontFamily: 'Cinzel, serif' }}>
-                  {realm.displayName}
-                </h3>
-                <p className="text-xs text-gray-400 mb-2 line-clamp-2">
-                  {realm.description}
-                </p>
-                
-                {/* Status Badge */}
-                <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold
-                  ${realm.locked ? 'bg-red-900/50 text-red-300' : 'bg-green-900/50 text-green-300'}
-                `}>
-                  <span className={`w-2 h-2 rounded-full ${realm.locked ? 'bg-red-400' : 'bg-green-400'}`}></span>
-                  {realm.locked ? 'Classified' : 'Available'}
-                </div>
-
-                {/* OWASP Category */}
-                <p className="text-xs text-gray-500 mt-2 truncate">
-                  {realm.theme.category}
-                </p>
-              </div>
-              </>
             );
 
             // Render clickable link for unlocked realms, div for locked
