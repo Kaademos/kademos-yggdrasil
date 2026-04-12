@@ -1,3 +1,5 @@
+import { injectable, inject } from 'tsyringe';
+
 export interface RateLimitConfig {
   windowMs: number;
   maxRequests: number;
@@ -8,10 +10,11 @@ export interface RateLimitResult {
   retryAfter?: number;
 }
 
+@injectable()
 export class RateLimiter {
   private attempts = new Map<string, number[]>();
 
-  constructor(private config: RateLimitConfig) {}
+  constructor(@inject('RateLimitConfig') private config: RateLimitConfig) {}
 
   async checkLimit(key: string): Promise<RateLimitResult> {
     const now = Date.now();

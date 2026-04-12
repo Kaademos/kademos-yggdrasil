@@ -1,5 +1,7 @@
+import 'reflect-metadata';
 import express from 'express';
 import { loadConfig } from './config';
+import { configureContainer } from './config/di';
 import { FlagValidator } from './services/flag-validator';
 import { FlagService } from './services/flag-service';
 import { RepositoryFactory } from './repositories/repository-factory';
@@ -12,7 +14,8 @@ import { createRoutes } from './routes';
 import { securityHeaders } from './middleware/security-headers';
 
 async function main() {
-  const config = loadConfig();
+  const container = configureContainer();
+  const config = container.resolve<any>('Config');
 
   const app = express();
   app.use(securityHeaders);
@@ -20,30 +23,15 @@ async function main() {
 
   const logger = new Logger();
 
-  const repository = RepositoryFactory.create({
-    redisUrl: config.redisUrl,
-    dataPath: config.dataPath,
-  });
-
-  const validator = new FlagValidator();
-  const progressionValidator = new ProgressionValidator(REALM_ORDER);
-  const progressionService = new ProgressionService(repository, validator, progressionValidator);
-
-  // Initialize FlagService (M8)
-  const flagService = config.flagMasterSecret
-    ? new FlagService({ masterSecret: config.flagMasterSecret })
-    : null;
+  const progressionService = container.resolve(ProgressionService);
+  const flagService = container.resolve(FlagService);
+  const rateLimiter = container.resolve(RateLimiter);
 
   if (!flagService) {
     logger.logInfo('FLAG_MASTER_SECRET not set - dynamic flag generation disabled', {
       feature: 'flag-generation',
     });
   }
-
-  const rateLimiter = new RateLimiter({
-    windowMs: config.rateLimitWindowMs,
-    maxRequests: config.rateLimitMaxRequests,
-  });
 
   const routes = createRoutes({ progressionService, rateLimiter, logger, flagService });
   app.use('/', routes);

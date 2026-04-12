@@ -1,0 +1,143 @@
+{
+  "realm": "HELHEIM",
+  "level": 9,
+  "owasp": "A09:2025",
+  "title": "Logging & Alerting Failures",
+  "description": "Helheim demonstrates logging and monitoring failures through a memorial forum that exposes sensitive information in publicly accessible log files.",
+  "theme": "Norse underworld - where forgotten souls reside, symbolizing buried secrets in logs",
+  "difficulty": "Easy",
+  "estimated_time_minutes": 10,
+  "vulnerabilities": [
+    {
+      "id": "HEL-001",
+      "type": "Sensitive Data Exposure in Logs",
+      "cwe": "CWE-532",
+      "cwe_name": "Insertion of Sensitive Information into Log File",
+      "cvss": {
+        "version": "3.1",
+        "score": 7.5,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "None",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "None",
+          "availability": "None"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/memorial",
+          "vulnerable": true,
+          "description": "Memorial creation endpoint that logs validation errors with sensitive data"
+        },
+        {
+          "method": "GET",
+          "path": "/temp_logs/error.log",
+          "vulnerable": true,
+          "description": "Publicly accessible log file containing flags and sensitive information"
+        },
+        {
+          "method": "GET",
+          "path": "/api/memorials",
+          "vulnerable": false
+        },
+        {
+          "method": "GET",
+          "path": "/api/system-status",
+          "vulnerable": false
+        }
+      ],
+      "description": "Error logs contain sensitive information including flags, and the log directory is exposed via HTTP as static files. No monitoring or alerting is configured.",
+      "impact": "Complete exposure of sensitive data, credentials, and flags through accessible log files. Lack of monitoring prevents detection of security incidents.",
+      "exploit_steps": [
+        "Access the Helheim memorial forum",
+        "Submit invalid memorial data to trigger validation errors (missing fields, wrong types, etc.)",
+        "Access the publicly exposed /temp_logs/ directory",
+        "Read error.log to extract the flag and other sensitive information",
+        "Note: Any validation error will log the flag"
+      ],
+      "exploit_indicators": [
+        "POST /api/memorial with invalid data",
+        "Missing 'name' or 'message' fields",
+        "Wrong data types (number instead of string)",
+        "Content exceeding length limits",
+        "GET /temp_logs/error.log"
+      ],
+      "remediation": "Never log sensitive information (flags, passwords, PII). Sanitize all log entries. Restrict access to log files using proper authentication. Implement centralized logging with monitoring and alerting. Use structured logging with appropriate log levels.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/532.html",
+        "https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html"
+      ]
+    }
+  ],
+  "flags": {
+    "format": "YGGDRASIL\\{HELHEIM:[a-f0-9-]{36}\\}",
+    "location": "error_log_file",
+    "retrieval_method": "Trigger validation error, access /temp_logs/error.log"
+  },
+  "realm_chaining": {
+    "unlocks": "SVARTALFHEIM",
+    "unlocked_by": "NIFLHEIM"
+  },
+  "learning_objectives": [
+    "Understand risks of logging sensitive information",
+    "Recognize importance of access control on log files",
+    "Learn about secure logging practices",
+    "Understand need for security monitoring and alerting",
+    "Practice exploiting exposed log files"
+  ],
+  "technologies": [
+    "Node.js",
+    "Express",
+    "TypeScript",
+    "Static file serving"
+  ],
+  "scanner_test_cases": [
+    {
+      "name": "Detect exposed log directory",
+      "request": {
+        "method": "GET",
+        "path": "/temp_logs/"
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": ["error.log"]
+      }
+    },
+    {
+      "name": "Detect sensitive data in logs",
+      "request": {
+        "method": "GET",
+        "path": "/temp_logs/error.log"
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": ["YGGDRASIL", "HELHEIM"]
+      }
+    },
+    {
+      "name": "Trigger error logging via invalid memorial",
+      "request": {
+        "method": "POST",
+        "path": "/api/memorial",
+        "body": {}
+      },
+      "expected_response": {
+        "status": 400
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2026-01-21",
+    "last_updated": "2026-01-21",
+    "version": "1.0.0",
+    "maintainer": "Project Yggdrasil",
+    "validated": true
+  }
+}

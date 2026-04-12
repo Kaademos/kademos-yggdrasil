@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { FlagService } from '../src/services/flag-service';
 
 const TEST_SECRET = 'test-secret-32-characters-minimum!!';
@@ -6,19 +7,19 @@ const TEST_SECRET_SHORT = 'too-short';
 describe('FlagService', () => {
   describe('constructor', () => {
     it('should require master secret', () => {
-      expect(() => new FlagService({ masterSecret: '' })).toThrow(
+      expect(() => new FlagService({ flagMasterSecret: '' })).toThrow(
         'Master secret must be at least 32 characters'
       );
     });
 
     it('should require master secret of minimum length', () => {
-      expect(() => new FlagService({ masterSecret: TEST_SECRET_SHORT })).toThrow(
+      expect(() => new FlagService({ flagMasterSecret: TEST_SECRET_SHORT })).toThrow(
         'Master secret must be at least 32 characters'
       );
     });
 
     it('should accept valid master secret', () => {
-      expect(() => new FlagService({ masterSecret: TEST_SECRET })).not.toThrow();
+      expect(() => new FlagService({ flagMasterSecret: TEST_SECRET })).not.toThrow();
     });
   });
 
@@ -26,7 +27,7 @@ describe('FlagService', () => {
     let service: FlagService;
 
     beforeEach(() => {
-      service = new FlagService({ masterSecret: TEST_SECRET });
+      service = new FlagService({ flagMasterSecret: TEST_SECRET });
     });
 
     it('should generate flag in correct format', () => {

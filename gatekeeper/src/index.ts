@@ -1,15 +1,18 @@
+import 'reflect-metadata';
 import express from 'express';
 import path from 'path';
 import { loadConfig } from './config';
+import { configureContainer } from './config/di';
 import { enhancedSecurityHeaders } from './middleware/security-headers';
 import { createSessionMiddleware } from './middleware/session';
 import { createCorsMiddleware } from './middleware/cors-config';
 import { createAuthMiddleware } from './middleware/auth';
 import { requestLogger } from './middleware/logging';
+import { captureAttackTrace } from './middleware/attack-trace';
 import { logger } from './utils/logger';
 import { ProgressionClient } from './services/progression-client';
 import { ProgressionService } from './services/progression-service';
-import { UserRepositoryFactory } from './repositories/user-repository';
+import { IUserRepository } from './repositories/user-repository';
 import { AuthService } from './services/auth-service';
 import { AuthRateLimiter } from './services/auth-rate-limiter';
 import { createAuthRoutes, csrfErrorHandler } from './routes/auth';
@@ -17,7 +20,9 @@ import { createRoutes } from './routes';
 import { createRealmGate } from './middleware/realm-gate';
 
 async function main() {
-  const config = loadConfig();
+  // Configure DI container
+  const container = configureContainer();
+  const config = container.resolve<any>('Config');
 
   const app = express();
 
@@ -46,16 +51,16 @@ async function main() {
   // Request logging
   app.use(requestLogger);
 
-  // Initialize services
-  const userRepository = UserRepositoryFactory.create(config.bcryptRounds, config.testUserPassword);
-  const authService = new AuthService(userRepository, config.bcryptRounds);
-  const authRateLimiter = new AuthRateLimiter(
-    config.authRateLimitWindowMs,
-    config.authRateLimitMaxRequests
-  );
+  // Attack trace logging (for AI training)
+  app.use(captureAttackTrace);
+
+  // Resolve services from container
+  const userRepository = container.resolve<IUserRepository>('IUserRepository');
+  const authService = container.resolve(AuthService);
+  const authRateLimiter = container.resolve(AuthRateLimiter);
   const authMiddleware = createAuthMiddleware(userRepository);
-  const progressionClient = new ProgressionClient(config.flagOracleUrl);
-  const progressionService = new ProgressionService(progressionClient);
+  const progressionClient = container.resolve(ProgressionClient);
+  const progressionService = container.resolve(ProgressionService);
   const realmGate = createRealmGate(progressionService);
 
   // Auth routes
@@ -101,7 +106,7 @@ async function main() {
     console.info(`[Gatekeeper] Listening on port ${config.port}`);
     console.info(`[Gatekeeper] Environment: ${config.nodeEnv}`);
     console.info(`[Gatekeeper] Flag Oracle URL: ${config.flagOracleUrl}`);
-    console.info(`[Gatekeeper] Configured realms: ${config.realms.map((r) => r.name).join(', ')}`);
+    console.info(`[Gatekeeper] Configured realms: ${config.realms.map((r: any) => r.name).join(', ')}`);
   });
 }
 

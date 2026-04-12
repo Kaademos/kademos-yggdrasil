@@ -1,6 +1,8 @@
+import { injectable, inject } from 'tsyringe';
 import { FlagValidator } from './flag-validator';
 import { IFlagRepository } from '../repositories/flag-repository';
 import { ProgressionValidator } from './progression-validator';
+import { FlagRepository } from '../repositories/flag-repository';
 
 export interface ValidationResult {
   status: 'success' | 'error' | 'invalid';
@@ -9,11 +11,12 @@ export interface ValidationResult {
   realm?: string;
 }
 
+@injectable()
 export class ProgressionService {
   constructor(
-    private repository: IFlagRepository,
-    private validator: FlagValidator,
-    private progressionValidator?: ProgressionValidator
+    @inject(FlagRepository) private repository: IFlagRepository,
+    @inject(FlagValidator) private validator: FlagValidator,
+    @inject(ProgressionValidator) private progressionValidator?: ProgressionValidator
   ) {}
 
   async validateFlag(userId: string, flag: string): Promise<ValidationResult> {

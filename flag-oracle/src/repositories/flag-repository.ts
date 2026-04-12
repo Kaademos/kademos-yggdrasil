@@ -1,5 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { injectable, inject } from 'tsyringe';
 
 export interface UserProgression {
   userId: string;
@@ -20,15 +21,20 @@ export interface IFlagRepository {
   getValidFlags(): Promise<FlagData[]>;
 }
 
-export class FileBasedFlagRepository implements IFlagRepository {
+@injectable()
+export class FlagRepository implements IFlagRepository {
   private dataPath: string;
   private progressionFile: string;
   private flagsFile: string;
+  private useRedis: boolean = false;
+  // Note: Full Redis implementation would be injected here if enabled
+  // For simplicity in this refactor, we are keeping the file-based logic as default
+  // but making it injectable.
 
-  constructor(dataPath: string) {
-    this.dataPath = dataPath;
-    this.progressionFile = path.join(dataPath, 'progression.json');
-    this.flagsFile = path.join(dataPath, 'flags.json');
+  constructor(@inject('Config') private config: any) {
+    this.dataPath = config.dataPath || './data';
+    this.progressionFile = path.join(this.dataPath, 'progression.json');
+    this.flagsFile = path.join(this.dataPath, 'flags.json');
   }
 
   async ensureDataDirectory(): Promise<void> {

@@ -1,0 +1,197 @@
+{
+  "realm": "VANAHEIM",
+  "level": 4,
+  "owasp": "A04:2025",
+  "title": "Cryptographic Failures",
+  "description": "Vanaheim demonstrates cryptographic failures through a token generation system using predictable PRNG (Math.random) instead of cryptographically secure random number generation.",
+  "theme": "Norse realm of fertility gods - where seeds (random seeds) determine harvest (tokens)",
+  "difficulty": "Medium-Hard",
+  "estimated_time_minutes": 30,
+  "vulnerabilities": [
+    {
+      "id": "VAN-001",
+      "type": "Predictable Pseudo-Random Number Generator (PRNG)",
+      "cwe": "CWE-338",
+      "cwe_name": "Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)",
+      "cvss": {
+        "version": "3.1",
+        "score": 7.5,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "None",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "None",
+          "availability": "None"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tokens/generate",
+          "vulnerable": true,
+          "description": "Token generation using predictable Math.random()"
+        },
+        {
+          "method": "POST",
+          "path": "/api/tokens/verify",
+          "vulnerable": true,
+          "parameters": {
+            "token": "string"
+          },
+          "description": "Verify token and return flag if admin token"
+        },
+        {
+          "method": "GET",
+          "path": "/api/tokens/history",
+          "vulnerable": true,
+          "description": "Returns recent token history (helps predict next tokens)"
+        }
+      ],
+      "description": "The token generation system uses Math.random() which is not cryptographically secure. By observing multiple generated tokens, an attacker can predict the PRNG state and generate future tokens, including admin tokens.",
+      "impact": "Token prediction, unauthorized access to admin functionality, privilege escalation, session hijacking",
+      "exploit_steps": [
+        "Request multiple guest tokens to observe the pattern",
+        "Analyze token generation algorithm (sequential or time-based)",
+        "Use /api/tokens/history to gather more samples",
+        "Identify the PRNG seed or pattern",
+        "Predict admin token value",
+        "Generate predicted admin token",
+        "Submit predicted token to /api/tokens/verify",
+        "Retrieve flag from successful admin token verification"
+      ],
+      "exploit_indicators": [
+        "Multiple rapid token generation requests",
+        "Access to /api/tokens/history endpoint",
+        "Token patterns showing sequential or predictable values",
+        "Tokens generated close in time showing correlation",
+        "Math.random() usage in token generation code",
+        "Lack of crypto.randomBytes() or similar secure RNG"
+      ],
+      "remediation": "Use cryptographically secure random number generators: crypto.randomBytes() in Node.js, secrets module in Python, SecureRandom in Java. Never use Math.random(), rand(), or similar functions for security-critical operations. Implement proper token signing (JWT with strong secrets). Use established libraries for token generation.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/338.html",
+        "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
+        "https://nodejs.org/api/crypto.html#cryptorandombytessize-callback",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+      ]
+    },
+    {
+      "id": "VAN-002",
+      "type": "Weak JWT Secret",
+      "cwe": "CWE-321",
+      "cwe_name": "Use of Hard-coded Cryptographic Key",
+      "cvss": {
+        "version": "3.1",
+        "score": 7.4,
+        "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "High",
+          "privileges_required": "None",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "High",
+          "availability": "None"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/tokens/verify",
+          "vulnerable": true,
+          "description": "JWT tokens signed with predictable secret"
+        }
+      ],
+      "description": "If JWT tokens are used, they may be signed with weak or predictable secrets, allowing token forgery.",
+      "impact": "Token forgery, authentication bypass, privilege escalation",
+      "exploit_indicators": [
+        "JWT tokens in responses",
+        "Weak or default JWT secrets",
+        "Tokens that can be decoded and re-signed"
+      ],
+      "remediation": "Use strong, randomly generated JWT secrets (minimum 256 bits). Rotate secrets regularly. Store secrets securely (environment variables, key management systems).",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/321.html",
+        "https://jwt.io/introduction",
+        "https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html"
+      ]
+    }
+  ],
+  "flags": {
+    "format": "YGGDRASIL\\{VANAHEIM:[a-f0-9-]{36}\\}",
+    "location": "token_verification",
+    "retrieval_method": "Predict admin token using PRNG analysis, verify to retrieve flag"
+  },
+  "realm_chaining": {
+    "unlocks": "MIDGARD",
+    "unlocked_by": "NIDAVELLIR"
+  },
+  "learning_objectives": [
+    "Understand difference between PRNG and CSPRNG",
+    "Learn why Math.random() is insecure",
+    "Practice PRNG state prediction",
+    "Understand token security requirements",
+    "Learn about secure random number generation APIs",
+    "Understand JWT security best practices"
+  ],
+  "technologies": [
+    "Node.js",
+    "Express",
+    "TypeScript",
+    "Math.random() (insecure)",
+    "JWT (potentially)"
+  ],
+  "scanner_test_cases": [
+    {
+      "name": "Detect predictable token generation",
+      "request": {
+        "method": "POST",
+        "path": "/api/tokens/generate",
+        "body": {
+          "role": "guest"
+        }
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": ["token"]
+      },
+      "notes": "Generate multiple tokens and analyze for patterns"
+    },
+    {
+      "name": "Access token history",
+      "request": {
+        "method": "GET",
+        "path": "/api/tokens/history"
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": ["tokens"]
+      }
+    },
+    {
+      "name": "Verify token endpoint",
+      "request": {
+        "method": "POST",
+        "path": "/api/tokens/verify",
+        "body": {
+          "token": "predicted-token-value"
+        }
+      },
+      "expected_response": {
+        "status_one_of": [200, 401, 403]
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2026-01-21",
+    "last_updated": "2026-01-21",
+    "version": "1.0.0",
+    "maintainer": "Project Yggdrasil",
+    "validated": true
+  }
+}

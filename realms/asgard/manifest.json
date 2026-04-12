@@ -1,0 +1,266 @@
+{
+  "realm": "ASGARD",
+  "level": 1,
+  "owasp": "A01:2025",
+  "title": "Broken Access Control",
+  "description": "Asgard is the final realm demonstrating complex broken access control through a multi-stage exploit chain: IDOR → Blind SQL Injection → SSRF → Metadata Service Access.",
+  "theme": "Norse realm of gods - the ultimate challenge requiring mastery of all techniques",
+  "difficulty": "Expert",
+  "estimated_time_minutes": 60,
+  "vulnerabilities": [
+    {
+      "id": "ASG-001",
+      "type": "Insecure Direct Object Reference (IDOR)",
+      "cwe": "CWE-639",
+      "cwe_name": "Authorization Bypass Through User-Controlled Key",
+      "cvss": {
+        "version": "3.1",
+        "score": 6.5,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "Low",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "None",
+          "availability": "None"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/employees/:id",
+          "vulnerable": true,
+          "description": "Employee details with insufficient authorization checks"
+        },
+        {
+          "method": "GET",
+          "path": "/api/employees",
+          "vulnerable": false,
+          "description": "Lists only authorized employees"
+        }
+      ],
+      "description": "Phase 1: The employee details endpoint lacks proper authorization checks. Users can access other employees' information by enumerating ID parameters, revealing admin email addresses needed for subsequent exploits.",
+      "impact": "Information disclosure, access to admin details, enables further exploit chain",
+      "exploit_indicators": [
+        "Sequential ID enumeration (1, 2, 3...)",
+        "Access to employee IDs outside user's authorization",
+        "Response contains email addresses and roles",
+        "Admin role detection in responses"
+      ],
+      "remediation": "Implement proper authorization checks. Validate user permissions before returning resources. Use indirect references (UUIDs). Implement access control lists (ACLs). Log and monitor IDOR attempts.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/639.html",
+        "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html"
+      ]
+    },
+    {
+      "id": "ASG-002",
+      "type": "Blind SQL Injection",
+      "cwe": "CWE-89",
+      "cwe_name": "Improper Neutralization of Special Elements used in an SQL Command",
+      "cvss": {
+        "version": "3.1",
+        "score": 7.5,
+        "vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "High",
+          "privileges_required": "Low",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "High",
+          "availability": "High"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/reset-password",
+          "vulnerable": true,
+          "parameters": {
+            "email": "string (injectable)"
+          },
+          "description": "Password reset with blind SQLi vulnerability"
+        }
+      ],
+      "description": "Phase 2: The password reset endpoint is vulnerable to blind SQL injection. Using the admin email from IDOR, attackers can extract the password reset token through boolean-based blind SQLi.",
+      "impact": "Account takeover, admin access, enables SSRF exploitation",
+      "exploit_indicators": [
+        "SQL boolean operators in email parameter (AND, OR)",
+        "Time-based payloads (SLEEP, WAITFOR)",
+        "Substring/character extraction patterns",
+        "Response time differences",
+        "Multiple requests with similar patterns"
+      ],
+      "remediation": "Use parameterized queries exclusively. Implement input validation. Use ORM frameworks. Apply WAF rules. Monitor for SQLi patterns.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/89.html",
+        "https://portswigger.net/web-security/sql-injection/blind"
+      ]
+    },
+    {
+      "id": "ASG-003",
+      "type": "Server-Side Request Forgery (SSRF) via CRLF Injection",
+      "cwe": "CWE-918",
+      "cwe_name": "Server-Side Request Forgery (SSRF)",
+      "cvss": {
+        "version": "3.1",
+        "score": 9.0,
+        "vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:H/A:H",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "High",
+          "privileges_required": "Low",
+          "user_interaction": "None",
+          "scope": "Changed",
+          "confidentiality": "High",
+          "integrity": "High",
+          "availability": "High"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/view-report",
+          "vulnerable": true,
+          "parameters": {
+            "reportId": "string (injectable with CRLF)"
+          },
+          "description": "Report viewer vulnerable to SSRF via header injection"
+        },
+        {
+          "method": "GET",
+          "path": "/api/internal/metadata-service",
+          "vulnerable": true,
+          "description": "Internal metadata service (target for SSRF)"
+        }
+      ],
+      "description": "Phase 3: Using admin access, the report viewer endpoint can be exploited with CRLF injection to bypass SSRF filters and access internal metadata services containing the flag.",
+      "impact": "Access to internal services, credential theft, flag retrieval, potential RCE",
+      "exploit_indicators": [
+        "CRLF characters in reportId (%0d%0a, \\r\\n)",
+        "Custom header injection (Odin-View, X-Admin-Secret)",
+        "Requests to internal metadata service",
+        "Bypass of URL validation filters",
+        "Access to /metadata/secrets endpoint"
+      ],
+      "remediation": "Sanitize CRLF characters. Validate and encode all URL inputs. Use allowlist for internal service access. Implement network segmentation. Require authentication for internal services.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/918.html",
+        "https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/"
+      ]
+    }
+  ],
+  "flags": {
+    "format": "YGGDRASIL\\{ASGARD:[a-f0-9-]{36}\\}",
+    "location": "metadata_service",
+    "retrieval_method": "Multi-stage: IDOR → Blind SQLi → SSRF → Metadata Service"
+  },
+  "realm_chaining": {
+    "unlocks": "COMPLETE",
+    "unlocked_by": "ALFHEIM",
+    "notes": "Final realm - completing Asgard means conquering all of Yggdrasil"
+  },
+  "exploit_chain": [
+    {
+      "phase": 1,
+      "name": "IDOR Reconnaissance",
+      "objective": "Enumerate employee IDs to find admin email",
+      "endpoint": "GET /api/employees/:id",
+      "success_indicator": "Discover admin email: odin@asgard.realm"
+    },
+    {
+      "phase": 2,
+      "name": "Blind SQL Injection",
+      "objective": "Extract password reset token using blind SQLi",
+      "endpoint": "POST /api/reset-password",
+      "success_indicator": "Obtain valid reset token for admin account"
+    },
+    {
+      "phase": 3,
+      "name": "Account Takeover",
+      "objective": "Reset admin password and gain admin access",
+      "success_indicator": "Authenticated as admin user"
+    },
+    {
+      "phase": 4,
+      "name": "SSRF via CRLF",
+      "objective": "Bypass SSRF filters using CRLF injection",
+      "endpoint": "GET /api/view-report",
+      "success_indicator": "Access internal metadata service"
+    },
+    {
+      "phase": 5,
+      "name": "Flag Retrieval",
+      "objective": "Extract flag from metadata service",
+      "endpoint": "/api/internal/metadata-service/secrets",
+      "success_indicator": "Retrieve YGGDRASIL{ASGARD:...} flag"
+    }
+  ],
+  "learning_objectives": [
+    "Master IDOR exploitation techniques",
+    "Practice blind SQL injection",
+    "Learn CRLF injection for SSRF bypass",
+    "Understand multi-stage attack chains",
+    "Practice privilege escalation",
+    "Learn complex vulnerability chaining"
+  ],
+  "technologies": [
+    "Node.js",
+    "Express",
+    "TypeScript",
+    "PostgreSQL",
+    "HTTP proxying"
+  ],
+  "scanner_test_cases": [
+    {
+      "name": "Detect IDOR in employee endpoint",
+      "request": {
+        "method": "GET",
+        "path": "/api/employees/1"
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": ["employee", "email"]
+      }
+    },
+    {
+      "name": "Detect blind SQLi in password reset",
+      "request": {
+        "method": "POST",
+        "path": "/api/reset-password",
+        "body": {
+          "email": "test@test.com' AND '1'='1"
+        }
+      },
+      "expected_response": {
+        "status_one_of": [200, 500],
+        "notes": "Response timing or errors may indicate SQLi"
+      }
+    },
+    {
+      "name": "Detect SSRF in report viewer",
+      "request": {
+        "method": "GET",
+        "path": "/api/view-report?reportId=http://localhost:9090/metadata"
+      },
+      "expected_response": {
+        "status_one_of": [200, 403, 500]
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2026-01-21",
+    "last_updated": "2026-01-21",
+    "version": "1.0.0",
+    "maintainer": "Project Yggdrasil",
+    "validated": true,
+    "complexity": "expert",
+    "prerequisite_skills": ["IDOR", "SQL Injection", "SSRF", "CRLF Injection"]
+  }
+}

@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { FlagValidator } from '../src/services/flag-validator';
 
 describe('FlagValidator', () => {

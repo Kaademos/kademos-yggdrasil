@@ -1,7 +1,9 @@
+import { injectable, inject } from 'tsyringe';
 import { RealmConfig, getRealmByName, getPreviousRealm } from '../config/realm-order';
 
+@injectable()
 export class ProgressionValidator {
-  constructor(private realmOrder: RealmConfig[]) {}
+  constructor() {} // Logic uses static helpers, no state needed
 
   canAccessRealm(realm: string, unlockedRealms: string[]): boolean {
     const targetRealm = getRealmByName(realm);

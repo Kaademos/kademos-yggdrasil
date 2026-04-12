@@ -1,0 +1,197 @@
+{
+  "realm": "ALFHEIM",
+  "level": 2,
+  "owasp": "A02:2025",
+  "title": "Security Misconfiguration",
+  "description": "Alfheim demonstrates security misconfiguration through exposed cloud metadata services (IMDS) accessible via SSRF bypass techniques.",
+  "theme": "Norse realm of light elves - where clouds and light (cloud metadata) can be reached",
+  "difficulty": "Hard",
+  "estimated_time_minutes": 40,
+  "vulnerabilities": [
+    {
+      "id": "ALF-001",
+      "type": "Server-Side Request Forgery (SSRF) with Cloud Metadata Access",
+      "cwe": "CWE-918",
+      "cwe_name": "Server-Side Request Forgery (SSRF)",
+      "cvss": {
+        "version": "3.1",
+        "score": 9.1,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "None",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "High",
+          "availability": "None"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/proxy",
+          "vulnerable": true,
+          "parameters": {
+            "url": "string (target URL)"
+          },
+          "description": "URL proxy with insufficient SSRF protections"
+        },
+        {
+          "method": "GET",
+          "path": "/api/imds/latest/meta-data",
+          "vulnerable": true,
+          "description": "Simulated AWS IMDS endpoint (should not be publicly accessible)"
+        },
+        {
+          "method": "POST",
+          "path": "/api/imds/token",
+          "vulnerable": true,
+          "description": "IMDSv2 token generation (misconfigured to be accessible)"
+        }
+      ],
+      "description": "The proxy service has weak SSRF protections that can be bypassed using URL encoding, redirect chains, or DNS rebinding. This allows access to the internal metadata service (simulated AWS IMDS) which contains sensitive credentials and configuration.",
+      "impact": "Access to cloud metadata, credential theft (IAM roles, API keys), lateral movement, privilege escalation, data exfiltration",
+      "exploit_steps": [
+        "Discover the /api/proxy endpoint",
+        "Test basic SSRF with internal URLs",
+        "Identify SSRF filter bypasses (URL encoding, redirects, DNS tricks)",
+        "Target the IMDS endpoint: http://169.254.169.254/latest/meta-data/",
+        "For IMDSv2: First obtain session token from /api/imds/token",
+        "Enumerate IMDS paths to find credentials",
+        "Extract IAM role credentials or flags from metadata",
+        "Use credentials to access additional resources"
+      ],
+      "exploit_indicators": [
+        "Requests to internal IP ranges (169.254.x.x, 10.x.x.x, 192.168.x.x)",
+        "URL encoding in proxy requests (%32%35%34)",
+        "Requests to /latest/meta-data/ paths",
+        "Multiple redirect chains",
+        "DNS lookups for internal hostnames",
+        "IMDSv2 token requests",
+        "Access to /api/imds/ endpoints from external sources"
+      ],
+      "remediation": "Implement strict SSRF protections: allowlist approach for URLs, validate URL schemes, block private IP ranges, use network segmentation. For cloud environments: enforce IMDSv2 with hop limit = 1, require authentication tokens, apply IAM role restrictions, use VPC endpoints.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/918.html",
+        "https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/",
+        "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html"
+      ]
+    },
+    {
+      "id": "ALF-002",
+      "type": "Exposed Cloud Metadata Service",
+      "cwe": "CWE-16",
+      "cwe_name": "Configuration",
+      "cvss": {
+        "version": "3.1",
+        "score": 8.6,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "None",
+          "user_interaction": "None",
+          "scope": "Changed",
+          "confidentiality": "High",
+          "integrity": "None",
+          "availability": "None"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/imds/latest/meta-data/*",
+          "vulnerable": true,
+          "description": "IMDS endpoints accessible without proper access controls"
+        }
+      ],
+      "description": "The cloud metadata service (IMDS) is misconfigured to be accessible from the application layer without proper authentication or network restrictions.",
+      "impact": "Credential exposure, configuration leakage, lateral movement capabilities",
+      "exploit_indicators": [
+        "Direct access to /api/imds/ paths",
+        "IMDSv1 usage (no token required)",
+        "Metadata accessible via HTTP proxy",
+        "Missing network segmentation"
+      ],
+      "remediation": "Enforce IMDSv2 with hop limit restrictions. Implement network-level access controls. Use security groups to restrict metadata access. Apply authentication requirements for all IMDS access.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/16.html",
+        "https://aws.amazon.com/blogs/security/defense-in-depth-open-firewalls-reverse-proxies-ssrf-vulnerabilities-ec2-instance-metadata-service/"
+      ]
+    }
+  ],
+  "flags": {
+    "format": "YGGDRASIL\\{ALFHEIM:[a-f0-9-]{36}\\}",
+    "location": "imds_metadata",
+    "retrieval_method": "Bypass SSRF protections to access IMDS, extract flag from metadata endpoint"
+  },
+  "realm_chaining": {
+    "unlocks": "ASGARD",
+    "unlocked_by": "MIDGARD"
+  },
+  "learning_objectives": [
+    "Understand SSRF attack techniques",
+    "Learn about cloud metadata services (IMDS)",
+    "Practice SSRF filter bypasses",
+    "Understand IMDSv1 vs IMDSv2",
+    "Learn cloud security misconfigurations",
+    "Practice internal network enumeration"
+  ],
+  "technologies": [
+    "Node.js",
+    "Express",
+    "TypeScript",
+    "AWS IMDS (simulated)",
+    "HTTP proxy"
+  ],
+  "scanner_test_cases": [
+    {
+      "name": "Detect SSRF vulnerability in proxy",
+      "request": {
+        "method": "POST",
+        "path": "/api/proxy",
+        "body": {
+          "url": "http://169.254.169.254/latest/meta-data/"
+        }
+      },
+      "expected_response": {
+        "status_one_of": [200, 403, 500]
+      }
+    },
+    {
+      "name": "Test SSRF filter bypass with encoding",
+      "request": {
+        "method": "POST",
+        "path": "/api/proxy",
+        "body": {
+          "url": "http://169.254.169.254/latest/meta-data/"
+        }
+      },
+      "expected_response": {
+        "status": 200,
+        "notes": "May bypass filters with URL encoding or other techniques"
+      }
+    },
+    {
+      "name": "Detect exposed IMDS endpoint",
+      "request": {
+        "method": "GET",
+        "path": "/api/imds/latest/meta-data/"
+      },
+      "expected_response": {
+        "status_one_of": [200, 401, 403],
+        "notes": "Should require authentication but may be exposed"
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2026-01-21",
+    "last_updated": "2026-01-21",
+    "version": "1.0.0",
+    "maintainer": "Project Yggdrasil",
+    "validated": true
+  }
+}

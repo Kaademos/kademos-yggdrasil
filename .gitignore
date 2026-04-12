@@ -1,148 +1,506 @@
+# ============================================================
+# Node.js / JavaScript / TypeScript
+# ============================================================
+
 # Dependencies
 node_modules/
+jspm_packages/
+bower_components/
+
+# Package manager logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
+
+# Package manager lock backups
 package-lock.json.bak
+yarn.lock.bak
+pnpm-lock.yaml.bak
 
 # Build outputs
 dist/
 build/
+out/
+.next/
 *.tsbuildinfo
+*.buildinfo
 *.d.ts
 *.js.map
-.next/
-out/
+*.min.js
+*.min.css
+
+# Service-specific build outputs
+gatekeeper/dist/
+gatekeeper/build/
+flag-oracle/dist/
+flag-oracle/build/
 realms/*/dist/
 realms/*/build/
-realms/*/coverage/
 
-# Environment variables
+# ============================================================
+# Environment & Configuration
+# ============================================================
+
+# Environment files (keep .env.example)
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
+.env.*
+!.env.example
+*.env.local
 *.env.bak
 
-# Logs
+# Configuration overrides
+config/local.json
+config/local.yml
+config/local.yaml
+
+# ============================================================
+# Logs & Runtime Data
+# ============================================================
+
+# Log files
 logs/
 *.log
-npm-debug.log*
+log/
+test-logs/
+gatekeeper/logs/
+gatekeeper/test-logs/
+flag-oracle/logs/
+flag-oracle/test-logs/
+realms/*/logs/
 ci-audit-*.log
+
+# Attack trace logs (generated data)
+attack-traces/
+logs/attack-traces/
+
+# Monitoring data
 loki_data/
 prometheus_data/
 grafana_data/
-
-# IDE & Editors
-.vscode/
-!.vscode/extensions.json
-!.vscode/settings.json.example
-.idea/
-.atom/
-.sublime-project
-.sublime-workspace
-*.code-workspace
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
-
-# Testing & Coverage
-coverage/
-.nyc_output/
-*.lcov
-.playwright/
-test-results/
-playwright-report/
-
-# Docker
-.docker-data/
-*.pid
-docker-compose.override.yml
-
-# Temporary files
-tmp/
-temp/
-*.tmp
-*.bak
-*.backup
-*-old.*
-*~
-*.swp
-*.swo
+metrics/
 
 # Runtime data
 pids/
 *.pid
 *.seed
 *.pid.lock
+*.sock
 
-# Optional npm cache directory
-.npm
+# ============================================================
+# Testing & Coverage
+# ============================================================
 
-# Optional eslint cache
-.eslintcache
+# Test outputs
+coverage/
+.nyc_output/
+*.lcov
+.coverage
+htmlcov/
+test-results/
+playwright-report/
+.playwright/
+playwright/.auth/
 
-# Optional REPL history
-.node_repl_history
+# Service-specific coverage
+gatekeeper/coverage/
+flag-oracle/coverage/
+realms/*/coverage/
 
-# Output of 'npm pack'
-*.tgz
+# Scanner results
+scanner-results/
+nuclei-output/
+zap-reports/
 
-# Project specific
-progress_data/
-cookies.txt
-.curl-cookies
+# ============================================================
+# IDE & Editor Files
+# ============================================================
 
-# Secrets and sensitive data (extra safety)
+# VSCode
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+sftp-config.json
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+Session.vim
+
+# Emacs
+*~
+\#*\#
+.\#*
+.emacs.desktop
+.emacs.desktop.lock
+
+# Other editors
+.atom/
+.brackets.json
+
+# ============================================================
+# Operating System Files
+# ============================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# ============================================================
+# Docker & Containers
+# ============================================================
+
+# Docker data
+.docker-data/
+docker-compose.override.yml
+docker-compose.*.override.yml
+
+# Container volumes
+volumes/
+data/
+
+# ============================================================
+# Secrets & Sensitive Data
+# ============================================================
+
+# Credentials and secrets
 secrets/
+.secrets/
+credentials/
+credentials.json
 *.pem
 *.key
 *.crt
 *.p12
 *.pfx
-credentials
-credentials.json
-secrets.yml
-secrets.yaml
-.secrets/
+*.cer
+*.der
+*.csr
 
 # SSH keys
 id_rsa
 id_dsa
 id_ecdsa
 id_ed25519
+id_ed25519.pub
 *.ppk
-.ssh/config
+
+# GPG keys
+secring.*
+
+# Password files
+.htpasswd
+passwords.txt
+secrets.txt
+secrets.yml
+secrets.yaml
 
 # Cloud provider credentials
-.aws/
+.aws/credentials
+.aws/config
 .gcloud/
 .azure/
 gcloud-credentials.json
 aws-credentials
+gcp-credentials.json
 
 # Package manager credentials
 .npmrc
+.yarnrc
 .yarnrc.yml
 .dockercfg
 .docker/config.json
+npm-registry-token
 
-# M8: Secrets scanning artifacts
+# ============================================================
+# Build Tools & Caches
+# ============================================================
+
+# npm
+.npm/
+.npmrc.local
+
+# Yarn
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# ESLint
+.eslintcache
+
+# Prettier
+.prettiercache
+
+# Turbo
+.turbo/
+
+# Webpack
+.webpack/
+
+# Parcel
+.parcel-cache/
+
+# Vite
+.vite/
+vite.config.*.timestamp-*
+
+# Rollup
+.rollup.cache/
+
+# TypeScript
+*.tsbuildinfo
+.tsbuildinfo
+
+# ============================================================
+# Python (for scanner scripts)
+# ============================================================
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Python virtual environments
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+pythonenv*/
+
+# Python packages
+*.egg
+*.egg-info/
+dist-python/
+build-python/
+.eggs/
+*.whl
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Poetry
+poetry.lock
+
+# ============================================================
+# Temporary Files
+# ============================================================
+
+# General temp files
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*-old
+*-old.*
+*.orig
+*.rej
+*.cache
+
+# Swap files
+*.swp
+*.swo
+*.swn
+
+# Lock files (OS)
+*.lock
+!package-lock.json
+!yarn.lock
+!pnpm-lock.yaml
+!Gemfile.lock
+
+# ============================================================
+# Project Specific
+# ============================================================
+
+# User progress data
+progress_data/
+user-data/
+
+# Cookies
+cookies.txt
+.curl-cookies
+
+# Session data
+sessions/
+.sessions/
+
+# Uploads
+uploads/
+user-uploads/
+
+# Generated certificates (for CTF)
+certs/generated/
+ssl/generated/
+
+# Database files (if using local SQLite)
+*.sqlite
+*.sqlite3
+*.db
+
+# Redis dumps
+dump.rdb
+appendonly.aof
+
+# ============================================================
+# Security & Scanning
+# ============================================================
+
+# Secrets scanning
 .gitleaks-report.json
+.gitleaks.toml.local
 scan-secrets-report.json
+trufflehog-report.json
+secretlint-report.json
 
-# M8: Build artifacts
+# Security scan results
+security-scan-*.json
+audit-report-*.html
+snyk-report.json
+
+# Dependency vulnerabilities
+.snyk
+
+# ============================================================
+# CI/CD Artifacts
+# ============================================================
+
+# Build artifacts
 realms/*/strip-comments.js
+*.stripped.js
+*.stripped.ts
 
-.docs/milestones/
-.env
+# CI reports
+ci-report-*.json
+ci-audit-*.log
+junit.xml
+test-report.xml
+
+# Lighthouse reports
+lighthouse-report*.html
+lighthouse-report*.json
+
+# ============================================================
+# Documentation (Temporary/Generated)
+# ============================================================
+
+# Temporary summary documents (can be regenerated)
+PHASE-*-COMPLETE.md
+WEEK-*-COMPLETION-SUMMARY.md
+PHASE-*-IMPLEMENTATION-SUMMARY.md
+QUICKSTART-PHASE-*.md
+*-SUMMARY.md
+!CONTRIBUTING.md
+!README.md
+!CHANGELOG.md
+!SECURITY.md
+!QUICKSTART.md
+
+# Generated API docs
+api-docs/generated/
+docs/generated/
+
+# ============================================================
+# AI & ML Models
+# ============================================================
+
+# Model files
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.model
+*.ckpt
+*.pt
+*.pth
+
+# TensorFlow
+*.pb
+*_saved_model/
+
+# ============================================================
+# Miscellaneous
+# ============================================================
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Output of npm pack
+*.tgz
+
+# REPL history
+.node_repl_history
+
+# Benchmark results
+benchmarks/results/
+benchmark-*.json
+
+.docs/
