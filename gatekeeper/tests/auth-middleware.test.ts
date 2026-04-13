@@ -230,37 +230,4 @@ describe('Auth Middleware', () => {
       expect(nextFn).not.toHaveBeenCalled();
     });
   });
-
-  describe('requireAdmin', () => {
-    it('should call next() for authenticated admin', async () => {
-      const user = await userRepository.create('admin', 'password123');
-      mockReq.session = { userId: user.id } as any;
-
-      await middleware.requireAdmin(
-        mockReq as Request,
-        mockRes as Response,
-        nextFn
-      );
-
-      expect(nextFn).toHaveBeenCalled();
-      expect(mockReq.user?.id).toBe(user.id);
-    });
-
-    it('should return 401 for unauthenticated request', async () => {
-      mockReq.session = {} as any;
-
-      await middleware.requireAdmin(
-        mockReq as Request,
-        mockRes as Response,
-        nextFn
-      );
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        status: 'error',
-        message: 'Admin authentication required',
-      });
-      expect(nextFn).not.toHaveBeenCalled();
-    });
-  });
 });

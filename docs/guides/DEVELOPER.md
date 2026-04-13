@@ -51,18 +51,6 @@ open http://localhost:8080
 > make up
 > ```
 
-### Testing Edition Behavior
-
-Developers should verify behavior with both editions before submitting PRs:
-
-```bash
-# Test Community Edition (default)
-YGGDRASIL_EDITION=community make yggdrasil
-
-# Test Enterprise Edition
-YGGDRASIL_EDITION=enterprise make yggdrasil
-```
-
 ### Verify Installation
 
 ```bash
@@ -75,9 +63,9 @@ curl http://localhost:8080/health
 # Test flag-oracle
 curl http://localhost:3001/health
 
-# Access observability
-open http://localhost:3200  # Grafana (admin/admin)
-open http://localhost:9090  # Prometheus
+# Observability (optional — see 'docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d')
+# open http://localhost:3200  # Grafana (admin/admin)
+# open http://localhost:9090  # Prometheus
 ```
 
 ---
@@ -97,7 +85,7 @@ Project Yggdrasil
 │   ├── Each on isolated Docker network
 │   ├── Each with intentional vulnerability
 │   └── Only accessible via gatekeeper
-└── Observability Stack
+└── Observability Stack (opt-in via docker-compose.observability.yml)
     ├── Loki (logging)
     ├── Prometheus (metrics)
     └── Grafana (visualization)

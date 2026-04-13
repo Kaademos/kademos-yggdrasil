@@ -15,7 +15,11 @@ export class ProgressionService {
     @inject(ProgressionClient) private progressionClient: ProgressionClient,
     @inject('Config') private config: any = { cacheTTLMs: 30000 }
   ) {
-    this.cacheTTLMs = config.cacheTTLMs || 30000;
+    if (typeof config === 'number') {
+      this.cacheTTLMs = config;
+    } else {
+      this.cacheTTLMs = config?.cacheTTLMs || 30000;
+    }
   }
 
   async canAccessRealm(userId: string, realmName: string): Promise<boolean> {

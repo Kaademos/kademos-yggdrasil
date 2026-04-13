@@ -72,7 +72,7 @@ Each realm unlocks only after the previous realm's flag is successfully submitte
 - **🔐 Secure Control Plane**: ASVS-compliant gatekeeper with session management
 - **🎯 Flag Validation**: Centralized flag oracle with progression tracking
 - **🔒 Network Isolation**: Each realm in isolated Docker networks
-- **📊 Observability**: Full stack monitoring (Prometheus, Loki, Grafana)
+- **📊 Observability** (opt-in): Full stack monitoring (Prometheus, Loki, Grafana)
 - **🧪 Comprehensive Testing**: Unit, integration, E2E, and security tests
 - **📖 Documentation**: Complete developer and operator guides
 
@@ -84,25 +84,6 @@ Each realm unlocks only after the previous realm's flag is successfully submitte
 - **🔬 Research Tools**: Example notebooks and scripts for AI training
 - **📈 Detection Metrics**: Automated scorecard generation for scanner evaluation
 - **🌐 Community Datasets**: Share and access attack traces for research
-
----
-
-## 📦 Editions & Roadmap
-
-Project Yggdrasil is Open Source software. We are currently building an Enterprise tier for organizations running large-scale training events.
-
-| Feature | Community Edition (This Repo) | Enterprise / Pro (Coming Soon) |
-| :--- | :---: | :---: |
-| **10 Vulnerable Realms** | ✅ | ✅ |
-| **Docker Compose Deployment** | ✅ | ✅ |
-| **Single-Player Progression** | ✅ | ✅ |
-| **Prometheus/Grafana Observability** | ✅ | ✅ |
-| **Team Mode & CTF Scoring** | ❌ | ✅ |
-| **SSO / SAML Integration** | ❌ | ✅ |
-| **Kubernetes / Helm Charts** | ❌ | ✅ |
-| **Instructor Analytics Dashboard** | ❌ | ✅ |
-
-> **Interested in Enterprise features?** Star the repo to follow updates or contact us for early access.
 
 ---
 
@@ -136,7 +117,6 @@ That's it! The platform will be running at **http://localhost:8080/**
 
 After startup, you should see:
 
-**Community Edition (default):**
 ```
 ════════════════════════════════════════════════════════════════
 ✅ Project Yggdrasil is running!
@@ -148,45 +128,15 @@ After startup, you should see:
 💡 Quick Start:
    1. Visit http://localhost:8080/ to see the landing page
    2. Click 'INITIATE ASCENSION' to begin
-════════════════════════════════════════════════════════════════
-```
-
-**Enterprise Edition** (set `YGGDRASIL_EDITION=enterprise` in `.env`):
-```
-════════════════════════════════════════════════════════════════
-✅ Project Yggdrasil is running!
-════════════════════════════════════════════════════════════════
-
-🌐 Landing Page:  http://localhost:8080/
-🔐 Login:         http://localhost:8080/login
-🏥 Health Check:  http://localhost:8080/health
-
-📊 Observability:
-   Grafana:       http://localhost:3200 (admin/admin)
-   Prometheus:    http://localhost:9090
-   Loki:          http://localhost:3100
-
-💡 Quick Start:
-   1. Visit http://localhost:8080/ to see the landing page
-   2. Click 'INITIATE ASCENSION' to begin
-   3. Register/Login and start with Niflheim (Realm 10)
 ════════════════════════════════════════════════════════════════
 ```
 
 Visit the landing page and click **"INITIATE ASCENSION"** to begin your journey!
 
-### Configuration
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `YGGDRASIL_EDITION` | Selects edition: `community` (standard) or `enterprise` (full features) | `community` |
-
-**Community Edition** (default): Streamlined experience for guest users with landing page and basic quickstart.
-
-**Enterprise Edition**: Full features including login page, observability dashboards (Grafana, Prometheus, Loki), and extended quickstart steps. Set in `.env`:
-```bash
-YGGDRASIL_EDITION=enterprise
-```
+> **Observability Stack (Optional):** If you want Prometheus, Loki, and Grafana monitoring, run:
+> ```bash
+> docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
+> ```
 
 ### Manual Setup (Without Make)
 
@@ -272,7 +222,7 @@ curl http://localhost:8080/health
   - Exposes flag upon successful exploit
   - Accessible only via gatekeeper
 
-#### 4. **Observability Stack** (Milestone 6)
+#### 4. **Observability Stack** (Optional, via `docker-compose.observability.yml`)
 - **Loki**: Log aggregation
 - **Promtail**: Log collection from containers
 - **Prometheus**: Metrics storage and alerting
@@ -285,7 +235,6 @@ yggdrasil_main (bridge network)
 ├── gatekeeper (connected to ALL networks)
 ├── flag-oracle
 ├── redis
-├── loki, promtail, prometheus, grafana
 
 niflheim_net (isolated)
 └── niflheim
@@ -299,6 +248,8 @@ asgard_net (isolated)
 ├── asgard
 └── asgard-db (PostgreSQL)
 ```
+
+> **Note:** Observability services (loki, promtail, prometheus, grafana) join `yggdrasil_main` when enabled via `docker-compose.observability.yml`.
 
 **Key Security Feature**: Only the gatekeeper can access realm networks, preventing lateral movement.
 
@@ -385,6 +336,7 @@ project_yggdrasil/
 │   └── fixtures/                 # Test data
 │
 ├── docker-compose.yml            # Master orchestration
+├── docker-compose.observability.yml  # Optional observability stack
 ├── Makefile                      # Development commands
 ├── .env.example                  # Environment template
 ├── README.md                     # This file
@@ -477,9 +429,15 @@ make test-all
 
 ## 📊 Monitoring & Observability
 
+The observability stack is **opt-in**. To enable it, start with:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
+```
+
 ### Accessing Dashboards
 
-After `make up`, access the observability stack:
+Once the observability stack is running:
 
 - **Grafana**: http://localhost:3200 (username: `admin`, password: check `.env`)
 - **Prometheus**: http://localhost:9090
@@ -689,7 +647,7 @@ We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before 
 - ✅ **Error Handling**: Branded error pages with intentional leak preservation
 - ✅ **Mobile UI**: Fully responsive design (M13)
 - ✅ **Accessibility**: WCAG AA compliance
-- ✅ **Observability**: Prometheus, Loki, Grafana stack
+- ✅ **Observability**: Prometheus, Loki, Grafana stack (opt-in via `docker-compose.observability.yml`)
 - ✅ **Documentation**: Comprehensive operator and developer guides
 
 ### Future Enhancements

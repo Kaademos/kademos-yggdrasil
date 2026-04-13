@@ -387,16 +387,18 @@ Brief description of the feature.
 }
 ```
 
-## Configuration
+### Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `VAR_NAME` | Description | `default` |
-```
 
----
 
 ## Pull Request Process
+
+### AI-Generated Code Policy
+
+We do not accept PRs generated entirely by AI or automated tools from contributors who have not discussed the implementation details with maintainers first. PRs that show signs of being auto-generated without understanding the underlying architecture will be closed without review.
 
 ### Before Submitting
 

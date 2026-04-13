@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { ProgressionService } from '../src/services/progression-service';
 import { ProgressionClient } from '../src/services/progression-client';
 
