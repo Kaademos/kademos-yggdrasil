@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-04-13
+
+### Removed
+
+- **Enterprise Edition Concept**: Removed `YGGDRASIL_EDITION` environment variable and all community/enterprise bifurcation from the codebase, documentation, and Makefile.
+- **`requireAdmin` Middleware**: Deprecated enterprise admin panel middleware removed from `gatekeeper/src/middleware/auth.ts` and associated tests.
+- **Bundled Observability Stack**: Loki, Promtail, Prometheus, and Grafana services removed from the default `docker-compose.yml`. Users no longer need to pull these images for basic usage.
+
+### Added
+
+- **`docker-compose.observability.yml`**: New optional compose file for users who want the observability stack. Start with: `docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d`
+
+### Changed
+
+- **Unified Startup Messages**: `make up` now shows a single, unified startup message (no edition-conditional output).
+- **Documentation**: All docs updated to reflect observability as opt-in and removal of edition concept:
+  - README.md: Removed Editions table, bifurcated verification blocks, and YGGDRASIL_EDITION config section
+  - QUICKSTART.md: Unified verification output
+  - DEVELOPER.md: Removed edition testing guidance
+  - QUICK_REFERENCE.md: Updated commands and architecture diagrams
+- **`.env.example`**: Removed `YGGDRASIL_EDITION` variable and edition configuration comments.
+
+### Notes
+
+- This is a **breaking change** for users who relied on `YGGDRASIL_EDITION=enterprise` to auto-start the observability stack. They should now use the compose override file instead.
+- The `requireAuth`, `ensureSession`, and `optionalAuth` middleware functions remain unchanged.
+- Observability config files (`config/loki/`, `config/prometheus/`, `config/grafana/`) are preserved for use with `docker-compose.observability.yml`.
+
 ## [1.1.0] - 2026-01-03
 
 ### Added
@@ -68,6 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/your-org/project_yggdrasil/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/your-org/project_yggdrasil/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/your-org/project_yggdrasil/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/your-org/project_yggdrasil/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/your-org/project_yggdrasil/releases/tag/v1.0.0

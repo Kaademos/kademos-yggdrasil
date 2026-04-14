@@ -22,11 +22,11 @@ Essential commands, API endpoints, and configuration reference.
 ### Make Targets
 
 ```bash
-# Single command to setup AND start everything (Community Edition - default)
+# Single command to setup AND start everything
 make yggdrasil
 
-# Start in Enterprise Mode (full features)
-YGGDRASIL_EDITION=enterprise make yggdrasil
+# Start with observability stack (optional)
+# docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
 
 # Start platform (if already setup)
 make up
@@ -229,7 +229,7 @@ uuidgen
 | 5432 | PostgreSQL (Asgard) | Internal | Asgard database |
 | 5432 | PostgreSQL (Nidavellir) | Internal | Nidavellir database |
 
-**Note:** Only Gatekeeper (8080) and Observability stack (3100, 3200, 9090) should be exposed to host. All realm services are internal-only.
+**Note:** Only Gatekeeper (8080) should be exposed to host by default. Observability stack ports (3100, 3200, 9090) are available when using `docker-compose.observability.yml`. All realm services are internal-only.
 
 ---
 
@@ -398,6 +398,7 @@ docker-compose logs asgard | grep "connected to database"
 | `.env` | Environment variables (not in git) |
 | `.env.example` | Environment template |
 | `docker-compose.yml` | Service orchestration |
+| `docker-compose.observability.yml` | Optional observability stack |
 | `config/loki/loki-config.yaml` | Loki configuration |
 | `config/promtail/promtail-config.yaml` | Promtail configuration |
 | `config/prometheus/prometheus.yml` | Prometheus configuration |
@@ -422,7 +423,6 @@ docker-compose logs asgard | grep "connected to database"
       │
       ├──────> Flag Oracle (yggdrasil_main)
       ├──────> Redis (yggdrasil_main)
-      ├──────> Loki/Prometheus/Grafana (yggdrasil_main)
       ├──────> Niflheim (niflheim_net)
       ├──────> Helheim (helheim_net)
       ├──────> ... (each realm on own network)

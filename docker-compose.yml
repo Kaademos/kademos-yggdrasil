@@ -15,96 +15,6 @@ services:
       start_period: 5s
     restart: unless-stopped
 
-  loki:
-    image: grafana/loki:2.9.3
-    container_name: yggdrasil-loki
-    user: "10001:10001"
-    ports:
-      - "${LOKI_PORT:-3100}:3100"
-    volumes:
-      - ./config/loki/loki-config.yaml:/etc/loki/local-config.yaml:ro
-      - loki_data:/loki
-    command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      - yggdrasil_main
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--timeout=2", "--spider", "http://localhost:3100/ready"]
-      interval: 15s
-      timeout: 10s
-      retries: 6
-      start_period: 40s
-    restart: unless-stopped
-
-  promtail:
-    image: grafana/promtail:2.9.3
-    container_name: yggdrasil-promtail
-    volumes:
-      - ./config/promtail/promtail-config.yaml:/etc/promtail/config.yml
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-    command: -config.file=/etc/promtail/config.yml
-    networks:
-      - yggdrasil_main
-    depends_on:
-      loki:
-        condition: service_started
-    restart: unless-stopped
-
-  prometheus:
-    image: prom/prometheus:v2.48.0
-    container_name: yggdrasil-prometheus
-    ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
-    volumes:
-      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./config/prometheus/alerts:/etc/prometheus/alerts
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=7d'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    networks:
-      - yggdrasil_main
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-    restart: unless-stopped
-
-  grafana:
-    image: grafana/grafana:10.2.2
-    container_name: yggdrasil-grafana
-    ports:
-      - "${GRAFANA_PORT:-3200}:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./config/grafana/provisioning:/etc/grafana/provisioning
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=http://localhost:3200
-      - GF_ANALYTICS_REPORTING_ENABLED=false
-      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
-    networks:
-      - yggdrasil_main
-    depends_on:
-      prometheus:
-        condition: service_healthy
-      loki:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
-    restart: unless-stopped
-
   flag-oracle:
     build:
       context: ./flag-oracle
@@ -521,15 +431,6 @@ volumes:
   asgard_db_data:
     driver: local
     name: yggdrasil_asgard_db_data
-  loki_data:
-    driver: local
-    name: yggdrasil_loki_data
-  prometheus_data:
-    driver: local
-    name: yggdrasil_prometheus_data
-  grafana_data:
-    driver: local
-    name: yggdrasil_grafana_data
   verdaccio_storage:
     driver: local
     name: yggdrasil_verdaccio_storage

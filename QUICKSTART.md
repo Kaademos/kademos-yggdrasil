@@ -29,7 +29,7 @@ make yggdrasil
 
 After startup, you'll see:
 
-**Community Edition (default):**
+**Default startup output:**
 ```
 ════════════════════════════════════════════════════════════════
 ✅ Project Yggdrasil is running!
@@ -43,8 +43,6 @@ After startup, you'll see:
    2. Click 'INITIATE ASCENSION' to begin
 ════════════════════════════════════════════════════════════════
 ```
-
-> **Enterprise Edition:** Set `YGGDRASIL_EDITION=enterprise` in `.env` to see additional features like Login page and Observability stack URLs.
 
 ### Try It Out
 
@@ -145,7 +143,13 @@ curl -X POST http://localhost:8080/submit-flag \
 
 ---
 
-## 7️⃣ Observability
+## 7️⃣ Observability (Optional)
+
+The observability stack is opt-in. To enable it:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
+```
 
 ### Grafana Dashboards
 - **URL**: http://localhost:3200
