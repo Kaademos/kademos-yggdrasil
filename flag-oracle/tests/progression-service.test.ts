@@ -1,6 +1,15 @@
 import { ProgressionService } from '../src/services/progression-service';
 import { FlagValidator } from '../src/services/flag-validator';
-import { IFlagRepository, FlagData, UserProgression } from '../src/repositories/flag-repository';
+import {
+  IFlagRepository,
+  FlagData,
+  UserProgression,
+  LeaderboardEntry,
+  CompletionDetails,
+  emptyProgression,
+  applyCapture,
+  applyHintReveal,
+} from '../src/repositories/flag-repository';
 
 class MockFlagRepository implements IFlagRepository {
   private progressions: Map<string, UserProgression> = new Map();
@@ -16,28 +25,46 @@ class MockFlagRepository implements IFlagRepository {
     return this.progressions.get(userId) || null;
   }
 
-  async updateProgression(userId: string, realm: string, flag: string): Promise<void> {
-    const existing = this.progressions.get(userId) || {
-      userId,
-      unlockedRealms: [],
-      flags: [],
-      lastUpdated: new Date().toISOString(),
-    };
-
-    if (!existing.unlockedRealms.includes(realm)) {
-      existing.unlockedRealms.push(realm);
-    }
-
-    if (!existing.flags.includes(flag)) {
-      existing.flags.push(flag);
-    }
-
-    existing.lastUpdated = new Date().toISOString();
+  async updateProgression(
+    userId: string,
+    realm: string,
+    flag: string,
+    completion?: CompletionDetails
+  ): Promise<void> {
+    const existing = this.progressions.get(userId) || emptyProgression(userId);
+    applyCapture(existing, realm, flag, completion);
     this.progressions.set(userId, existing);
+  }
+
+  async revealHint(userId: string, realm: string, order: number): Promise<UserProgression> {
+    const existing = this.progressions.get(userId) || emptyProgression(userId);
+    applyHintReveal(existing, realm, order);
+    this.progressions.set(userId, existing);
+    return existing;
   }
 
   async getValidFlags(): Promise<FlagData[]> {
     return this.flags;
+  }
+
+  private captured = new Set<string>();
+  async recordRealmCapture(realm: string): Promise<boolean> {
+    const key = realm.toUpperCase();
+    if (this.captured.has(key)) return false;
+    this.captured.add(key);
+    return true;
+  }
+
+  async getLeaderboard(limit = 100): Promise<LeaderboardEntry[]> {
+    return Array.from(this.progressions.values())
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map((p, i) => ({
+        userId: p.userId,
+        score: p.score,
+        realmsCompleted: p.completions.length,
+        rank: i + 1,
+      }));
   }
 }
 

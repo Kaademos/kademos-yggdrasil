@@ -15,9 +15,11 @@
 [![OWASP](https://img.shields.io/badge/OWASP-Top%2010%202025-red.svg)](https://owasp.org/Top10/2025/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue.svg)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-20+-green.svg)](https://nodejs.org/)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?logo=discord&logoColor=white)](https://discord.gg/y82Hg9CnSk)
 
 [Features](#-features) •
 [Quick Start](#-quick-start) •
+[Community](#-join-our-community) •
 [Architecture](#-architecture) •
 [Documentation](#-documentation) •
 [Contributing](#-contributing)
@@ -84,6 +86,27 @@ Each realm unlocks only after the previous realm's flag is successfully submitte
 - **🔬 Research Tools**: Example notebooks and scripts for AI training
 - **📈 Detection Metrics**: Automated scorecard generation for scanner evaluation
 - **🌐 Community Datasets**: Share and access attack traces for research
+
+---
+
+## 🌐 Join Our Community
+
+Yggdrasil grows best when its builders and breakers learn together. Join the Discord to ask questions, compare strategies, and follow the platform as it evolves.
+
+<div align="center">
+
+[![Join our Discord](https://img.shields.io/badge/Discord-Join%20the%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/y82Hg9CnSk)
+
+</div>
+
+Whether you're new to security, a seasoned CTF player, or just curious about gamified learning — **you're welcome here.** Inside you can:
+
+- 🧭 **Ask for help** when a realm has you stuck — please keep flags and full write-ups out of public channels so others can enjoy the challenge
+- 💡 **Share hint strategies** and discuss the OWASP Top 10 concepts behind each realm
+- 📣 **Get updates** on new realms, events, and releases
+- 🤝 **Meet other builders** contributing to Yggdrasil
+
+> When an operator runs Yggdrasil with Discord broadcasts enabled (`DISCORD_WEBHOOK_URL`), successful flag captures are announced in the channel in real time — so the community sees the wins as they happen.
 
 ---
 

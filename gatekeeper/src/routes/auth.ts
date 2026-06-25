@@ -9,7 +9,8 @@ import { csrfProtection, csrfTokenHandler, csrfErrorHandler } from '../middlewar
 export function createAuthRoutes(
   authService: AuthService,
   authRateLimiter: AuthRateLimiter,
-  requireAuth: any
+  requireAuth: any,
+  ensureSession: any
 ): Router {
   const router = Router();
   const rateLimitMiddleware = createRateLimitMiddleware(authRateLimiter);
@@ -113,8 +114,10 @@ export function createAuthRoutes(
     });
   });
 
-  // CSRF token endpoint (requires auth)
-  router.get('/csrf-token', requireAuth, csrfProtection, csrfTokenHandler);
+  // CSRF token endpoint. Available to any session (including anonymous players) so
+  // same-origin clients can perform CSRF-protected mutations like flag submission and
+  // hint reveals. CSRF tokens are not secrets gated by authentication.
+  router.get('/csrf-token', ensureSession, csrfProtection, csrfTokenHandler);
 
   return router;
 }

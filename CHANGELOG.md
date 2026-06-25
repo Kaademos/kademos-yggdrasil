@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-25
+
+> **Yggdrasil Gamification & Architecture Simplification** — adds a global leaderboard,
+> progressive hints, and Discord broadcasts, while decoupling observability for faster
+> local startup. Backward-compatible.
+
+### Added
+
+- **Global Leaderboard & Scoring Engine** (#6): escalating per-realm points (harder realms award more), a Redis sorted-set leaderboard with O(log n) ranking, `GET /leaderboard` on the flag oracle and gatekeeper (with privacy-masked `Seeker-XXXX` handles), and a "Hall of the Slain" leaderboard on the landing page.
+- **Progressive Hints System** (#5): per-realm hints authored in each realm's `manifest.json` (single source of truth) and bundled into the oracle via `scripts/sync-hints.ts`. Revealing a hint applies a point penalty but **never blocks progression**. New `GET /hints/:realm` and `POST /hint` endpoints, gatekeeper proxy routes, and a "Mimir's Counsel" hint panel in the UI.
+- **Discord Webhook Broadcasts** (#7): opt-in via `DISCORD_WEBHOOK_URL`. Successful flag captures, first-bloods, and full-platform completions are announced to a Discord channel. Fire-and-forget and non-blocking — a slow/broken webhook never affects flag submission.
+- **Community**: Discord invite badge and "Join Our Community" section in `README.md`, plus invite links in `CONTRIBUTING.md`.
+- **`make up-observability`**: convenience target to start the core stack plus the observability stack together.
+
+### Changed
+
+- **Observability is now opt-in** (#9): `prom-client` and `winston-loki` are lazy-loaded and gated behind `OBSERVABILITY_ENABLED` (default `false`), so neither is loaded on the default local path — reducing startup cost. Default `make up` no longer starts the Prometheus/Loki/Promtail/Grafana containers.
+- **Auth middleware refactor** (#8): removed the unused legacy `optionalAuth` fallback and clarified the `requireAuth` (strict) vs `ensureSession` (anonymous-friendly) contracts.
+- **Redis is now the primary progression store** when `REDIS_URL` is set; the file-based repository remains the local/dev fallback. `UserProgression` gained `score`, `completions`, and `hintsRevealed`.
+- **`/csrf-token`** is now available to any session (previously auth-only), enabling anonymous players to perform CSRF-protected actions such as flag submission and hint reveals.
+
+### Fixed
+
+- **flag-oracle startup crash**: a missing or weak `FLAG_MASTER_SECRET` no longer crashes the service on boot — dynamic flag generation (`/generate`) is disabled gracefully instead.
+- **Broken Redis repository wiring**: `FileBasedFlagRepository` is now exported/constructed correctly, making the Redis-primary path functional (was a compile/runtime break).
+- **Missing Express type augmentation**: added `gatekeeper/src/types/express.d.ts` for `req.user` / session typing, resolving 18 pre-existing `tsc` errors that also broke the Docker backend build.
+- **flag-oracle test setup**: Jest now loads the `reflect-metadata` polyfill, unblocking three suites that previously failed to run.
+
+### Security
+
+- The secret `DISCORD_WEBHOOK_URL` is kept out of all tracked files (lives only in the gitignored `.env`); only the public Discord invite link is published in docs.
+
 ## [1.2.0] - 2026-04-13
 
 ### Removed
@@ -96,7 +128,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/your-org/project_yggdrasil/compare/v1.2.0...HEAD
-[1.2.0]: https://github.com/your-org/project_yggdrasil/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/your-org/project_yggdrasil/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/your-org/project_yggdrasil/releases/tag/v1.0.0
+[Unreleased]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/Kaademos/kademos-yggdrasil/releases/tag/v1.0.0

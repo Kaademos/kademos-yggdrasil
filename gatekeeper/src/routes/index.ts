@@ -1,10 +1,20 @@
 import { Router, Request, Response } from 'express';
+import { createHash } from 'crypto';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { RealmConfig, REALMS_METADATA } from '../config';
 import { ProgressionClient } from '../services/progression-client';
 import { ProgressionService } from '../services/progression-service';
 import { csrfProtection } from '../middleware/csrf';
 import { metrics } from '../utils/metrics';
+
+/**
+ * Convert a raw user/session id into a stable, non-reversible display handle so the
+ * public leaderboard never leaks session ids or account ids.
+ */
+function toDisplayHandle(rawId: string): string {
+  const suffix = createHash('sha256').update(rawId).digest('hex').slice(0, 6).toUpperCase();
+  return `Seeker-${suffix}`;
+}
 
 export function createRoutes(
   realms: RealmConfig[],
@@ -80,6 +90,32 @@ export function createRoutes(
     }
   );
 
+  router.get('/leaderboard', authMiddleware.ensureSession, async (req: Request, res: Response) => {
+    try {
+      const progressionId = req.user?.id || req.sessionID;
+      const rawLimit = parseInt(String(req.query.limit ?? '20'), 10);
+      const limit = Number.isNaN(rawLimit) ? 20 : Math.min(Math.max(rawLimit, 1), 100);
+
+      const entries = await progressionClient.getLeaderboard(limit);
+
+      const leaderboard = entries.map((e) => ({
+        rank: e.rank,
+        handle: toDisplayHandle(e.userId),
+        score: e.score,
+        realmsCompleted: e.realmsCompleted,
+        isYou: progressionId ? e.userId === progressionId : false,
+      }));
+
+      res.status(200).json({ leaderboard });
+    } catch (error) {
+      console.error('[Gatekeeper] Error fetching leaderboard:', error);
+      res.status(500).json({
+        status: 'error',
+        message: 'Internal server error',
+      });
+    }
+  });
+
   router.get('/realms', authMiddleware.ensureSession, async (req: Request, res: Response) => {
     try {
       // Use logged-in user ID if available, otherwise use session ID for anonymous users
@@ -120,6 +156,60 @@ export function createRoutes(
       });
     }
   });
+
+  // Hint routes — declared before the realm proxy so they are handled here and not
+  // forwarded into the realm container. Hints never block progression.
+  router.get(
+    '/realms/:realm/hints',
+    authMiddleware.ensureSession,
+    async (req: Request, res: Response) => {
+      try {
+        const progressionId = req.user?.id || req.sessionID;
+        if (!progressionId) {
+          return res.status(500).json({ status: 'error', message: 'Session not initialized' });
+        }
+
+        const data = await progressionClient.getHints(progressionId, req.params.realm);
+        res.status(200).json(data);
+      } catch (error: any) {
+        const status = error?.response?.status === 404 ? 404 : 500;
+        if (status === 404) {
+          return res.status(404).json({ status: 'error', message: 'No hints for this realm' });
+        }
+        console.error('[Gatekeeper] Error fetching hints:', error?.message || error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+      }
+    }
+  );
+
+  router.post(
+    '/realms/:realm/hint',
+    authMiddleware.ensureSession,
+    csrfProtection,
+    async (req: Request, res: Response) => {
+      try {
+        const progressionId = req.user?.id || req.sessionID;
+        if (!progressionId) {
+          return res.status(500).json({ status: 'error', message: 'Session not initialized' });
+        }
+
+        const order = parseInt(String(req.body.order), 10);
+        if (Number.isNaN(order)) {
+          return res.status(400).json({ status: 'error', message: 'order is required' });
+        }
+
+        const result = await progressionClient.revealHint(progressionId, req.params.realm, order);
+        res.status(200).json(result);
+      } catch (error: any) {
+        const status = error?.response?.status === 404 ? 404 : 500;
+        if (status === 404) {
+          return res.status(404).json({ status: 'error', message: 'Hint not found' });
+        }
+        console.error('[Gatekeeper] Error revealing hint:', error?.message || error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+      }
+    }
+  );
 
   for (const realm of realms) {
     const proxyMiddleware = createProxyMiddleware({

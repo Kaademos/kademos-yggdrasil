@@ -158,7 +158,9 @@
       },
       "expected_response": {
         "status": 200,
-        "body_contains": ["token"]
+        "body_contains": [
+          "token"
+        ]
       },
       "notes": "Generate multiple tokens and analyze for patterns"
     },
@@ -170,7 +172,9 @@
       },
       "expected_response": {
         "status": 200,
-        "body_contains": ["tokens"]
+        "body_contains": [
+          "tokens"
+        ]
       }
     },
     {
@@ -183,7 +187,11 @@
         }
       },
       "expected_response": {
-        "status_one_of": [200, 401, 403]
+        "status_one_of": [
+          200,
+          401,
+          403
+        ]
       }
     }
   ],
@@ -193,5 +201,19 @@
     "version": "1.0.0",
     "maintainer": "Project Yggdrasil",
     "validated": true
-  }
+  },
+  "hints": [
+    {
+      "order": 1,
+      "text": "The merchants protect their secrets with cryptography — but is it strong cryptography?"
+    },
+    {
+      "order": 2,
+      "text": "Weak algorithms, hardcoded keys, or predictable IVs may let you decrypt the protected data."
+    },
+    {
+      "order": 3,
+      "text": "Break or bypass the weak cryptography to recover the flag."
+    }
+  ]
 }

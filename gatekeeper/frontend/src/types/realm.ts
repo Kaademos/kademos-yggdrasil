@@ -21,3 +21,15 @@ export interface Realm {
 export interface RealmsResponse {
   realms: Realm[];
 }
+
+export interface LeaderboardEntry {
+  rank: number;
+  handle: string;
+  score: number;
+  realmsCompleted: number;
+  isYou: boolean;
+}
+
+export interface LeaderboardResponse {
+  leaderboard: LeaderboardEntry[];
+}

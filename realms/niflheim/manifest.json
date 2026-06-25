@@ -119,7 +119,10 @@
       },
       "expected_response": {
         "status": 500,
-        "body_contains": ["CRITICAL_SYSTEM_FAILURE", "crashReportId"]
+        "body_contains": [
+          "CRITICAL_SYSTEM_FAILURE",
+          "crashReportId"
+        ]
       }
     },
     {
@@ -135,7 +138,9 @@
       },
       "expected_response": {
         "status": 500,
-        "body_contains": ["TEMPERATURE_UNDERFLOW"]
+        "body_contains": [
+          "TEMPERATURE_UNDERFLOW"
+        ]
       }
     },
     {
@@ -151,7 +156,9 @@
       },
       "expected_response": {
         "status": 500,
-        "body_contains": ["FLOW_RATE_EXCEEDED"]
+        "body_contains": [
+          "FLOW_RATE_EXCEEDED"
+        ]
       }
     },
     {
@@ -167,7 +174,9 @@
       },
       "expected_response": {
         "status": 200,
-        "body_contains": ["regulated successfully"]
+        "body_contains": [
+          "regulated successfully"
+        ]
       }
     }
   ],
@@ -177,5 +186,19 @@
     "version": "1.0.0",
     "maintainer": "Project Yggdrasil",
     "validated": true
-  }
+  },
+  "hints": [
+    {
+      "order": 1,
+      "text": "Every system has limits. What happens when you push a value far beyond its expected operating range?"
+    },
+    {
+      "order": 2,
+      "text": "The pressure regulation endpoint accepts numeric input without proper bounds checking. Feed it extreme values."
+    },
+    {
+      "order": 3,
+      "text": "A forced crash generates a downloadable crash report — the flag is buried in its diagnostic data."
+    }
+  ]
 }

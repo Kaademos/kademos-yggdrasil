@@ -113,7 +113,9 @@
       },
       "expected_response": {
         "status": 200,
-        "body_contains": ["artifacts"]
+        "body_contains": [
+          "artifacts"
+        ]
       }
     },
     {
@@ -123,7 +125,10 @@
         "path": "/api/artifacts/search?q=' UNION SELECT 1,2,3,4,5,6,7--"
       },
       "expected_response": {
-        "status_one_of": [200, 500],
+        "status_one_of": [
+          200,
+          500
+        ],
         "notes": "Should either succeed or return SQL error"
       }
     },
@@ -135,7 +140,10 @@
       },
       "expected_response": {
         "status": 200,
-        "body_contains": ["artifacts", "secrets"]
+        "body_contains": [
+          "artifacts",
+          "secrets"
+        ]
       }
     },
     {
@@ -156,5 +164,19 @@
     "version": "1.0.0",
     "maintainer": "Project Yggdrasil",
     "validated": true
-  }
+  },
+  "hints": [
+    {
+      "order": 1,
+      "text": "User input reaches the mine database directly. Which characters can change a query’s meaning?"
+    },
+    {
+      "order": 2,
+      "text": "The search endpoint concatenates raw input into SQL. Try classic injection payloads."
+    },
+    {
+      "order": 3,
+      "text": "Use a UNION-based or boolean-based injection to read the flag straight from the database."
+    }
+  ]
 }

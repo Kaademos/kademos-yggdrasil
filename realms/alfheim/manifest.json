@@ -158,7 +158,11 @@
         }
       },
       "expected_response": {
-        "status_one_of": [200, 403, 500]
+        "status_one_of": [
+          200,
+          403,
+          500
+        ]
       }
     },
     {
@@ -182,7 +186,11 @@
         "path": "/api/imds/latest/meta-data/"
       },
       "expected_response": {
-        "status_one_of": [200, 401, 403],
+        "status_one_of": [
+          200,
+          401,
+          403
+        ],
         "notes": "Should require authentication but may be exposed"
       }
     }
@@ -193,5 +201,19 @@
     "version": "1.0.0",
     "maintainer": "Project Yggdrasil",
     "validated": true
-  }
+  },
+  "hints": [
+    {
+      "order": 1,
+      "text": "Cloud realms leak when misconfigured. Look for exposed settings, headers, or forgotten endpoints."
+    },
+    {
+      "order": 2,
+      "text": "Default credentials, verbose error output, or open admin/debug routes are your way in."
+    },
+    {
+      "order": 3,
+      "text": "Leverage the misconfiguration (e.g. an exposed config or debug route) to reach the flag."
+    }
+  ]
 }

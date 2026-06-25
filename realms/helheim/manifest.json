@@ -107,7 +107,9 @@
       },
       "expected_response": {
         "status": 200,
-        "body_contains": ["error.log"]
+        "body_contains": [
+          "error.log"
+        ]
       }
     },
     {
@@ -118,7 +120,10 @@
       },
       "expected_response": {
         "status": 200,
-        "body_contains": ["YGGDRASIL", "HELHEIM"]
+        "body_contains": [
+          "YGGDRASIL",
+          "HELHEIM"
+        ]
       }
     },
     {
@@ -139,5 +144,19 @@
     "version": "1.0.0",
     "maintainer": "Project Yggdrasil",
     "validated": true
-  }
+  },
+  "hints": [
+    {
+      "order": 1,
+      "text": "Administrative actions are not always protected as well as they should be. Hunt for an admin area."
+    },
+    {
+      "order": 2,
+      "text": "The memorial forum's admin panel trusts the client to declare who is an admin. Inspect that decision."
+    },
+    {
+      "order": 3,
+      "text": "These privileged actions are never logged or alerted on — abuse the silent admin access to reach the flag."
+    }
+  ]
 }

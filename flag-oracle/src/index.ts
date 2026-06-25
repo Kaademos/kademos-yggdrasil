@@ -24,12 +24,18 @@ async function main() {
   const logger = new Logger();
 
   const progressionService = container.resolve(ProgressionService);
-  const flagService = container.resolve(FlagService);
   const rateLimiter = container.resolve(RateLimiter);
 
-  if (!flagService) {
-    logger.logInfo('FLAG_MASTER_SECRET not set - dynamic flag generation disabled', {
+  // FlagService requires a strong FLAG_MASTER_SECRET (>=32 chars) and throws otherwise.
+  // Dynamic flag generation is an optional feature, so a missing/weak secret must not
+  // crash the service — it simply disables the /generate endpoint.
+  let flagService: FlagService | null = null;
+  try {
+    flagService = container.resolve(FlagService);
+  } catch (error) {
+    logger.logInfo('Dynamic flag generation disabled (FLAG_MASTER_SECRET not set or too weak)', {
       feature: 'flag-generation',
+      reason: (error as Error).message,
     });
   }
 
