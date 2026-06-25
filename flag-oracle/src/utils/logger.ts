@@ -1,9 +1,12 @@
 import winston from 'winston';
-import LokiTransport from 'winston-loki';
 
 const { NODE_ENV = 'development', LOKI_URL = 'http://loki:3100' } = process.env;
 
 const isDevelopment = NODE_ENV === 'development';
+
+// Loki shipping is opt-in (observability stack). When disabled — the default —
+// `winston-loki` is never loaded, so it doesn't add to startup cost.
+const observabilityEnabled = process.env.OBSERVABILITY_ENABLED === 'true';
 
 const consoleFormat = winston.format.combine(
   winston.format.colorize(),
@@ -24,7 +27,9 @@ export const createLogger = (service: string) => {
     }),
   ];
 
-  if (!isDevelopment) {
+  if (observabilityEnabled) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const LokiTransport = require('winston-loki');
     transports.push(
       new LokiTransport({
         host: LOKI_URL,
@@ -32,7 +37,7 @@ export const createLogger = (service: string) => {
         json: true,
         format: jsonFormat,
         replaceTimestamp: true,
-        onConnectionError: (err) => {
+        onConnectionError: (err: Error) => {
           console.error('Loki connection error:', err);
         },
       })

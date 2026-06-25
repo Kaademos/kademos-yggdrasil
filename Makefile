@@ -1,4 +1,4 @@
-.PHONY: help setup up down restart clean logs test validate-env install dev-gatekeeper dev-flag-oracle info urls build-player build-instructor copy-stripper yggdrasil
+.PHONY: help setup up up-observability down restart clean logs test validate-env install dev-gatekeeper dev-flag-oracle info urls build-player build-instructor copy-stripper yggdrasil
 
 help:
 	@echo "╔════════════════════════════════════════════════════════════════╗"
@@ -11,7 +11,8 @@ help:
 	@echo "  make install       - Install dependencies for all services"
 	@echo ""
 	@echo "🚀 Service Management:"
-	@echo "  make up            - Build and start all services"
+	@echo "  make up            - Build and start all services (observability off)"
+	@echo "  make up-observability - Start all services + Prometheus/Loki/Grafana stack"
 	@echo "  make down          - Stop all services"
 	@echo "  make restart       - Restart all services"
 	@echo "  make clean         - Stop services, remove volumes, clean artifacts"
@@ -106,6 +107,17 @@ up: validate-env
 	@echo "📖 Run 'make urls' to see all available endpoints"
 	@echo "════════════════════════════════════════════════════════════════"
 	@echo ""
+
+up-observability: validate-env
+	@echo "🚀 Starting all services WITH the observability stack..."
+	@echo "   (Prometheus, Loki, Promtail, Grafana — slower startup)"
+	@echo ""
+	@echo "   Step 1: core services (creates yggdrasil_main network)..."
+	OBSERVABILITY_ENABLED=true docker compose up --build -d
+	@echo "   Step 2: observability stack (attaches to yggdrasil_main)..."
+	docker compose -f docker-compose.observability.yml up -d
+	@echo ""
+	@echo "✅ Yggdrasil + observability running. Grafana: http://localhost:3200"
 
 restart:
 	@echo "🔄 Restarting all services..."

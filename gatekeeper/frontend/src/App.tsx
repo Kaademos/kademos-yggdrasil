@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Hero } from './components/Hero';
 import { WeaversPath } from './components/WeaversPath';
 import { RealmMap } from './components/RealmMap';
+import { Hints } from './components/Hints';
+import { Leaderboard } from './components/Leaderboard';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -59,6 +61,8 @@ function App() {
       <Hero onCTAClick={handleCTAClick} />
       <WeaversPath />
       <RealmMap />
+      <Hints />
+      <Leaderboard />
       
       {/* Footer */}
       <footer className="bg-slate-950 border-t border-white/10 py-8">

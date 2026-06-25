@@ -8,6 +8,13 @@ export interface ProgressionData {
   lastUpdated: string;
 }
 
+export interface LeaderboardEntry {
+  userId: string;
+  score: number;
+  realmsCompleted: number;
+  rank: number;
+}
+
 @injectable()
 export class ProgressionClient {
   constructor(@inject('Config') private config: any) {
@@ -32,6 +39,29 @@ export class ProgressionClient {
     const response = await axios.post(`${this.flagOracleUrl}/validate`, {
       userId,
       flag,
+    });
+    return response.data;
+  }
+
+  async getLeaderboard(limit = 100): Promise<LeaderboardEntry[]> {
+    const response = await axios.get(`${this.flagOracleUrl}/leaderboard`, {
+      params: { limit },
+    });
+    return response.data?.leaderboard ?? [];
+  }
+
+  async getHints(userId: string, realm: string) {
+    const response = await axios.get(`${this.flagOracleUrl}/hints/${realm}`, {
+      params: { userId },
+    });
+    return response.data;
+  }
+
+  async revealHint(userId: string, realm: string, order: number) {
+    const response = await axios.post(`${this.flagOracleUrl}/hint`, {
+      userId,
+      realm,
+      order,
     });
     return response.data;
   }

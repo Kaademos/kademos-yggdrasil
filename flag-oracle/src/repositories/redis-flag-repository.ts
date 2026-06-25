@@ -1,9 +1,30 @@
 import { createClient } from 'redis';
-import { IFlagRepository, UserProgression, FlagData } from './flag-repository';
-import { FileBasedFlagRepository } from './flag-repository';
+import {
+  IFlagRepository,
+  UserProgression,
+  FlagData,
+  LeaderboardEntry,
+  CompletionDetails,
+  FileBasedFlagRepository,
+  emptyProgression,
+  normaliseProgression,
+  applyCapture,
+  applyHintReveal,
+} from './flag-repository';
 
 type RedisClient = ReturnType<typeof createClient>;
 
+const PROGRESSION_TTL_SECONDS = 86400 * 30;
+const LEADERBOARD_KEY = 'leaderboard';
+const CAPTURED_REALMS_KEY = 'captured_realms';
+
+/**
+ * Redis-backed progression store (primary persistence when REDIS_URL is set).
+ *
+ * Progression is stored per user as JSON; the global leaderboard is maintained as a
+ * sorted set (score → userId) so ranking is O(log n) without scanning every user.
+ * A FileBasedFlagRepository fallback keeps the service usable if Redis is unreachable.
+ */
 export class RedisFlagRepository implements IFlagRepository {
   private connected = false;
 
@@ -30,7 +51,7 @@ export class RedisFlagRepository implements IFlagRepository {
     try {
       await this.connect();
       const data = await this.redisClient.get(`progression:${userId}`);
-      return data ? JSON.parse(data) : null;
+      return data ? normaliseProgression(userId, JSON.parse(data)) : null;
     } catch (error) {
       if (this.fallbackRepo) {
         return this.fallbackRepo.getProgression(userId);
@@ -39,33 +60,90 @@ export class RedisFlagRepository implements IFlagRepository {
     }
   }
 
-  async updateProgression(userId: string, realm: string, flag: string): Promise<void> {
+  async updateProgression(
+    userId: string,
+    realm: string,
+    flag: string,
+    completion?: CompletionDetails
+  ): Promise<void> {
     try {
       await this.connect();
 
-      const progression = (await this.getProgression(userId)) || {
-        userId,
-        unlockedRealms: [],
-        flags: [],
-        lastUpdated: new Date().toISOString(),
-      };
-
-      if (!progression.unlockedRealms.includes(realm)) {
-        progression.unlockedRealms.push(realm);
-      }
-      if (!progression.flags.includes(flag)) {
-        progression.flags.push(flag);
-      }
-      progression.lastUpdated = new Date().toISOString();
+      const existing = (await this.getProgression(userId)) || emptyProgression(userId);
+      applyCapture(existing, realm, flag, completion);
 
       const multi = this.redisClient.multi();
-      multi.set(`progression:${userId}`, JSON.stringify(progression));
-      multi.expire(`progression:${userId}`, 86400 * 30);
+      multi.set(`progression:${userId}`, JSON.stringify(existing));
+      multi.expire(`progression:${userId}`, PROGRESSION_TTL_SECONDS);
+      multi.zAdd(LEADERBOARD_KEY, { score: existing.score, value: userId });
       await multi.exec();
     } catch (error) {
       if (this.fallbackRepo) {
-        await this.fallbackRepo.updateProgression(userId, realm, flag);
+        await this.fallbackRepo.updateProgression(userId, realm, flag, completion);
         return;
+      }
+      throw error;
+    }
+  }
+
+  async revealHint(userId: string, realm: string, order: number): Promise<UserProgression> {
+    try {
+      await this.connect();
+
+      const existing = (await this.getProgression(userId)) || emptyProgression(userId);
+      applyHintReveal(existing, realm, order);
+
+      // Revealing a hint does not change score, so the leaderboard ZSET is untouched here.
+      const multi = this.redisClient.multi();
+      multi.set(`progression:${userId}`, JSON.stringify(existing));
+      multi.expire(`progression:${userId}`, PROGRESSION_TTL_SECONDS);
+      await multi.exec();
+
+      return existing;
+    } catch (error) {
+      if (this.fallbackRepo) {
+        return this.fallbackRepo.revealHint(userId, realm, order);
+      }
+      throw error;
+    }
+  }
+
+  async getLeaderboard(limit = 100): Promise<LeaderboardEntry[]> {
+    try {
+      await this.connect();
+      const ranked = await this.redisClient.zRangeWithScores(LEADERBOARD_KEY, 0, limit - 1, {
+        REV: true,
+      });
+
+      const entries: LeaderboardEntry[] = [];
+      for (let i = 0; i < ranked.length; i++) {
+        const { value: userId, score } = ranked[i];
+        const progression = await this.getProgression(userId);
+        entries.push({
+          userId,
+          score,
+          realmsCompleted: progression?.completions.length ?? 0,
+          rank: i + 1,
+        });
+      }
+      return entries;
+    } catch (error) {
+      if (this.fallbackRepo) {
+        return this.fallbackRepo.getLeaderboard(limit);
+      }
+      throw error;
+    }
+  }
+
+  async recordRealmCapture(realm: string): Promise<boolean> {
+    try {
+      await this.connect();
+      // SADD returns the number of NEW members added: 1 = first-ever capture of this realm.
+      const added = await this.redisClient.sAdd(CAPTURED_REALMS_KEY, realm.toUpperCase());
+      return added === 1;
+    } catch (error) {
+      if (this.fallbackRepo) {
+        return this.fallbackRepo.recordRealmCapture(realm);
       }
       throw error;
     }

@@ -2,10 +2,26 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { injectable, inject } from 'tsyringe';
 
+export interface RealmCompletion {
+  realm: string;
+  points: number;
+  hintsUsed: number;
+  completedAt: string;
+}
+
+export interface RevealedHint {
+  realm: string;
+  order: number;
+  revealedAt: string;
+}
+
 export interface UserProgression {
   userId: string;
   unlockedRealms: string[];
   flags: string[];
+  score: number;
+  completions: RealmCompletion[];
+  hintsRevealed: RevealedHint[];
   lastUpdated: string;
 }
 
@@ -15,26 +31,164 @@ export interface FlagData {
   nextRealm?: string;
 }
 
-export interface IFlagRepository {
-  getProgression(userId: string): Promise<UserProgression | null>;
-  updateProgression(userId: string, realm: string, flag: string): Promise<void>;
-  getValidFlags(): Promise<FlagData[]>;
+export interface LeaderboardEntry {
+  userId: string;
+  score: number;
+  realmsCompleted: number;
+  rank: number;
 }
 
-@injectable()
-export class FlagRepository implements IFlagRepository {
-  private dataPath: string;
+/**
+ * Extra fields persisted when recording a realm completion (scoring).
+ * Optional so existing callers/mocks that only pass (userId, realm, flag) remain valid.
+ */
+export interface CompletionDetails {
+  points: number;
+  hintsUsed: number;
+}
+
+export interface IFlagRepository {
+  getProgression(userId: string): Promise<UserProgression | null>;
+  updateProgression(
+    userId: string,
+    realm: string,
+    flag: string,
+    completion?: CompletionDetails
+  ): Promise<void>;
+  revealHint(userId: string, realm: string, order: number): Promise<UserProgression>;
+  getValidFlags(): Promise<FlagData[]>;
+  getLeaderboard(limit?: number): Promise<LeaderboardEntry[]>;
+  /**
+   * Atomically record that a realm has been captured by someone, globally.
+   * Returns true only the first time any user captures that realm (for first-blood events).
+   */
+  recordRealmCapture(realm: string): Promise<boolean>;
+}
+
+/** Build a fresh, fully-initialised progression record. */
+export function emptyProgression(userId: string): UserProgression {
+  return {
+    userId,
+    unlockedRealms: [],
+    flags: [],
+    score: 0,
+    completions: [],
+    hintsRevealed: [],
+    lastUpdated: new Date().toISOString(),
+  };
+}
+
+/**
+ * Normalise older/partial progression records (pre-scoring) so callers always
+ * receive a complete shape.
+ */
+export function normaliseProgression(
+  userId: string,
+  raw: Partial<UserProgression> | null | undefined
+): UserProgression {
+  const base = emptyProgression(userId);
+  if (!raw) return base;
+  return {
+    userId: raw.userId || userId,
+    unlockedRealms: raw.unlockedRealms || [],
+    flags: raw.flags || [],
+    score: typeof raw.score === 'number' ? raw.score : 0,
+    completions: raw.completions || [],
+    hintsRevealed: raw.hintsRevealed || [],
+    lastUpdated: raw.lastUpdated || base.lastUpdated,
+  };
+}
+
+/** Count distinct hints this user has revealed for a realm. */
+export function countHintsRevealed(progression: UserProgression, realm: string): number {
+  return progression.hintsRevealed.filter((h) => h.realm === realm).length;
+}
+
+/**
+ * Record a hint reveal in place. Returns true if newly revealed, false if the user
+ * had already revealed that hint (idempotent — never charged twice).
+ */
+export function applyHintReveal(
+  progression: UserProgression,
+  realm: string,
+  order: number
+): boolean {
+  const already = progression.hintsRevealed.some((h) => h.realm === realm && h.order === order);
+  if (already) {
+    return false;
+  }
+  progression.hintsRevealed.push({ realm, order, revealedAt: new Date().toISOString() });
+  progression.lastUpdated = new Date().toISOString();
+  return true;
+}
+
+/**
+ * Apply a realm capture to a progression record in place, including scoring.
+ * Returns true if this was a new capture (state changed), false if idempotent.
+ */
+export function applyCapture(
+  progression: UserProgression,
+  realm: string,
+  flag: string,
+  completion?: CompletionDetails
+): boolean {
+  const alreadyCaptured = progression.flags.includes(flag);
+  if (alreadyCaptured) {
+    return false;
+  }
+
+  if (!progression.unlockedRealms.includes(realm)) {
+    progression.unlockedRealms.push(realm);
+  }
+  progression.flags.push(flag);
+
+  const points = completion?.points ?? 0;
+  progression.score += points;
+  progression.completions.push({
+    realm,
+    points,
+    hintsUsed: completion?.hintsUsed ?? 0,
+    completedAt: new Date().toISOString(),
+  });
+  progression.lastUpdated = new Date().toISOString();
+  return true;
+}
+
+/**
+ * File-based progression/flag store. Default persistence; also used as the durable
+ * fallback behind the Redis repository.
+ */
+export class FileBasedFlagRepository implements IFlagRepository {
   private progressionFile: string;
   private flagsFile: string;
-  private useRedis: boolean = false;
-  // Note: Full Redis implementation would be injected here if enabled
-  // For simplicity in this refactor, we are keeping the file-based logic as default
-  // but making it injectable.
+  private capturedRealmsFile: string;
 
-  constructor(@inject('Config') private config: any) {
-    this.dataPath = config.dataPath || './data';
+  constructor(private dataPath: string = './data') {
     this.progressionFile = path.join(this.dataPath, 'progression.json');
     this.flagsFile = path.join(this.dataPath, 'flags.json');
+    this.capturedRealmsFile = path.join(this.dataPath, 'captured-realms.json');
+  }
+
+  async recordRealmCapture(realm: string): Promise<boolean> {
+    await this.ensureDataDirectory();
+    const key = realm.toUpperCase();
+
+    let captured: string[] = [];
+    try {
+      captured = JSON.parse(await fs.readFile(this.capturedRealmsFile, 'utf-8'));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+
+    if (captured.includes(key)) {
+      return false;
+    }
+
+    captured.push(key);
+    const tempFile = `${this.capturedRealmsFile}.tmp`;
+    await fs.writeFile(tempFile, JSON.stringify(captured, null, 2), 'utf-8');
+    await fs.rename(tempFile, this.capturedRealmsFile);
+    return true;
   }
 
   async ensureDataDirectory(): Promise<void> {
@@ -45,56 +199,76 @@ export class FlagRepository implements IFlagRepository {
     }
   }
 
-  async getProgression(userId: string): Promise<UserProgression | null> {
-    await this.ensureDataDirectory();
-
+  private async readAllProgressions(): Promise<Record<string, UserProgression>> {
     try {
       const data = await fs.readFile(this.progressionFile, 'utf-8');
-      const progressions: Record<string, UserProgression> = JSON.parse(data);
-      return progressions[userId] || null;
+      const raw: Record<string, Partial<UserProgression>> = JSON.parse(data);
+      const result: Record<string, UserProgression> = {};
+      for (const [userId, value] of Object.entries(raw)) {
+        result[userId] = normaliseProgression(userId, value);
+      }
+      return result;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        return null;
+        return {};
       }
       throw error;
     }
   }
 
-  async updateProgression(userId: string, realm: string, flag: string): Promise<void> {
+  async getProgression(userId: string): Promise<UserProgression | null> {
+    await this.ensureDataDirectory();
+    const progressions = await this.readAllProgressions();
+    return progressions[userId] || null;
+  }
+
+  async updateProgression(
+    userId: string,
+    realm: string,
+    flag: string,
+    completion?: CompletionDetails
+  ): Promise<void> {
     await this.ensureDataDirectory();
 
-    let progressions: Record<string, UserProgression> = {};
+    const progressions = await this.readAllProgressions();
+    const existing = progressions[userId] || emptyProgression(userId);
 
-    try {
-      const data = await fs.readFile(this.progressionFile, 'utf-8');
-      progressions = JSON.parse(data);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        throw error;
-      }
-    }
-
-    const existing = progressions[userId] || {
-      userId,
-      unlockedRealms: [],
-      flags: [],
-      lastUpdated: new Date().toISOString(),
-    };
-
-    if (!existing.unlockedRealms.includes(realm)) {
-      existing.unlockedRealms.push(realm);
-    }
-
-    if (!existing.flags.includes(flag)) {
-      existing.flags.push(flag);
-    }
-
-    existing.lastUpdated = new Date().toISOString();
+    applyCapture(existing, realm, flag, completion);
     progressions[userId] = existing;
 
     const tempFile = `${this.progressionFile}.tmp`;
     await fs.writeFile(tempFile, JSON.stringify(progressions, null, 2), 'utf-8');
     await fs.rename(tempFile, this.progressionFile);
+  }
+
+  async revealHint(userId: string, realm: string, order: number): Promise<UserProgression> {
+    await this.ensureDataDirectory();
+
+    const progressions = await this.readAllProgressions();
+    const existing = progressions[userId] || emptyProgression(userId);
+
+    applyHintReveal(existing, realm, order);
+    progressions[userId] = existing;
+
+    const tempFile = `${this.progressionFile}.tmp`;
+    await fs.writeFile(tempFile, JSON.stringify(progressions, null, 2), 'utf-8');
+    await fs.rename(tempFile, this.progressionFile);
+    return existing;
+  }
+
+  async getLeaderboard(limit = 100): Promise<LeaderboardEntry[]> {
+    await this.ensureDataDirectory();
+    const progressions = await this.readAllProgressions();
+
+    return Object.values(progressions)
+      .sort((a, b) => b.score - a.score || a.lastUpdated.localeCompare(b.lastUpdated))
+      .slice(0, limit)
+      .map((p, index) => ({
+        userId: p.userId,
+        score: p.score,
+        realmsCompleted: p.completions.length,
+        rank: index + 1,
+      }));
   }
 
   async getValidFlags(): Promise<FlagData[]> {
@@ -149,5 +323,17 @@ export class FlagRepository implements IFlagRepository {
       }
       throw error;
     }
+  }
+}
+
+/**
+ * DI-friendly wrapper that resolves the data path from the injected Config.
+ * Equivalent to FileBasedFlagRepository; kept so the container can construct the
+ * file store without a string token.
+ */
+@injectable()
+export class FlagRepository extends FileBasedFlagRepository {
+  constructor(@inject('Config') config: { dataPath?: string }) {
+    super(config.dataPath || './data');
   }
 }

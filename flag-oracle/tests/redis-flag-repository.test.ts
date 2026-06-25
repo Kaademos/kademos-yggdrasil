@@ -6,9 +6,12 @@ const mockRedisClient = {
   quit: jest.fn(),
   get: jest.fn(),
   set: jest.fn(),
+  zAdd: jest.fn(),
+  zRangeWithScores: jest.fn(),
   multi: jest.fn(() => ({
     set: jest.fn().mockReturnThis(),
     expire: jest.fn().mockReturnThis(),
+    zAdd: jest.fn().mockReturnThis(),
     exec: jest.fn(),
   })),
 };
@@ -22,7 +25,10 @@ describe('RedisFlagRepository', () => {
     mockFallback = {
       getProgression: jest.fn(),
       updateProgression: jest.fn(),
+      revealHint: jest.fn(),
       getValidFlags: jest.fn(),
+      getLeaderboard: jest.fn(),
+      recordRealmCapture: jest.fn(),
     } as any;
     repository = new RedisFlagRepository(mockRedisClient as any, mockFallback);
   });
@@ -33,6 +39,9 @@ describe('RedisFlagRepository', () => {
         userId: 'user1',
         unlockedRealms: ['NIFLHEIM'],
         flags: ['YGGDRASIL{NIFLHEIM:uuid}'],
+        score: 0,
+        completions: [],
+        hintsRevealed: [],
         lastUpdated: '2025-12-04T00:00:00.000Z',
       };
 
@@ -62,7 +71,7 @@ describe('RedisFlagRepository', () => {
       };
 
       mockRedisClient.get.mockRejectedValue(new Error('Redis connection failed'));
-      mockFallback.getProgression.mockResolvedValue(mockProgression);
+      mockFallback.getProgression.mockResolvedValue(mockProgression as any);
 
       const result = await repository.getProgression('user1');
 
@@ -76,6 +85,7 @@ describe('RedisFlagRepository', () => {
       const mockMulti = {
         set: jest.fn().mockReturnThis(),
         expire: jest.fn().mockReturnThis(),
+        zAdd: jest.fn().mockReturnThis(),
         exec: jest.fn().mockResolvedValue([]),
       };
       mockRedisClient.get.mockResolvedValue(null);
@@ -97,7 +107,8 @@ describe('RedisFlagRepository', () => {
       expect(mockFallback.updateProgression).toHaveBeenCalledWith(
         'user1',
         'NIFLHEIM',
-        'YGGDRASIL{NIFLHEIM:uuid}'
+        'YGGDRASIL{NIFLHEIM:uuid}',
+        undefined
       );
     });
   });

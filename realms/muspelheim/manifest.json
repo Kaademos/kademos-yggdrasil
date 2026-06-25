@@ -162,5 +162,19 @@
     "version": "1.0.0",
     "maintainer": "Project Yggdrasil",
     "validated": true
-  }
+  },
+  "hints": [
+    {
+      "order": 1,
+      "text": "Some flaws are not bugs — they are the design itself. Map out the full trading workflow first."
+    },
+    {
+      "order": 2,
+      "text": "A logic or race-condition flaw in the trading post lets you do something the design never intended."
+    },
+    {
+      "order": 3,
+      "text": "Exploit the business-logic gap (think timing / concurrent requests) to obtain the flag."
+    }
+  ]
 }

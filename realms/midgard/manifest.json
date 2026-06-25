@@ -159,7 +159,11 @@
         }
       },
       "expected_response": {
-        "status_one_of": [200, 400, 500]
+        "status_one_of": [
+          200,
+          400,
+          500
+        ]
       }
     },
     {
@@ -184,5 +188,19 @@
     "version": "1.0.0",
     "maintainer": "Project Yggdrasil",
     "validated": true
-  }
+  },
+  "hints": [
+    {
+      "order": 1,
+      "text": "The marketplace pulls in third-party packages. Ask yourself where those packages come from."
+    },
+    {
+      "order": 2,
+      "text": "A dependency is resolved from a registry whose contents an attacker can influence."
+    },
+    {
+      "order": 3,
+      "text": "Publish or substitute a malicious package version to execute code and surface the flag."
+    }
+  ]
 }

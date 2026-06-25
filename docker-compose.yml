@@ -27,6 +27,9 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-60000}
       - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-10}
+      - OBSERVABILITY_ENABLED=${OBSERVABILITY_ENABLED:-false}
+      - FLAG_MASTER_SECRET=${FLAG_MASTER_SECRET:-}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
     volumes:
       - progress_data:/data
     networks:
@@ -59,6 +62,7 @@ services:
       - AUTH_RATE_LIMIT_MAX_REQUESTS=${AUTH_RATE_LIMIT_MAX_REQUESTS:-5}
       - BCRYPT_ROUNDS=${BCRYPT_ROUNDS:-10}
       - ALLOWED_ORIGIN=${ALLOWED_ORIGIN}
+      - OBSERVABILITY_ENABLED=${OBSERVABILITY_ENABLED:-false}
     networks:
       - yggdrasil_main
       - sample_realm_net

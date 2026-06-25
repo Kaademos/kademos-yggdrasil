@@ -6,6 +6,7 @@ export interface Config {
   rateLimitWindowMs: number;
   rateLimitMaxRequests: number;
   flagMasterSecret: string;
+  discordWebhookUrl?: string;
 }
 
 export function loadConfig(): Config {
@@ -29,6 +30,7 @@ export function loadConfig(): Config {
   }
 
   const flagMasterSecret = process.env.FLAG_MASTER_SECRET || '';
+  const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL || undefined;
 
   return {
     port,
@@ -38,5 +40,6 @@ export function loadConfig(): Config {
     rateLimitWindowMs,
     rateLimitMaxRequests,
     flagMasterSecret,
+    discordWebhookUrl,
   };
 }

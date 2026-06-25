@@ -118,9 +118,7 @@ jobs:
               -F unittests \
               -n codecov-umbrella
 
-  # ----------------------
-  # SECURITY JOB (M8 Enhanced: secrets + CI policy validation + npm audit)
-  # ----------------------
+ 
   security:
     docker:
       - image: cimg/node:20.17.0

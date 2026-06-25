@@ -110,7 +110,7 @@
       "cwe_name": "Server-Side Request Forgery (SSRF)",
       "cvss": {
         "version": "3.1",
-        "score": 9.0,
+        "score": 9,
         "vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:H/A:H",
         "breakdown": {
           "attack_vector": "Network",
@@ -226,7 +226,10 @@
       },
       "expected_response": {
         "status": 200,
-        "body_contains": ["employee", "email"]
+        "body_contains": [
+          "employee",
+          "email"
+        ]
       }
     },
     {
@@ -239,7 +242,10 @@
         }
       },
       "expected_response": {
-        "status_one_of": [200, 500],
+        "status_one_of": [
+          200,
+          500
+        ],
         "notes": "Response timing or errors may indicate SQLi"
       }
     },
@@ -250,7 +256,11 @@
         "path": "/api/view-report?reportId=http://localhost:9090/metadata"
       },
       "expected_response": {
-        "status_one_of": [200, 403, 500]
+        "status_one_of": [
+          200,
+          403,
+          500
+        ]
       }
     }
   ],
@@ -261,6 +271,25 @@
     "maintainer": "Project Yggdrasil",
     "validated": true,
     "complexity": "expert",
-    "prerequisite_skills": ["IDOR", "SQL Injection", "SSRF", "CRLF Injection"]
-  }
+    "prerequisite_skills": [
+      "IDOR",
+      "SQL Injection",
+      "SSRF",
+      "CRLF Injection"
+    ]
+  },
+  "hints": [
+    {
+      "order": 1,
+      "text": "Not every door checks your badge. Enumerate endpoints and object identifiers carefully."
+    },
+    {
+      "order": 2,
+      "text": "Try reaching other users' resources or admin-only routes directly (IDOR / forced browsing)."
+    },
+    {
+      "order": 3,
+      "text": "Escalate through the broken access control to reach the privileged flag."
+    }
+  ]
 }

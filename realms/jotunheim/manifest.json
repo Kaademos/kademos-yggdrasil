@@ -119,7 +119,10 @@
       },
       "expected_response": {
         "status": 200,
-        "body_contains": ["sessionId", "test-fixed-session-123"]
+        "body_contains": [
+          "sessionId",
+          "test-fixed-session-123"
+        ]
       }
     },
     {
@@ -134,7 +137,10 @@
       },
       "expected_response": {
         "status": 200,
-        "body_contains": ["sessionId", "success"]
+        "body_contains": [
+          "sessionId",
+          "success"
+        ]
       }
     },
     {
@@ -147,7 +153,11 @@
         }
       },
       "expected_response": {
-        "status_one_of": [200, 401, 403]
+        "status_one_of": [
+          200,
+          401,
+          403
+        ]
       }
     }
   ],
@@ -157,5 +167,19 @@
     "version": "1.0.0",
     "maintainer": "Project Yggdrasil",
     "validated": true
-  }
+  },
+  "hints": [
+    {
+      "order": 1,
+      "text": "Authentication here is weaker than it appears. Examine the login flow and how sessions are issued."
+    },
+    {
+      "order": 2,
+      "text": "Tokens or session identifiers may be predictable, unsigned, or improperly validated."
+    },
+    {
+      "order": 3,
+      "text": "Forge or reuse credentials to assume a privileged identity, then claim the flag."
+    }
+  ]
 }
