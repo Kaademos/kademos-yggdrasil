@@ -4,8 +4,9 @@ import { Logger } from '../services/logger';
 
 export function createAuthMiddleware(userRepository: IUserRepository) {
   return {
-    // Keep requireAuth for backward compatibility but it now just ensures session exists
-    // (Note: To be strictly refactored in Issue #4)
+    // Strict authentication: requires a logged-in user backed by a valid account.
+    // Responds 401 (and clears any stale session) when the requester is not authenticated.
+    // Used for account-scoped actions (logout, CSRF token). Anonymous realm play uses ensureSession.
     requireAuth: async (req: Request, res: Response, next: NextFunction) => {
       try {
         const userId = req.session?.userId;
@@ -42,7 +43,9 @@ export function createAuthMiddleware(userRepository: IUserRepository) {
       }
     },
 
-    // Ensure session exists for anonymous users (creates one if needed)
+    // Anonymous-friendly: requires a session to exist (for progression tracking via
+    // sessionID), and attaches req.user when the session belongs to a logged-in account.
+    // Never rejects unauthenticated requests — used for realm access and flag submission.
     ensureSession: async (req: Request, res: Response, next: NextFunction) => {
       try {
         if (!req.session) {
@@ -66,26 +69,6 @@ export function createAuthMiddleware(userRepository: IUserRepository) {
           status: 'error',
           message: 'Internal server error',
         });
-      }
-    },
-
-    optionalAuth: async (req: Request, res: Response, next: NextFunction) => {
-      try {
-        const userId = req.session?.userId;
-
-        if (userId) {
-          const user = await userRepository.findById(userId);
-          if (user) {
-            req.user = user;
-          } else {
-            req.session.destroy(() => {});
-          }
-        }
-
-        next();
-      } catch (error) {
-        Logger.logError('Error in optional auth middleware', { error });
-        next();
       }
     },
   };

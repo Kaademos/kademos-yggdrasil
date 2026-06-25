@@ -64,7 +64,12 @@ async function main() {
   const realmGate = createRealmGate(progressionService);
 
   // Auth routes
-  const authRoutes = createAuthRoutes(authService, authRateLimiter, authMiddleware.requireAuth);
+  const authRoutes = createAuthRoutes(
+    authService,
+    authRateLimiter,
+    authMiddleware.requireAuth,
+    authMiddleware.ensureSession
+  );
   app.use('/', authRoutes);
 
   // Main routes (with auth and realm gating)

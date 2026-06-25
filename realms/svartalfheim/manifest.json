@@ -168,7 +168,10 @@
         }
       },
       "expected_response": {
-        "status_one_of": [200, 403],
+        "status_one_of": [
+          200,
+          403
+        ],
         "notes": "Modified cookie may grant unauthorized access"
       }
     },
@@ -197,5 +200,19 @@
     "validated": true,
     "language": "Java",
     "framework": "Spring Boot"
-  }
+  },
+  "hints": [
+    {
+      "order": 1,
+      "text": "The forge accepts artifacts from outside. Does it verify they have not been tampered with?"
+    },
+    {
+      "order": 2,
+      "text": "Study how updates or serialized data are validated (or not) before being trusted and executed."
+    },
+    {
+      "order": 3,
+      "text": "Craft a payload that slips past the missing integrity check to retrieve the flag."
+    }
+  ]
 }

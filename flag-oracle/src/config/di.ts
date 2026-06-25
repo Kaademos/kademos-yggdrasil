@@ -5,7 +5,11 @@ import { ProgressionService } from '../services/progression-service';
 import { FlagValidator } from '../services/flag-validator';
 import { ProgressionValidator } from '../services/progression-validator';
 import { RateLimiter } from '../services/rate-limiter';
-import { FlagRepository, IFlagRepository } from '../repositories/flag-repository';
+import { ScoringService } from '../services/scoring-service';
+import { HintService } from '../services/hint-service';
+import { DiscordBroadcaster } from '../services/discord-broadcaster';
+import { FlagRepository } from '../repositories/flag-repository';
+import { RepositoryFactory } from '../repositories/repository-factory';
 
 export function configureContainer() {
   const config = loadConfig();
@@ -14,36 +18,39 @@ export function configureContainer() {
   container.register('Config', { useValue: config });
 
   // Register RateLimitConfig separately as it's a specific object, not the full config
-  container.register('RateLimitConfig', { 
+  container.register('RateLimitConfig', {
     useValue: {
       windowMs: config.rateLimitWindowMs,
-      maxRequests: config.rateLimitMaxRequests
-    }
+      maxRequests: config.rateLimitMaxRequests,
+    },
   });
 
-  // Register Repositories
+  // Register Repositories.
+  // The active repository is selected by RepositoryFactory: Redis (primary) when
+  // REDIS_URL is set, otherwise file-based. A single shared instance is used so the
+  // in-memory connection/state is reused across the app.
+  const repository = RepositoryFactory.create({
+    redisUrl: config.redisUrl,
+    dataPath: config.dataPath,
+  });
+  container.register('IFlagRepository', { useValue: repository });
+  // Keep the concrete class registered for any direct consumers.
   container.register(FlagRepository, { useClass: FlagRepository });
-  // Also register as interface if needed for injection
-  // Note: Since we use string injection token 'IFlagRepository' or class 'FlagRepository' in constructor
-  // We need to ensure consistency.
-  container.register('FlagRepository', { useClass: FlagRepository });
-  container.register('IFlagRepository', { useClass: FlagRepository });
-
 
   // Register Services
-  container.register(FlagService, { 
-    useFactory: (c) => new FlagService({ masterSecret: config.flagMasterSecret })
+  container.register(FlagService, {
+    useFactory: () => new FlagService({ masterSecret: config.flagMasterSecret }),
   });
-  
-  // Note: ProgressionService constructor signature might need to align with injection
-  // If it injects FlagRepository class, this works. If interface, might need token.
+
   container.register(ProgressionService, { useClass: ProgressionService });
-  
   container.register(FlagValidator, { useClass: FlagValidator });
   container.register(ProgressionValidator, { useClass: ProgressionValidator });
-  
+  container.register(ScoringService, { useClass: ScoringService });
+  container.register(HintService, { useClass: HintService });
+  container.register(DiscordBroadcaster, { useClass: DiscordBroadcaster });
+
   // RateLimiter now takes config object injected via 'RateLimitConfig'
   container.register(RateLimiter, { useClass: RateLimiter });
-  
+
   return container;
 }

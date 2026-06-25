@@ -18,6 +18,20 @@ export const REALM_ORDER: RealmConfig[] = [
   { order: 1, name: 'ASGARD' },
 ];
 
+/**
+ * Base points awarded for capturing a realm, before any hint penalty.
+ * Later realms (lower order number) are harder and worth more; the SAMPLE realm
+ * (order 11) is a no-score warm-up.
+ */
+export function getRealmBasePoints(name: string): number {
+  const realm = getRealmByName(name.toUpperCase());
+  if (!realm || realm.order === 11) {
+    return 0;
+  }
+  // order 10 (Niflheim) → 100 ... order 1 (Asgard) → 1000
+  return (11 - realm.order) * 100;
+}
+
 export function getRealmByName(name: string): RealmConfig | undefined {
   return REALM_ORDER.find((r) => r.name === name);
 }

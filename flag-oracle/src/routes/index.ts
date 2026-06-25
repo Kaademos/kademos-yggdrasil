@@ -126,6 +126,82 @@ export function createRoutes(config: RouteConfig | ProgressionService): Router {
     }
   });
 
+  router.get('/hints/:realm', rateLimitMiddleware, async (req: Request, res: Response) => {
+    try {
+      const userId = InputSanitizer.sanitizeUserId(req.query.userId as string);
+      const realm = InputSanitizer.sanitizeUserId(req.params.realm);
+
+      if (!userId || !realm) {
+        return res.status(400).json({ status: 'error', message: 'userId and realm are required' });
+      }
+
+      const hints = await progressionService.getHints(userId, realm);
+      if (!hints) {
+        return res.status(404).json({ status: 'error', message: 'No hints for this realm' });
+      }
+
+      res.status(200).json({ status: 'ok', ...hints });
+    } catch (error) {
+      if (logger) {
+        logger.logError(error as Error, { endpoint: '/hints' });
+      }
+      res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+  });
+
+  router.post('/hint', rateLimitMiddleware, async (req: Request, res: Response) => {
+    try {
+      const userId = InputSanitizer.sanitizeUserId(req.body.userId);
+      const realm = InputSanitizer.sanitizeUserId(req.body.realm);
+      const order = parseInt(String(req.body.order), 10);
+
+      if (!userId || !realm || Number.isNaN(order)) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'userId, realm and order are required',
+        });
+      }
+
+      const result = await progressionService.revealHint(userId, realm, order);
+
+      if (result.status === 'error') {
+        return res.status(404).json(result);
+      }
+
+      if (logger) {
+        logger.logInfo('Hint revealed', { userId, realm: realm.toUpperCase(), order });
+      }
+
+      res.status(200).json(result);
+    } catch (error) {
+      if (logger) {
+        logger.logError(error as Error, { endpoint: '/hint' });
+      }
+      res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+  });
+
+  router.get('/leaderboard', rateLimitMiddleware, async (req: Request, res: Response) => {
+    try {
+      const rawLimit = parseInt(String(req.query.limit ?? '100'), 10);
+      const limit = Number.isNaN(rawLimit) ? 100 : Math.min(Math.max(rawLimit, 1), 100);
+
+      const leaderboard = await progressionService.getLeaderboard(limit);
+
+      res.status(200).json({ status: 'ok', leaderboard });
+    } catch (error) {
+      if (logger) {
+        logger.logError(error as Error, { endpoint: '/leaderboard' });
+      } else {
+        console.error('Error fetching leaderboard:', error);
+      }
+      res.status(500).json({
+        status: 'error',
+        message: 'Internal server error',
+      });
+    }
+  });
+
   router.get('/progress/:userId', rateLimitMiddleware, async (req: Request, res: Response) => {
     try {
       const userId = InputSanitizer.sanitizeUserId(req.params.userId);

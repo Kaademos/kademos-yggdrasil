@@ -37,6 +37,8 @@ Thank you for your interest in contributing! This document provides guidelines a
 
 ## Getting Started
 
+> 💬 **New here? Say hello first.** Join the [Yggdrasil Discord](https://discord.gg/y82Hg9CnSk) to introduce yourself, ask questions, and coordinate with maintainers before starting a feature — it's the fastest way to get unblocked.
+
 ### Prerequisites
 
 - Docker & Docker Compose
@@ -551,6 +553,7 @@ Instead:
 - Check documentation first
 - Search existing issues
 - Ask in discussions
+- Join the [Yggdrasil Discord](https://discord.gg/y82Hg9CnSk) for real-time help
 - Reach out to maintainers
 
 ---
