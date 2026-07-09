@@ -1,35 +1,30 @@
-# Quick Start Guide - Project Yggdrasil
+# Quick Start Guide — Project Yggdrasil
 
-**Get up and running in 5 minutes!**
+**From zero to your first realm in about five minutes.**
 
 ---
 
-## For New Developers
-
-### 1️⃣ First Time Setup
+## 1️⃣ First-Time Setup
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
-cd project_yggdrasil
+git clone https://github.com/Kaademos/kademos-yggdrasil.git
+cd kademos-yggdrasil
 
-# Single command to setup AND start everything
+# One command: generate the environment, install dependencies, start everything
 make yggdrasil
 ```
 
-**That's it!** The platform is now running.
+**That's it** — the platform is now running.
 
-> **Note:** This single command handles environment generation, dependency installation, and startup.
-> 
-> **Alternative:** You can also run `make setup` then `make up` separately if you prefer.
+> **Prefer to do it in steps?** Run `make setup` (creates `.env`, installs dependencies) then `make up`.
 
 ---
 
 ## 2️⃣ Access the Platform
 
-After startup, you'll see:
+After startup you'll see:
 
-**Default startup output:**
 ```
 ════════════════════════════════════════════════════════════════
 ✅ Project Yggdrasil is running!
@@ -44,97 +39,69 @@ After startup, you'll see:
 ════════════════════════════════════════════════════════════════
 ```
 
-### Try It Out
+Then:
 
-1. **Open your browser**: http://localhost:8080/
-2. **See the cinematic landing page**: The Bifröst Gate
-3. **Click "INITIATE ASCENSION"**: Begin your journey
-4. **Register/Login**: Create an account or use test credentials
-5. **Start with Niflheim**: The entry realm (Realm 10)
+1. **Open** http://localhost:8080/ — the Bifröst Gate landing page
+2. **Click "INITIATE ASCENSION"** to begin the climb
+3. **Register or log in** (create an account, or use the seeded test credentials)
+4. **Start with Niflheim**, the entry realm (Realm 10)
+
+The landing page renders the OWASP Top 10 as a vertical ascent — Asgard at the crown, Niflheim at the roots. Only Niflheim is unlocked to begin; each realm opens once you submit the previous realm's flag.
 
 ---
 
 ## 3️⃣ Verify Everything Works
 
 ```bash
-# Quick health check
 make quick-test
-
-# Expected output:
-# 🧪 Testing health endpoints...
-# ✅ Gatekeeper health check passed
-# ✅ Flag Oracle health check passed
-# 🧪 Testing landing page...
-# ✅ Landing page is accessible
-# 🧪 Testing realms API...
-# ✅ Realms API is accessible
 ```
 
----
+```
+🧪 Testing health endpoints...
+✅ Gatekeeper health check passed
+✅ Flag Oracle health check passed
+🧪 Testing landing page...
+✅ Landing page is accessible
+🧪 Testing realms API...
+✅ Realms API is accessible
+```
 
-## 4️⃣ Explore All URLs
+See every URL — landing page, all ten realms, and (if enabled) the dashboards — with:
 
 ```bash
 make urls
 ```
 
-This shows:
-- Landing page
-- All 10 realm URLs
-- Observability dashboards (Grafana, Prometheus, Loki)
-- Metrics endpoints
-
 ---
 
-## 5️⃣ Useful Commands
+## 4️⃣ Everyday Commands
 
 | Command | Description |
 |---------|-------------|
 | `make help` | Show all available commands |
-| `make yggdrasil` | One command to setup AND start everything |
-| `make up` | Start all services |
-| `make down` | Stop all services |
-| `make logs` | View live logs |
+| `make up` / `make down` | Start / stop all services |
 | `make restart` | Restart services |
-| `make test` | Run unit + integration tests |
+| `make logs` | Tail live logs from all services |
 | `make info` | Show service status |
+| `make test` | Run unit + integration tests |
 | `make clean` | Full cleanup (removes volumes) |
 
 ---
 
-## 6️⃣ Manual Testing Guide
+## 5️⃣ Try the API by Hand
 
-### Test Landing Page
 ```bash
+# Landing page (HTML — contains "Bifröst")
 curl http://localhost:8080/
-# Should return HTML with "Bifröst" in it
-```
 
-### Test Health Endpoints
-```bash
-curl http://localhost:8080/health
-# {"status":"ok","service":"gatekeeper"}
+# Health
+curl http://localhost:8080/health      # {"status":"ok","service":"gatekeeper"}
+curl http://localhost:3001/health      # {"status":"ok","service":"flag-oracle"}
 
-curl http://localhost:3001/health
-# {"status":"ok","service":"flag-oracle"}
-```
-
-### Test Realms API
-```bash
+# Realms list (with lock states)
 curl http://localhost:8080/realms
-# Returns list of all realms with lock states
-```
 
-### Test a Realm (requires authentication)
-```bash
-# First, register/login via browser at http://localhost:8080/login
-# Then access a realm
-curl http://localhost:8080/realms/sample/ -b cookies.txt
-```
-
-### Submit a Flag
-```bash
-# Sample realm flag (for testing)
+# Submit a flag (session cookie required — grab one by logging in first)
 curl -X POST http://localhost:8080/submit-flag \
   -H "Content-Type: application/json" \
   -b cookies.txt \
@@ -143,160 +110,112 @@ curl -X POST http://localhost:8080/submit-flag \
 
 ---
 
-## 7️⃣ Observability (Optional)
+## 6️⃣ Observability (Optional)
 
-The observability stack is opt-in. To enable it:
+The monitoring stack is opt-in so the default startup stays fast. Enable it with:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
 ```
 
-### Grafana Dashboards
-- **URL**: http://localhost:3200
-- **Username**: `admin`
-- **Password**: Check your `.env` file (`GRAFANA_ADMIN_PASSWORD`)
+| Tool | URL | Notes |
+|------|-----|-------|
+| **Grafana** | http://localhost:3200 | User `admin`; password in `.env` (`GRAFANA_ADMIN_PASSWORD`) |
+| **Prometheus** | http://localhost:9090 | Metrics & alerting |
+| **Loki** | http://localhost:3100 | Query via Grafana → Explore |
 
-### Prometheus Metrics
-- **Gatekeeper**: http://localhost:8080/metrics
-- **Flag Oracle**: http://localhost:3001/metrics
-- **Prometheus UI**: http://localhost:9090
-
-### Loki Logs
-- **Endpoint**: http://localhost:3100
-- **Query via Grafana**: Go to Grafana → Explore → Select Loki datasource
+Service metrics are exposed at `http://localhost:8080/metrics` (Gatekeeper) and `http://localhost:3001/metrics` (Flag Oracle).
 
 ---
 
-## 8️⃣ Development Workflow
-
-### Make Code Changes
+## 7️⃣ Development Loop
 
 ```bash
-# Edit code in gatekeeper/src/ or flag-oracle/src/
+# Fast iteration with hot reload
+make dev-gatekeeper       # gatekeeper backend + frontend
+make dev-flag-oracle      # flag oracle
 
-# Rebuild and restart
-make down
-make up
+# Or rebuild the full stack after changes
+make down && make up
 
-# Or for faster iteration (dev mode)
-make dev-gatekeeper  # Run gatekeeper with hot reload
-```
-
-### Run Tests
-
-```bash
-# Unit tests only
-make test-unit
-
-# Integration tests
-make test-integration
-
-# E2E journey tests (full 10→1 progression)
-make test-e2e
-
-# All tests
-make test-all
-```
-
-### Check Logs
-
-```bash
-# All services
-make logs
-
-# Specific service
-docker-compose logs -f gatekeeper
-docker-compose logs -f flag-oracle
-docker-compose logs -f niflheim
+# Tests
+make test-unit            # gatekeeper + flag-oracle unit tests
+make test-integration     # smoke + integration
+make test-e2e             # full Niflheim → Asgard journey (services must be running)
+make test-all             # everything
 ```
 
 ---
 
-## 9️⃣ Troubleshooting
+## 8️⃣ Troubleshooting
 
-### Services won't start
+<details>
+<summary><b>Services won't start</b></summary>
+
 ```bash
-# Check Docker is running
-docker --version
-
-# Check for port conflicts
-lsof -i :8080
-lsof -i :3001
-
-# Clean and restart
-make clean
-make up
+docker --version                 # is Docker running?
+lsof -i :8080 && lsof -i :3001   # port conflicts?
+make clean && make up            # clean slate
 ```
+</details>
 
-### .env missing or invalid
+<details>
+<summary><b><code>.env</code> missing or invalid</b></summary>
+
 ```bash
-# Regenerate .env with fresh secrets
-rm .env
-make setup
+rm .env && make setup            # regenerate with fresh secrets
 ```
+</details>
 
-### Can't access landing page
+<details>
+<summary><b>Can't reach the landing page</b></summary>
+
 ```bash
-# Check if gatekeeper is healthy
-curl http://localhost:8080/health
-
-# Check service status
-make info
-docker-compose ps
-
-# View logs
-make logs
+curl http://localhost:8080/health   # is the gatekeeper up?
+make info                           # service status
+make logs                           # inspect logs
 ```
+</details>
 
-### Build fails
+<details>
+<summary><b>Build fails</b></summary>
+
 ```bash
-# Clean everything and rebuild
 make clean
 rm -rf gatekeeper/node_modules flag-oracle/node_modules
-make setup
-make up
+make setup && make up
 ```
+</details>
 
 ---
 
-## 🔟 Next Steps
+## 9️⃣ Where to Go Next
 
-1. **Read the Full README**: [README.md](README.md)
-2. **Explore Documentation**: [.docs/](.docs/)
-   - Developer onboarding
-   - Operator guide
-   - Per-realm documentation
-3. **Understand the Architecture**: [README.md#architecture](README.md#-architecture)
-4. **Try the First Challenge**: Start with Niflheim (Realm 10)
-5. **Check the Codebase**: Explore `gatekeeper/`, `flag-oracle/`, `realms/`
-
----
-
-## 📚 Key Documentation
-
-- **[README.md](README.md)** - Complete project overview
-- **[.docs/OPERATOR_GUIDE.md](.docs/OPERATOR_GUIDE.md)** - Production operations guide (967 lines)
-- **[.docs/DEVELOPER_ONBOARDING.md](.docs/DEVELOPER_ONBOARDING.md)** - Detailed dev guide
-- **[.docs/workflows/QUICK_REFERENCE.md](.docs/workflows/QUICK_REFERENCE.md)** - Commands & API reference
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute
+- 📘 **[README.md](README.md)** — full project overview and architecture
+- 🛠️ **[docs/guides/DEVELOPER.md](docs/guides/DEVELOPER.md)** — developer onboarding
+- 🚀 **[docs/guides/OPERATOR_GUIDE.md](docs/guides/OPERATOR_GUIDE.md)** — production operations
+- 📑 **[docs/workflows/QUICK_REFERENCE.md](docs/workflows/QUICK_REFERENCE.md)** — commands & API reference
+- 🤝 **[CONTRIBUTING.md](CONTRIBUTING.md)** — how to contribute
+- 🗺️ **[docs/realms/](docs/realms/)** — per-realm vulnerability guides
 
 ---
 
 ## 🎯 The Journey Ahead
 
 ```
-Start: Niflheim (Realm 10) - Cryo-Stasis Facility
-  ↓
-Helheim (Realm 9) - Memorial Forum
-  ↓
-Svartalfheim (Realm 8) - Dwarven Forge
-  ↓
-... (7 more realms)
-  ↓
-End: Asgard (Realm 1) - Golden Citadel
+🌫️  Niflheim   (R10) — Cryo-Stasis Facility        ← you start here
+☠️  Helheim    (R9)  — Memorial Forum
+⚙️  Svartalfheim (R8) — Underground Mine
+❄️  Jotunheim  (R7)  — Ice Giant Stronghold
+🔥  Muspelheim (R6)  — Fire Realm
+⚒️  Nidavellir (R5)  — Dwarven Forge
+🔐  Vanaheim   (R4)  — Merchant Realm
+🌍  Midgard    (R3)  — Marketplace
+✨  Alfheim    (R2)  — Cloud Realm
+👑  Asgard     (R1)  — Golden Citadel             ← the final flag
 ```
 
-**Each realm unlocks after submitting the previous realm's flag!**
+**Each realm unlocks when you submit the previous realm's flag.**
 
 ---
 

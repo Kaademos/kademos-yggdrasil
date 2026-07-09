@@ -110,10 +110,15 @@ test.describe('Rate Limiting', () => {
   });
 
   test('rate limit resets after time window', async ({ request }) => {
-    // This test would need to wait for the rate limit window to pass
-    // Skipping in CI as it would take too long
-    test.skip(!!process.env.CI, 'Skipping time-based test in CI');
-    
+    // Waits out the full auth rate-limit window (5+ minutes), so it is opt-in
+    // everywhere — otherwise it is skipped in CI but can never pass locally
+    // (the wait exceeds the default test timeout), breaking local/CI parity.
+    test.skip(
+      !process.env.RUN_TIME_BASED_TESTS,
+      'Time-based test: set RUN_TIME_BASED_TESTS=1 to run (waits >5 minutes)'
+    );
+    test.setTimeout(7 * 60 * 1000);
+
     // Make requests until rate limited
     let rateLimited = false;
     for (let i = 0; i < 20 && !rateLimited; i++) {

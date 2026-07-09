@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import express from 'express';
 import path from 'path';
-import { loadConfig } from './config';
 import { configureContainer } from './config/di';
 import { enhancedSecurityHeaders } from './middleware/security-headers';
 import { createSessionMiddleware } from './middleware/session';
@@ -111,7 +110,9 @@ async function main() {
     console.info(`[Gatekeeper] Listening on port ${config.port}`);
     console.info(`[Gatekeeper] Environment: ${config.nodeEnv}`);
     console.info(`[Gatekeeper] Flag Oracle URL: ${config.flagOracleUrl}`);
-    console.info(`[Gatekeeper] Configured realms: ${config.realms.map((r: any) => r.name).join(', ')}`);
+    console.info(
+      `[Gatekeeper] Configured realms: ${config.realms.map((r: any) => r.name).join(', ')}`
+    );
   });
 }
 

@@ -32,7 +32,7 @@ export const Hero: React.FC<HeroProps> = ({ onCTAClick }) => {
             />
             {/* Yggdrasil Image with blending */}
             <img
-              src="/assets/ygg.webp"
+              src="/assets/yggdrasil-hero.webp"
               alt="Yggdrasil - The World Tree"
               className="relative z-10 w-auto max-w-md md:max-w-lg lg:max-w-xl h-auto"
               style={{
@@ -56,8 +56,16 @@ export const Hero: React.FC<HeroProps> = ({ onCTAClick }) => {
         </h1>
 
         {/* Subheadline */}
-        <p className="text-xl md:text-2xl lg:text-3xl text-gray-300 mb-12 tracking-wide">
+        <p className="text-xl md:text-2xl lg:text-3xl text-gray-300 mb-6 tracking-wide">
           Ten Realms. Ten Vulnerabilities. One Weaver.
+        </p>
+
+        {/* OWASP Badge */}
+        <p
+          className="text-sm md:text-base text-amber-400/90 mb-12 tracking-[0.3em] uppercase font-semibold"
+          style={{ fontFamily: 'Cinzel, serif' }}
+        >
+          OWASP Top 10 • 2025
         </p>
 
         {/* CTA Button */}
@@ -77,7 +85,7 @@ export const Hero: React.FC<HeroProps> = ({ onCTAClick }) => {
 
         {/* Subtle hint */}
         <p className="mt-8 text-sm text-gray-500 tracking-wide">
-          Begin your journey through the Nine Realms
+          Begin your journey through the Ten Realms
         </p>
       </div>
 

@@ -251,6 +251,7 @@ test-integration:
 
 test-e2e:
 	@echo "🎭 Running E2E tests..."
+	@npx playwright test tests/e2e/landing-page.spec.ts --reporter=list
 	@./scripts/test-e2e-journey.sh
 	@echo "✅ E2E tests passed!"
 

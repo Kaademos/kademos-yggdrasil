@@ -2,7 +2,27 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/tests', '<rootDir>/src'],
-  testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
+  testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
+  transform: {
+    // Frontend component tests are .tsx and need JSX + interop; the backend
+    // tsconfig has neither, so override just for the test transform.
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          target: 'ES2020',
+          module: 'commonjs',
+          jsx: 'react-jsx',
+          esModuleInterop: true,
+          strict: true,
+          skipLibCheck: true,
+          resolveJsonModule: true,
+          experimentalDecorators: true,
+          emitDecoratorMetadata: true,
+        },
+      },
+    ],
+  },
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',

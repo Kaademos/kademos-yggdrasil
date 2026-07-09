@@ -17,7 +17,7 @@ export class AuthService {
   ) {
     this.bcryptRounds = config.bcryptRounds || 10;
   }
-  
+
   private bcryptRounds: number;
 
   async authenticate(username: string, password: string): Promise<User | null> {

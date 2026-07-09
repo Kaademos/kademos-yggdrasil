@@ -1,5 +1,5 @@
-import { injectable, inject } from 'tsyringe';
-import { RealmConfig, getRealmByName, getPreviousRealm } from '../config/realm-order';
+import { injectable } from 'tsyringe';
+import { getRealmByName, getPreviousRealm } from '../config/realm-order';
 
 @injectable()
 export class ProgressionValidator {

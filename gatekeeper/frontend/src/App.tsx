@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Hero } from './components/Hero';
 import { WeaversPath } from './components/WeaversPath';
 import { RealmMap } from './components/RealmMap';
@@ -6,7 +6,7 @@ import { Hints } from './components/Hints';
 import { Leaderboard } from './components/Leaderboard';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [, setIsAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
 
   // Check authentication status on mount
@@ -50,7 +50,7 @@ function App() {
           >
             Loading the Bifröst Gate...
           </p>
-          <p className="text-sm text-gray-500 mt-2">Connecting to the Nine Realms</p>
+          <p className="text-sm text-gray-500 mt-2">Connecting to the Ten Realms</p>
         </div>
       </div>
     );

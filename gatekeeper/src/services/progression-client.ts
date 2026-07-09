@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { injectable, inject } from 'tsyringe';
+import { injectable } from 'tsyringe';
 
 export interface ProgressionData {
   userId: string;
@@ -17,11 +17,13 @@ export interface LeaderboardEntry {
 
 @injectable()
 export class ProgressionClient {
-  constructor(@inject('Config') private config: any) {
-    this.flagOracleUrl = config.flagOracleUrl;
-  }
-
   private flagOracleUrl: string;
+
+  // Constructed via the DI factory in config/di.ts, which passes the resolved
+  // flag-oracle base URL string (config.flagOracleUrl) — not the Config object.
+  constructor(flagOracleUrl: string) {
+    this.flagOracleUrl = flagOracleUrl;
+  }
 
   async getProgression(userId: string): Promise<ProgressionData | null> {
     try {

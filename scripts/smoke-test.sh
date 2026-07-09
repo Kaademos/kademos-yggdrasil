@@ -101,7 +101,8 @@ test_endpoint "$GATEKEEPER_URL/realms" "200" "Realms list endpoint"
 test_endpoint "$GATEKEEPER_URL/auth/status" "200" "Auth status endpoint"
 
 # These endpoints require authentication, so expect 401 without login
-test_endpoint "$GATEKEEPER_URL/realms/sample/" "401" "Sample realm proxy (requires auth)"
+# Realms are accessible to everyone; the gatekeeper auto-creates a session for progression tracking
+test_endpoint "$GATEKEEPER_URL/realms/sample/" "200" "Sample realm proxy (session auto-created)"
 
 echo ""
 check_security_headers "$GATEKEEPER_URL/health"

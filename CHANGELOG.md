@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-07-09
+
+> **The Ascent — landing page redesign & documentation overhaul.** Reframes the
+> landing page as a vertical climb of the World Tree and brings the docs in line
+> with a public, marketing-ready repository. UI and copy changes only — no changes
+> to realm vulnerabilities, flags, or the progression contract.
+
+### Added
+
+- **"The Ascent" landing page**: the realm map is now a vertical climb of the World Tree — Asgard at the crown, Niflheim at the roots — over new key-art, with a luminance-graded "data-sap" trunk connecting the realms.
+- **Realm emblems**: each realm gained a distinct icon (👑 Asgard … 🌫️ Niflheim), served from realm metadata and reused across the UI.
+- **New World Tree artwork**: optimized WebP hero, map backdrop, and README banner (converted from source key-art; each well under page-weight budget).
+- **Frontend & documentation tests**: React component tests (jsdom + Testing Library) for the Hero and RealmMap, realm-metadata invariant tests (ten realms, 1:1 OWASP mapping, monotonic color ramp, asset existence), a `/realms` API integration test, a copy regression guard, and a Playwright landing-page suite — all wired into CI for local/CI parity.
+
+### Changed
+
+- **"Nine Realms" → "Ten Realms"** everywhere in the UI and messaging (the platform has always had ten realms); corrected in the hero, realm map, loading screen, leaderboard, Discord completion broadcast, and the realm-locked error page.
+- **Realm color palette** recalibrated into a strict light-ascending ramp so brightness increases as the player climbs, reinforcing progress subconsciously.
+- **Documentation overhaul**: `README.md`, `QUICKSTART.md`, `SECURITY.md`, and `CONTRIBUTING.md` rewritten for a public audience — accurate repository URLs and paths (`docs/`, not `.docs/`), corrected supported-version table, refreshed roadmap reflecting shipped leaderboard/hints/Discord features, and consistent `docker compose` usage.
+
+### Fixed
+
+- **Leaderboard & hints returned HTTP 500** (regression present since 1.3.0): the gatekeeper's `ProgressionClient` was constructed with the flag-oracle base URL string but its constructor expected the whole config object, so every request went to `undefined/…` and failed with "Invalid URL". The constructor now takes the base URL directly, restoring the "Hall of the Slain" leaderboard and "Mimir's Counsel" hints. Added a `ProgressionClient` unit test that pins URL construction.
+- **Hints panel defaulted to the internal sample realm** (which has no hints), greeting visitors with an error. It now excludes the sample realm and defaults to the entry realm (Niflheim).
+- **Lint & format debt** blocking a clean CI run: removed unused imports and unformatted files in the gatekeeper and flag-oracle (ESLint now passes with zero errors; Prettier clean).
+- **Local/CI test parity**: the time-based rate-limit reset test is now opt-in via `RUN_TIME_BASED_TESTS` with an appropriate timeout (previously skipped in CI but unrunnable locally); the smoke test's sample-realm check now matches the "realms are accessible to everyone" model.
+
 ## [1.3.0] - 2026-06-25
 
 > **Yggdrasil Gamification & Architecture Simplification** — adds a global leaderboard,
@@ -128,7 +155,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.0.0...v1.1.0

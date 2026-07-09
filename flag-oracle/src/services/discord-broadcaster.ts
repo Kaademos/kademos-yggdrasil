@@ -71,7 +71,7 @@ export class DiscordBroadcaster {
   async fullCompletion(event: CompletionEvent): Promise<void> {
     const who = this.handle(event.userId);
     await this.post(
-      `🌳 **${who} has ascended Yggdrasil** — all nine realms conquered. All hail the worthy!`
+      `🌳 **${who} has ascended Yggdrasil** — all ten realms conquered. All hail the worthy!`
     );
   }
 }

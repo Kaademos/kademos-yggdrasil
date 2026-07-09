@@ -42,22 +42,21 @@ Thank you for your interest in contributing! This document provides guidelines a
 ### Prerequisites
 
 - Docker & Docker Compose
-- Node.js 18+
+- Node.js 20+
 - Git
 - Basic understanding of the OWASP Top 10
 
 ### Setup
 
 ```bash
-# Fork the repository
-# Clone your fork
-git clone https://github.com/YOUR_USERNAME/project_yggdrasil.git
-cd project_yggdrasil
+# Fork the repository on GitHub, then clone your fork
+git clone https://github.com/YOUR_USERNAME/kademos-yggdrasil.git
+cd kademos-yggdrasil
 
-# Add upstream remote
-git remote add upstream https://github.com/ORIGINAL_OWNER/project_yggdrasil.git
+# Add the upstream remote
+git remote add upstream https://github.com/Kaademos/kademos-yggdrasil.git
 
-# Single command to setup AND start everything
+# Single command to set up AND start everything
 make yggdrasil
 
 # Run tests
@@ -243,9 +242,9 @@ router.post('/endpoint', async (req, res) => {
 - Test exploits after any realm modifications
 
 **Before modifying a realm:**
-1. Read `.docs/realms/XX-realmname.md`
+1. Read `docs/realms/XX-realmname.md`
 2. Understand the intended vulnerability
-3. Test exploit before and after changes
+3. Test the exploit before and after changes
 4. Update documentation if behavior changes
 
 ---
@@ -324,18 +323,22 @@ fi
 
 ### Running Tests
 
-**Before submitting PR:**
+**Before submitting a PR:**
 ```bash
-# Run all tests
-make test
+# Run the full suite (what CI runs): unit + integration + E2E + security
+make test-all
 
-# Run specific tests
-cd gatekeeper && npm test
-cd flag-oracle && npm test
-./scripts/test-niflheim.sh
+# Or target a layer while iterating
+cd gatekeeper && npm test          # gatekeeper unit/integration/regression (Jest)
+cd flag-oracle && npm test         # flag-oracle tests
+npx playwright test tests/e2e/     # end-to-end journeys (services must be running)
 
-# Check coverage
+# Check coverage (≥70% enforced for the control plane)
 npm test -- --coverage
+
+# Lint & format must also pass
+npm run lint
+npx prettier --check "src/**/*.ts"
 ```
 
 ---
@@ -352,9 +355,9 @@ npm test -- --coverage
 - Migration procedures
 
 **Update when changing:**
-- Environment variables → `.env.example`, `QUICK_REFERENCE.md`
-- API endpoints → `QUICK_REFERENCE.md`, OpenAPI spec (if exists)
-- Realm behavior → `.docs/realms/XX-realm.md`
+- Environment variables → `.env.example`, `docs/workflows/QUICK_REFERENCE.md`
+- API endpoints → `docs/workflows/QUICK_REFERENCE.md`, OpenAPI spec (if it exists)
+- Realm behavior → `docs/realms/XX-realm.md`
 
 ### Documentation Standards
 
@@ -364,37 +367,14 @@ npm test -- --coverage
 - Tables for comparisons
 - Links to related docs
 
-**Example:**
-```markdown
-# Feature Name
+**A good feature doc includes:**
 
-## Overview
-Brief description of the feature.
+- **Overview** — a brief description of what the feature does
+- **Usage** — the endpoint(s), a sample request, and a sample response
+- **Configuration** — a table of any new environment variables with their defaults
+- **Links** — references to related docs
 
-## Usage
-
-**Endpoint:** `POST /api/endpoint`
-
-**Request:**
-```json
-{
-  "param": "value"
-}
-```
-
-**Response:**
-```json
-{
-  "status": "success"
-}
-```
-
-### Configuration
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `VAR_NAME` | Description | `default` |
-
+---
 
 ## Pull Request Process
 
@@ -541,10 +521,10 @@ Instead:
 
 ## Additional Resources
 
-- **Developer Guide:** `.docs/DEVELOPER_ONBOARDING.md`
-- **Operator Guide:** `.docs/workflows/OPERATOR_GUIDE.md`
-- **Quick Reference:** `.docs/workflows/QUICK_REFERENCE.md`
-- **Realm Docs:** `.docs/realms/`
+- **Developer Guide:** [docs/guides/DEVELOPER.md](docs/guides/DEVELOPER.md)
+- **Operator Guide:** [docs/guides/OPERATOR_GUIDE.md](docs/guides/OPERATOR_GUIDE.md)
+- **Quick Reference:** [docs/workflows/QUICK_REFERENCE.md](docs/workflows/QUICK_REFERENCE.md)
+- **Realm Docs:** [docs/realms/](docs/realms/)
 
 ---
 
@@ -560,4 +540,4 @@ Instead:
 
 **Thank you for contributing to Project Yggdrasil!**
 
-**Last Updated:** 2025-12-11
+**Last Updated:** 2026-07-09

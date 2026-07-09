@@ -28,7 +28,10 @@ async function getCsrfToken(): Promise<string | null> {
 }
 
 export const Hints: React.FC = () => {
-  const { realms, loading: realmsLoading } = useRealmsSorted();
+  const { realms: allRealms, loading: realmsLoading } = useRealmsSorted();
+  // Exclude the internal sample realm so the panel defaults to a real, hint-bearing
+  // realm (Niflheim, the entry) rather than the test realm.
+  const realms = allRealms.filter((r) => r.name !== 'sample');
   const [selected, setSelected] = useState<string>('');
   const [data, setData] = useState<RealmHints | null>(null);
   const [loading, setLoading] = useState(false);

@@ -52,7 +52,7 @@ export class AttackTraceLogger {
 
     this.logDir = path.join(process.cwd(), this.config.logPath, 'gatekeeper');
     this.currentLogFile = this.getLogFileName();
-    
+
     if (this.config.enabled) {
       this.ensureLogDirectory();
     }
@@ -90,7 +90,7 @@ export class AttackTraceLogger {
 
         const filePath = path.join(this.logDir, file);
         const stats = fs.statSync(filePath);
-        
+
         if (stats.mtime < cutoffDate) {
           fs.unlinkSync(filePath);
         }
@@ -117,7 +117,7 @@ export class AttackTraceLogger {
 
   private sanitizeTrace(trace: AttackTrace): AttackTrace {
     const sanitized: AttackTrace = {
-      messages: trace.messages.map(msg => ({
+      messages: trace.messages.map((msg) => ({
         role: msg.role,
         content: msg.content,
       })),
@@ -202,7 +202,7 @@ export class AttackTraceLogger {
 
   private getAuthAttackIndicators(params: { username: string; reason?: string }): string {
     const indicators: string[] = [];
-    
+
     if (params.username.includes("'") || params.username.includes('"')) {
       indicators.push('SQL injection attempt in username');
     }

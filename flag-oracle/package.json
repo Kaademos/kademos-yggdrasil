@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil/flag-oracle",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Yggdrasil Flag Oracle - Flag validation and progression tracking",
   "main": "dist/index.js",
   "scripts": {

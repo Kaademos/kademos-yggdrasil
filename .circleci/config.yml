@@ -317,6 +317,11 @@ jobs:
             npx playwright install chromium
 
       - run:
+          name: Run landing page regression tests (Playwright)
+          command: |
+            npx playwright test tests/e2e/landing-page.spec.ts --reporter=list
+
+      - run:
           name: Run security header tests (Playwright)
           command: |
             npx playwright test tests/security/headers.spec.ts --reporter=list

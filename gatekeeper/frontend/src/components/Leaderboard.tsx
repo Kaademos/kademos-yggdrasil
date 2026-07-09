@@ -21,7 +21,7 @@ export const Leaderboard: React.FC = () => {
           >
             Hall of the Slain
           </h2>
-          <p className="text-gray-400">The mightiest warriors of the Nine Realms</p>
+          <p className="text-gray-400">The mightiest warriors of the Ten Realms</p>
         </div>
 
         {loading && (

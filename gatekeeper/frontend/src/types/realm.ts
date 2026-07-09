@@ -7,6 +7,7 @@ export interface RealmTheme {
   primaryColor: string;
   image: string;
   category: string;
+  icon: string;
 }
 
 export interface Realm {

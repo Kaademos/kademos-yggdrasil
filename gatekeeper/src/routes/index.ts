@@ -143,6 +143,7 @@ export function createRoutes(
             primaryColor: r.theme.primaryColor,
             image: r.theme.image,
             category: r.theme.category,
+            icon: r.theme.icon,
           },
         };
       });

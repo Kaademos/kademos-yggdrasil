@@ -7,9 +7,13 @@
  */
 
 export interface RealmTheme {
+  // Colors form the "ascent ramp": WCAG relative luminance strictly increases
+  // from Niflheim (order 10, darkest) to Asgard (order 1, gold). Enforced by
+  // tests/realms-metadata.test.ts — keep the invariant when changing colors.
   primaryColor: string;
   image: string;
   category: string; // OWASP category
+  icon: string; // Realm emblem, reused across cards/leaderboard/realm pages
 }
 
 export interface RealmMetadata {
@@ -32,9 +36,10 @@ export const REALMS_METADATA: RealmMetadata[] = [
     order: 10,
     internalUrl: 'http://niflheim:3000',
     theme: {
-      primaryColor: '#60a5fa', // blue-400
+      primaryColor: '#1d4ed8', // blue-700 — frozen root, darkest step of the ascent
       image: '/assets/realms/niflheim.jpg',
       category: 'A10:2025 Exceptional Conditions',
+      icon: '🌫️',
     },
   },
   {
@@ -44,9 +49,10 @@ export const REALMS_METADATA: RealmMetadata[] = [
     order: 9,
     internalUrl: 'http://helheim:3000',
     theme: {
-      primaryColor: '#6b7280', // gray-500
+      primaryColor: '#7c3aed', // violet-600 — realm of the dead
       image: '/assets/realms/helheim.jpg',
       category: 'A09:2025 Logging & Alerting Failures',
+      icon: '☠️',
     },
   },
   {
@@ -56,9 +62,10 @@ export const REALMS_METADATA: RealmMetadata[] = [
     order: 8,
     internalUrl: 'http://svartalfheim:3000',
     theme: {
-      primaryColor: '#78716c', // stone-600
+      primaryColor: '#b45309', // amber-700 — bronze of the underground forge
       image: '/assets/realms/svartalfheim.jpg',
       category: 'A08:2025 Software/Data Integrity',
+      icon: '⚙️',
     },
   },
   {
@@ -68,9 +75,10 @@ export const REALMS_METADATA: RealmMetadata[] = [
     order: 7,
     internalUrl: 'http://jotunheim:3000',
     theme: {
-      primaryColor: '#38bdf8', // sky-400
+      primaryColor: '#0ea5e9', // sky-500 — glacial ice
       image: '/assets/realms/jotunheim.jpg',
       category: 'A07:2025 Authentication Failures',
+      icon: '❄️',
     },
   },
   {
@@ -80,9 +88,10 @@ export const REALMS_METADATA: RealmMetadata[] = [
     order: 6,
     internalUrl: 'http://muspelheim:3000',
     theme: {
-      primaryColor: '#f97316', // orange-500
+      primaryColor: '#fb923c', // orange-400 — fire realm
       image: '/assets/realms/muspelheim.jpg',
       category: 'A06:2025 Insecure Design',
+      icon: '🔥',
     },
   },
   {
@@ -92,9 +101,10 @@ export const REALMS_METADATA: RealmMetadata[] = [
     order: 5,
     internalUrl: 'http://nidavellir:3000',
     theme: {
-      primaryColor: '#a16207', // yellow-700
+      primaryColor: '#f59e0b', // amber-500 — molten metal of the dwarven forge
       image: '/assets/realms/nidavellir.jpg',
       category: 'A05:2025 Injection',
+      icon: '⚒️',
     },
   },
   {
@@ -104,9 +114,10 @@ export const REALMS_METADATA: RealmMetadata[] = [
     order: 4,
     internalUrl: 'http://vanaheim:3000',
     theme: {
-      primaryColor: '#10b981', // emerald-500
+      primaryColor: '#34d399', // emerald-400 — sacred forest
       image: '/assets/realms/vanaheim.jpg',
       category: 'A04:2025 Cryptographic Failures',
+      icon: '🔐',
     },
   },
   {
@@ -116,9 +127,10 @@ export const REALMS_METADATA: RealmMetadata[] = [
     order: 3,
     internalUrl: 'http://midgard:3000',
     theme: {
-      primaryColor: '#a855f7', // purple-500
+      primaryColor: '#2dd4bf', // teal-400 — merchant seas of the human realm
       image: '/assets/realms/midgard.jpg',
       category: 'A03:2025 Supply Chain Failures',
+      icon: '🌍',
     },
   },
   {
@@ -128,9 +140,10 @@ export const REALMS_METADATA: RealmMetadata[] = [
     order: 2,
     internalUrl: 'http://alfheim:3000',
     theme: {
-      primaryColor: '#3b82f6', // blue-500
+      primaryColor: '#93c5fd', // blue-300 — luminous elven sky
       image: '/assets/realms/alfheim.jpg',
       category: 'A02:2025 Security Misconfiguration',
+      icon: '✨',
     },
   },
   {
@@ -140,9 +153,10 @@ export const REALMS_METADATA: RealmMetadata[] = [
     order: 1,
     internalUrl: 'http://asgard:3000',
     theme: {
-      primaryColor: '#eab308', // yellow-500
+      primaryColor: '#facc15', // yellow-400 — golden citadel, brightest step
       image: '/assets/realms/asgard.jpg',
       category: 'A01:2025 Broken Access Control',
+      icon: '👑',
     },
   },
   {
@@ -155,6 +169,7 @@ export const REALMS_METADATA: RealmMetadata[] = [
       primaryColor: '#64748b', // slate-500
       image: '/assets/realms/sample.jpg',
       category: 'Test Realm',
+      icon: '🧪',
     },
   },
 ];
