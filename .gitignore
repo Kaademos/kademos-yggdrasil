@@ -504,3 +504,6 @@ benchmarks/results/
 benchmark-*.json
 
 .docs/
+
+# Hand-written ambient type declarations (not build output)
+!gatekeeper/src/types/express.d.ts
