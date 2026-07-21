@@ -53,6 +53,24 @@ jobs:
             cd gatekeeper
             npx prettier --check "src/**/*.ts"
 
+      # Clean-clone typecheck.
+      # CircleCI's `checkout` contains tracked files ONLY, so running a full
+      # `tsc` here reproduces a fresh clone: if a required source is gitignored
+      # or was never committed (e.g. a hand-written .d.ts swept up by a broad
+      # `*.d.ts` rule), the type check fails here — early and with a clear
+      # signal — instead of only surfacing in the Docker build or on a new
+      # contributor's first `make yggdrasil`.
+      - run:
+          name: Type check gatekeeper (clean checkout)
+          command: |
+            cd gatekeeper
+            npx tsc --noEmit
+      - run:
+          name: Type check flag-oracle (clean checkout)
+          command: |
+            cd flag-oracle
+            npx tsc --noEmit
+
   # ----------------------
   # UNIT TEST JOB
   # ----------------------

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-07-21
+
+> **Clean-clone build fix.** A fresh checkout of `v1.4.0` failed `make yggdrasil`
+> at the gatekeeper build stage. Patch-only — no runtime or API changes.
+
+### Fixed
+
+- **`make yggdrasil` failed on a fresh clone of v1.4.0** with 19 `TS2339` errors across five files (`req.user`, `req.session.userId`, `req.session.username` had no types). The hand-written declaration `gatekeeper/src/types/express.d.ts` was silently excluded by the broad `*.d.ts` rule in `.gitignore`, so it was never committed — the build only succeeded on machines that already had the file on disk. The declaration is now committed, with a scoped `.gitignore` negation so hand-written ambient declarations aren't swept up by the build-output rule (generated `.d.ts` stay ignored). Reported and fixed by **@pcc402-art** in #14.
+
+### Added
+
+- **CI clean-clone typecheck**: the `lint` job now runs a full `tsc --noEmit` for both the gatekeeper and flag-oracle. Because CircleCI's `checkout` contains tracked files only, this reproduces a fresh clone and fails fast if a required source is gitignored or never committed — closing the gap that let the above bug ship.
+
 ## [1.4.0] - 2026-07-09
 
 > **The Ascent — landing page redesign & documentation overhaul.** Reframes the
@@ -155,7 +168,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.1.0...v1.2.0
