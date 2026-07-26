@@ -341,12 +341,12 @@ Contributions are welcome — new realms, hardening of the control plane, docs, 
 
 **Planned**
 
-- [ ] Difficulty modes (Easy / Normal / Hard) per realm
-- [ ] Team mode for collaborative solving
-- [ ] Achievements & speed badges
-- [ ] Per-realm completion analytics
-- [ ] Instructor teaching guides for every realm
-- [ ] Internationalization (i18n)
+- [Difficulty modes (Easy / Normal / Hard) per realm](../../issues/16)
+- [Team mode for collaborative solving](../../issues/17)
+- [Achievements & speed badges](../../issues/18)
+- [Per-realm completion analytics](../../issues/19)
+- [Instructor teaching guides for every realm](../../issues/20)
+- [Internationalization (i18n)](../../issues/21)
 
 ---
 
