@@ -55,16 +55,16 @@ The climb starts underground and rises toward the light. Each realm is a distinc
 
 | Realm | Order | OWASP Category | The Challenge |
 |-------|:-----:|----------------|---------------|
-| 👑 **Asgard** | `01` · Final | [A01:2025](https://owasp.org/Top10/) Broken Access Control | Golden Citadel — IDOR & SQLi in the HR vault |
-| ✨ **Alfheim** | `02` | [A02:2025](https://owasp.org/Top10/) Security Misconfiguration | Cloud Realm — SSRF → IMDS → S3 |
-| 🌍 **Midgard** | `03` | [A03:2025](https://owasp.org/Top10/) Supply Chain Failures | Marketplace — compromised package registry |
-| 🔐 **Vanaheim** | `04` | [A04:2025](https://owasp.org/Top10/) Cryptographic Failures | Merchant Realm — weak PRNG & broken crypto |
-| ⚒️ **Nidavellir** | `05` | [A05:2025](https://owasp.org/Top10/) Injection | Dwarven Forge — SQL injection |
-| 🔥 **Muspelheim** | `06` | [A06:2025](https://owasp.org/Top10/) Insecure Design | Fire Realm — DeFi race condition |
-| ❄️ **Jotunheim** | `07` | [A07:2025](https://owasp.org/Top10/) Authentication Failures | Ice Giant Stronghold — session fixation |
-| ⚙️ **Svartalfheim** | `08` | [A08:2025](https://owasp.org/Top10/) Software/Data Integrity | Underground Mine — insecure deserialization |
-| ☠️ **Helheim** | `09` | [A09:2025](https://owasp.org/Top10/) Logging & Alerting Failures | Níðhöggr SOC — an intrusion logged perfectly, alerted to nobody |
-| 🌫️ **Niflheim** | `10` · Entry | [A10:2025](https://owasp.org/Top10/) Exceptional Conditions | Cryo-Stasis Facility — unhandled overpressure spills crash diagnostics |
+| 👑 **Asgard** | `01` · Final | [A01:2025](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/) Broken Access Control | Golden Citadel — IDOR & SQLi in the HR vault |
+| ✨ **Alfheim** | `02` | [A02:2025](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/) Security Misconfiguration | Cloud Realm — SSRF → IMDS → S3 |
+| 🌍 **Midgard** | `03` | [A03:2025](https://owasp.org/Top10/2025/A03_2025-Software_Supply_Chain_Failures/) Supply Chain Failures | Marketplace — compromised package registry |
+| 🔐 **Vanaheim** | `04` | [A04:2025](https://owasp.org/Top10/2025/A04_2025-Cryptographic_Failures/) Cryptographic Failures | Merchant Realm — weak PRNG & broken crypto |
+| ⚒️ **Nidavellir** | `05` | [A05:2025](https://owasp.org/Top10/2025/A05_2025-Injection/) Injection | Dwarven Forge — SQL injection |
+| 🔥 **Muspelheim** | `06` | [A06:2025](https://owasp.org/Top10/2025/A06_2025-Insecure_Design/) Insecure Design | Fire Realm — DeFi race condition |
+| ❄️ **Jotunheim** | `07` | [A07:2025](https://owasp.org/Top10/2025/A07_2025-Authentication_Failures/) Authentication Failures | Ice Giant Stronghold — session fixation |
+| ⚙️ **Svartalfheim** | `08` | [A08:2025](https://owasp.org/Top10/2025/A08_2025-Software_or_Data_Integrity_Failures/) Software/Data Integrity | Underground Mine — insecure deserialization |
+| ☠️ **Helheim** | `09` | [A09:2025](https://owasp.org/Top10/2025/A09_2025-Security_Logging_and_Alerting_Failures/) Logging & Alerting Failures | Níðhöggr SOC — an intrusion logged perfectly, alerted to nobody |
+| 🌫️ **Niflheim** | `10` · Entry | [A10:2025](https://owasp.org/Top10/2025/A10_2025-Mishandling_of_Exceptional_Conditions/) Exceptional Conditions | Cryo-Stasis Facility — unhandled overpressure spills crash diagnostics |
 
 <p align="center">
   <img src="assets/screenshots/landing-ascent.webp" alt="The Ten Realms ascent on the landing page: Asgard at the crown, realms descending along a glowing trunk of data-sap" width="80%"/>
