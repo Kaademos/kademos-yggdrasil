@@ -63,8 +63,8 @@ The climb starts underground and rises toward the light. Each realm is a distinc
 | 🔥 **Muspelheim** | `06` | [A06:2025](https://owasp.org/Top10/) Insecure Design | Fire Realm — DeFi race condition |
 | ❄️ **Jotunheim** | `07` | [A07:2025](https://owasp.org/Top10/) Authentication Failures | Ice Giant Stronghold — session fixation |
 | ⚙️ **Svartalfheim** | `08` | [A08:2025](https://owasp.org/Top10/) Software/Data Integrity | Underground Mine — insecure deserialization |
-| ☠️ **Helheim** | `09` | [A09:2025](https://owasp.org/Top10/) Logging & Alerting Failures | Memorial Forum — LFI in the realm of the dead |
-| 🌫️ **Niflheim** | `10` · Entry | [A10:2025](https://owasp.org/Top10/) Exceptional Conditions | Cryo-Stasis Facility — SSRF in a SCADA panel |
+| ☠️ **Helheim** | `09` | [A09:2025](https://owasp.org/Top10/) Logging & Alerting Failures | Níðhöggr SOC — an intrusion logged perfectly, alerted to nobody |
+| 🌫️ **Niflheim** | `10` · Entry | [A10:2025](https://owasp.org/Top10/) Exceptional Conditions | Cryo-Stasis Facility — unhandled overpressure spills crash diagnostics |
 
 <p align="center">
   <img src="assets/screenshots/landing-ascent.webp" alt="The Ten Realms ascent on the landing page: Asgard at the crown, realms descending along a glowing trunk of data-sap" width="80%"/>

@@ -32,7 +32,7 @@ We will acknowledge your report within **48 hours** and keep you updated as we i
 
 | ✅ In scope (please report)                       | ❌ Out of scope (by design)                     |
 | ------------------------------------------------- | ----------------------------------------------- |
-| `gatekeeper/` — authentication, sessions, CSRF, proxy | Intentional realm vulnerabilities (e.g. Niflheim SSRF, Asgard SQLi) |
+| `gatekeeper/` — authentication, sessions, CSRF, proxy | Intentional realm vulnerabilities (e.g. Alfheim SSRF, Asgard SQLi) |
 | `flag-oracle/` — validation & scoring logic       | Flag values or exploit write-ups                |
 | Container escape or host compromise from a realm  | Missing rate limits *inside* a challenge         |
 | `docker-compose*.yml` — host/network configuration | Self-XSS or issues requiring a pre-compromised host |

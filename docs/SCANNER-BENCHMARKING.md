@@ -75,7 +75,7 @@ Each manifest contains:
 | Realm | Level | OWASP | Vulnerability | Difficulty |
 |-------|-------|-------|--------------|------------|
 | Niflheim | 10 | A10:2025 | Exceptional Conditions | Beginner |
-| Helheim | 9 | A09:2025 | Logging Failures | Easy |
+| Helheim | 9 | A09:2025 | Logging & Alerting Failures | Medium |
 | Svartalfheim | 8 | A08:2025 | Insecure Deserialization | Hard |
 | Jotunheim | 7 | A07:2025 | Session Fixation | Medium |
 | Muspelheim | 6 | A06:2025 | Race Conditions | Hard |
@@ -125,7 +125,7 @@ See `scripts/scanners/nuclei-runner.sh` (coming in Week 3)
 #### Expected Detections
 
 - **Niflheim**: Detect crash reports with sensitive data
-- **Helheim**: Find exposed log files
+- **Helheim**: Detect disabled detection rules and an unverified alerting health check
 - **Nidavellir**: Identify SQL injection
 - **Jotunheim**: Session fixation patterns
 - **Alfheim**: SSRF vulnerabilities
@@ -498,7 +498,7 @@ Time: 45 seconds
 
 Detected:
 ✅ A05 - SQL Injection (Nidavellir)
-✅ A09 - Exposed Logs (Helheim)
+✅ A09 - Unalerted Security Events (Helheim)
 ✅ A10 - Error Info Disclosure (Niflheim)
 ✅ A07 - Session Issues (Jotunheim)
 ✅ A02 - SSRF (Alfheim)

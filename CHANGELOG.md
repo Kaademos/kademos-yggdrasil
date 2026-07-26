@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- **Corrected two miscategorisations repeated across the summary tables.** `README.md`, `QUICKSTART.md`, `SECURITY.md`, `docs/SCANNER-BENCHMARKING.md`, `docs/instructor/README.md`, `docs/guides/OPERATOR_GUIDE.md`, `docs/workflows/ASVS_COMPLIANCE.md`, and `realms/_shared/ERROR-HANDLING-README.md` described Helheim as "Memorial Forum — LFI" / "exposed logs" — stale as of 1.5.0 — and described **Niflheim as SSRF**. Niflheim has never contained an SSRF: it has no proxy and no user-controlled outbound request. `docs/realms/10-niflheim.md` has always documented it correctly as an unhandled exceptional condition; the error existed only in the summary tables, which is where readers form their mental model of the tree.
+
 ## [1.5.0] - 2026-07-26
 
 > **Helheim rebuilt around alerting.** Realm 9 was labelled A09:2025 but taught

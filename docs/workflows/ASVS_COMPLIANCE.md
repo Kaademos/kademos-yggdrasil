@@ -122,7 +122,7 @@ Project Yggdrasil is a **vulnerable-by-design** training platform. This document
 
 **Non-Compliant (Intentional):**
 - Niflheim: Exception reveals flag (A10 challenge)
-- Helheim: Logs exposed publicly (A09 challenge)
+- Helheim: Security events logged but never alerted on (A09 challenge)
 
 ---
 
@@ -232,7 +232,7 @@ Each realm implements specific vulnerabilities as documented. Non-challenge code
 
 **Realm-Specific Deviations:**
 - Niflheim (A10): Exception handling
-- Helheim (A09): Log exposure
+- Helheim (A09): Alerting pipeline failure
 - Svartalfheim (A08): Deserialization
 - Jotunheim (A07): Session fixation
 - Muspelheim (A06): Business logic

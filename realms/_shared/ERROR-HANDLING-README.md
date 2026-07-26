@@ -55,7 +55,7 @@ app.use(createErrorHandler({
   logErrors: true,
   intentionalLeakPatterns: [
     /CRASH/i,           // Example: Niflheim crash reports
-    /PATH_TRAVERSAL/i,  // Example: Helheim LFI
+    /PATH_TRAVERSAL/i,  // Example: Asgard path handling
   ],
 }));
 ```
@@ -109,16 +109,16 @@ throw createIntentionalError(
 );
 ```
 
-### Helheim (LFI)
+### Helheim (Unalerted Detection)
 
 ```typescript
-// Preserve path traversal hints
-// Use generic 404 for non-existent files
-// Let LFI work as intended
-if (!fs.existsSync(filePath)) {
-  throw new Error('File not found'); // Generic 404
+// Helheim's vulnerability is the absence of a reaction, not a leaky error.
+// Archive reads resolve against a fixed allow-list and fail closed:
+if (!ARCHIVE_FILES.includes(name)) {
+  return null; // Generic 404 — no filesystem detail disclosed
 }
-// Intentional leak happens in successful response, not error
+// The intentional weakness is that this privileged read raises no alert
+// and writes no audit record. Do not add error-path leaks here.
 ```
 
 ### Asgard (SQLi)

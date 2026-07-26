@@ -204,7 +204,7 @@ make setup && make up
 
 ```
 🌫️  Niflheim   (R10) — Cryo-Stasis Facility        ← you start here
-☠️  Helheim    (R9)  — Memorial Forum
+☠️  Helheim    (R9)  — Níðhöggr SOC
 ⚙️  Svartalfheim (R8) — Underground Mine
 ❄️  Jotunheim  (R7)  — Ice Giant Stronghold
 🔥  Muspelheim (R6)  — Fire Realm

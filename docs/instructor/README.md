@@ -29,8 +29,8 @@ This directory contains comprehensive instructor guides for each of the 10 Yggdr
 ├── realm-06-muspelheim.md     # Muspelheim (Race Condition)
 ├── realm-07-jotunheim.md      # Jotunheim (Session Fixation)
 ├── realm-08-svartalfheim.md   # Svartalfheim (Deserialization)
-├── realm-09-helheim.md        # Helheim (LFI)
-└── realm-10-niflheim.md       # Niflheim (SSRF + Info Leak)
+├── realm-09-helheim.md        # Helheim (Unalerted Detection)
+└── realm-10-niflheim.md       # Niflheim (Exceptional Conditions)
 ```
 
 ---
@@ -174,8 +174,8 @@ Submit updates via pull request to the documentation directory.
 | Muspelheim | 6 | Race Condition | Hard | 60-75 min |
 | Jotunheim | 7 | Session Fixation | Medium | 45-60 min |
 | Svartalfheim | 8 | Deserialization | Hard | 60-90 min |
-| Helheim | 9 | LFI | Medium | 45-60 min |
-| Niflheim | 10 | SSRF + Info Leak | Hard | 75-90 min |
+| Helheim | 9 | Unalerted Detection | Medium | 45-60 min |
+| Niflheim | 10 | Exceptional Conditions | Hard | 75-90 min |
 
 **Total Estimated Time:** 8-10 hours for all realms
 

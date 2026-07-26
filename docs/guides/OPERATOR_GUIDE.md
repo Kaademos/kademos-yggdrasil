@@ -68,8 +68,8 @@ Yggdrasil consists of 12 Docker containers:
 8. `muspelheim` - Realm 6: Trading platform (race condition)
 9. `jotunheim` - Realm 7: Portal system (session fixation)
 10. `svartalfheim` - Realm 8: Forge system (deserialization)
-11. `helheim` - Realm 9: Memorial/admin (LFI)
-12. `niflheim` - Realm 10: SCADA system (SSRF, crash reports)
+11. `helheim` - Realm 9: SOC console (unalerted detection)
+12. `niflheim` - Realm 10: SCADA system (exceptional conditions, crash reports)
 
 **Supporting Services:**
 - `asgard-db` - PostgreSQL for Asgard realm
