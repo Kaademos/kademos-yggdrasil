@@ -83,20 +83,25 @@ export function generateCrashReport(data: CrashReportData): string {
       CRITICAL_THRESHOLD: 950,
       LOG_CORRELATION_SERVICE: 'helheim'
     },
-    // SPOILER: These diagnostic notes lead to Helheim
+    
     diagnosticNotes: [
       'System logs have been forwarded to central monitoring service',
       'Log correlation service: http://helheim:3000/admin',
       'Credentials for diagnostic access: admin:IceBound2025',
       'For detailed analysis, review Helheim logs for correlated events',
-      'This incident has been logged under correlation ID: ' + crashId.substring(0, 8)
+      `This crash was assigned local report ID ${crashId.substring(0, 8)}`,
+      // Cross-service contract: matches FENRIR_CORRELATION_ID in Helheim's
+      // event archive. An identical overpressure signature was forwarded
+      // previously and closed without an alert ever being raised.
+      'A prior overpressure event from this facility is filed in the correlation ' +
+        'archive under correlation ID a7f3c1d8 — disposition: NO ALERT GENERATED'
     ],
     // SPOILER: Recommendations guide players to next step
     recommendations: [
-      'Check /admin/logs endpoint on Helheim service',
-      `Look for entries matching timestamp: ${timestamp.substring(0, 16)}`,
-      'Review niflheim_correlation.log for system state details',
-      'Verify diagnostic forwarding completed successfully'
+      'Authenticate to the Helheim SOC console at /admin with the diagnostic credentials above',
+      'Retrieve the forwarded archive: GET /admin/logs?file=niflheim_correlation.log',
+      'Correlation ID a7f3c1d8 spans two realms; no single realm log holds the whole chain',
+      'Confirm the correlation service actually raises alerts before relying on it'
     ],
     metadata: {
       version: '2.4.1',

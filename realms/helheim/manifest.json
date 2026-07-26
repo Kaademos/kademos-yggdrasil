@@ -3,160 +3,282 @@
   "level": 9,
   "owasp": "A09:2025",
   "title": "Logging & Alerting Failures",
-  "description": "Helheim demonstrates logging and monitoring failures through a memorial forum that exposes sensitive information in publicly accessible log files.",
-  "theme": "Norse underworld - where forgotten souls reside, symbolizing buried secrets in logs",
-  "difficulty": "Easy",
-  "estimated_time_minutes": 10,
+  "description": "Helheim runs the Níðhöggr SIEM, the central log-correlation service every realm forwards to. Its logging is complete, accurate and redacted — and it has never raised an alert. The realm teaches the half of A09 that the 2025 rename exists to emphasise: logging without alerting is of minimal value in identifying security incidents.",
+  "theme": "Norse underworld - where every record of the dead is kept perfectly and read by no one",
+  "difficulty": "Medium",
+  "estimated_time_minutes": 25,
   "vulnerabilities": [
     {
       "id": "HEL-001",
-      "type": "Sensitive Data Exposure in Logs",
-      "cwe": "CWE-532",
-      "cwe_name": "Insertion of Sensitive Information into Log File",
+      "type": "Security Events Logged Without Alerting",
+      "cwe": "CWE-778",
+      "cwe_name": "Insufficient Logging",
       "cvss": {
         "version": "3.1",
-        "score": 7.5,
-        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+        "score": 7.1,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:N",
+        "breakdown": {
+          "attack_vector": "Network",
+          "attack_complexity": "Low",
+          "privileges_required": "Low",
+          "user_interaction": "None",
+          "scope": "Unchanged",
+          "confidentiality": "High",
+          "integrity": "Low",
+          "availability": "None"
+        }
+      },
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/soc/rules",
+          "vulnerable": true,
+          "description": "Detection catalogue. The only rule able to see across the realm boundary ships disabled 'pending tuning'."
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/soc/rules/HEL-R007",
+          "vulnerable": true,
+          "description": "Enables or disables detection. No authorisation beyond console access, no audit record, no notification."
+        },
+        {
+          "method": "PUT",
+          "path": "/api/soc/pipeline/config",
+          "vulnerable": true,
+          "description": "Alert pipeline control plane. Severity floor and sink are both silently misconfigured; changes are never recorded."
+        },
+        {
+          "method": "POST",
+          "path": "/api/soc/pipeline/replay",
+          "vulnerable": true,
+          "description": "Evaluates the archive and reports per-stage drop counts. Delivers the incident record once the pipeline works."
+        },
+        {
+          "method": "GET",
+          "path": "/api/soc/audit",
+          "vulnerable": true,
+          "description": "Control-plane audit trail. Always empty, however many detections are switched off."
+        },
+        {
+          "method": "GET",
+          "path": "/api/soc/events",
+          "vulnerable": false
+        },
+        {
+          "method": "GET",
+          "path": "/admin/logs",
+          "vulnerable": false
+        },
+        {
+          "method": "POST",
+          "path": "/api/memorial",
+          "vulnerable": false
+        }
+      ],
+      "description": "The alert pipeline is broken at three independent stages, none of which produces an error. The one correlation rule capable of reconstructing the cross-realm intrusion is disabled; the severity floor is set to CRITICAL while no rule emits above HIGH; and the alert sink points at a decommissioned collector that accepts writes and discards them. Every security event is logged correctly and nothing ever reaches an operator.",
+      "impact": "A complete intrusion — unhandled exceptional condition in an upstream realm, credential harvested from its crash diagnostics, privileged login, bulk archive export — is fully recorded and entirely undetected. An attacker can additionally disable any remaining detection without leaving an audit record.",
+      "exploit_steps": [
+        "Recover the diagnostic credential and correlation service URL from a Niflheim crash report",
+        "Authenticate to the Níðhöggr SOC console at GET /admin",
+        "Read GET /admin/logs?file=niflheim_correlation.log — the forwarded chain for correlation ID a7f3c1d8",
+        "Note that GET /api/soc/pipeline/health reports alerting 'operational' with lastSelfTest null",
+        "Run POST /api/soc/pipeline/replay and read the per-stage drop counters: zero alerts delivered",
+        "Enable the disabled correlation rule: PATCH /api/soc/rules/HEL-R007 {\"enabled\": true}",
+        "Lower the severity floor and repoint the sink: PUT /api/soc/pipeline/config {\"minSeverity\": \"HIGH\", \"sink\": \"soc-queue\"}",
+        "Replay again — the delivered alert carries the reconstructed incident and the flag"
+      ],
+      "exploit_indicators": [
+        "GET /api/soc/rules revealing a disabled correlation rule",
+        "POST /api/soc/pipeline/replay with delivered=0 and droppedBySink>0",
+        "PATCH /api/soc/rules/HEL-R007 enabling detection",
+        "PUT /api/soc/pipeline/config changing minSeverity or sink",
+        "GET /api/soc/audit returning an empty trail after control-plane mutation"
+      ],
+      "remediation": "Alert on security-relevant events, not merely record them. Verify the alert path end to end with synthetic detections rather than inferring health from configuration validity. Treat detection rules and alert routing as privileged configuration: authorise, audit and alert on every change. Alarm on the absence of expected alerts — a channel that has been silent for months is a fault, not good news.",
+      "references": [
+        "https://cwe.mitre.org/data/definitions/778.html",
+        "https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html"
+      ]
+    },
+    {
+      "id": "HEL-002",
+      "type": "Monitoring Reported Healthy Without Verification",
+      "cwe": "CWE-223",
+      "cwe_name": "Omission of Security-relevant Information",
+      "cvss": {
+        "version": "3.1",
+        "score": 5.3,
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
         "breakdown": {
           "attack_vector": "Network",
           "attack_complexity": "Low",
           "privileges_required": "None",
           "user_interaction": "None",
           "scope": "Unchanged",
-          "confidentiality": "High",
+          "confidentiality": "Low",
           "integrity": "None",
           "availability": "None"
         }
       },
       "endpoints": [
         {
-          "method": "POST",
-          "path": "/api/memorial",
-          "vulnerable": true,
-          "description": "Memorial creation endpoint that logs validation errors with sensitive data"
-        },
-        {
           "method": "GET",
-          "path": "/temp_logs/error.log",
+          "path": "/api/soc/pipeline/health",
           "vulnerable": true,
-          "description": "Publicly accessible log file containing flags and sensitive information"
-        },
-        {
-          "method": "GET",
-          "path": "/api/memorials",
-          "vulnerable": false
+          "description": "Derives 'alerting: operational' from configuration validity alone; never resolves the sink or delivers a test alert."
         },
         {
           "method": "GET",
           "path": "/api/system-status",
-          "vulnerable": false
+          "vulnerable": true,
+          "description": "Reports monitoring enabled and a hard-coded zero alert count."
         }
       ],
-      "description": "Error logs contain sensitive information including flags, and the log directory is exposed via HTTP as static files. No monitoring or alerting is configured.",
-      "impact": "Complete exposure of sensitive data, credentials, and flags through accessible log files. Lack of monitoring prevents detection of security incidents.",
+      "description": "Both status surfaces report green while the alert pipeline is incapable of delivering anything. The health check validates that the configuration parses, not that an alert would arrive, and never records a delivery self-test.",
+      "impact": "Operators and automated monitoring are actively misled. A dashboard reporting zero alerts is indistinguishable from one reporting no incidents, which is why the intrusion went unexamined.",
       "exploit_steps": [
-        "Access the Helheim memorial forum",
-        "Submit invalid memorial data to trigger validation errors (missing fields, wrong types, etc.)",
-        "Access the publicly exposed /temp_logs/ directory",
-        "Read error.log to extract the flag and other sensitive information",
-        "Note: Any validation error will log the flag"
+        "GET /api/soc/pipeline/health and observe alerting: 'operational', lastSelfTest: null",
+        "POST /api/soc/pipeline/replay and observe delivered: 0",
+        "Compare the two — the health endpoint has no visibility into the stages that dropped every match"
       ],
       "exploit_indicators": [
-        "POST /api/memorial with invalid data",
-        "Missing 'name' or 'message' fields",
-        "Wrong data types (number instead of string)",
-        "Content exceeding length limits",
-        "GET /temp_logs/error.log"
+        "alerting reported operational while replay delivers zero alerts",
+        "lastSelfTest null on a service claiming healthy alerting"
       ],
-      "remediation": "Never log sensitive information (flags, passwords, PII). Sanitize all log entries. Restrict access to log files using proper authentication. Implement centralized logging with monitoring and alerting. Use structured logging with appropriate log levels.",
+      "remediation": "Health checks for a detection pipeline must exercise the pipeline. Emit a synthetic event on a schedule, assert it arrives at the sink, and fail the check when it does not. Surface last-successful-delivery timestamps rather than boolean status derived from configuration.",
       "references": [
-        "https://cwe.mitre.org/data/definitions/532.html",
-        "https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/",
-        "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html"
+        "https://cwe.mitre.org/data/definitions/223.html",
+        "https://owasp.org/Top10/A09_2021-Security_Logging_and_Monitoring_Failures/"
       ]
     }
   ],
   "flags": {
     "format": "YGGDRASIL\\{HELHEIM:[a-f0-9-]{36}\\}",
-    "location": "error_log_file",
-    "retrieval_method": "Trigger validation error, access /temp_logs/error.log"
+    "location": "delivered_alert_payload",
+    "retrieval_method": "Enable HEL-R007, repair the severity floor and alert sink, then POST /api/soc/pipeline/replay. The flag is emitted inside the delivered alert and is not stored or retrievable anywhere else."
   },
   "realm_chaining": {
     "unlocks": "SVARTALFHEIM",
-    "unlocked_by": "NIFLHEIM"
+    "unlocked_by": "NIFLHEIM",
+    "inbound_artifacts": [
+      "Diagnostic credential admin:IceBound2025 from the Niflheim crash report",
+      "Correlation service URL http://helheim:3000/admin",
+      "Correlation ID a7f3c1d8, filed in the Helheim event archive"
+    ]
   },
   "learning_objectives": [
-    "Understand risks of logging sensitive information",
-    "Recognize importance of access control on log files",
-    "Learn about secure logging practices",
-    "Understand need for security monitoring and alerting",
-    "Practice exploiting exposed log files"
+    "Understand why the 2025 revision renamed A09 to emphasise alerting over monitoring",
+    "Recognise that complete, accurate logging detects nothing on its own",
+    "Diagnose an alert pipeline stage by stage: rule match, severity filter, sink delivery",
+    "Correlate events across a trust boundary that no single service's log can show",
+    "Identify health checks that report success without exercising the path they describe",
+    "Treat detection configuration as privileged, auditable, alert-worthy state"
   ],
   "technologies": [
     "Node.js",
     "Express",
     "TypeScript",
-    "Static file serving"
+    "Correlation rule engine"
   ],
   "scanner_test_cases": [
     {
-      "name": "Detect exposed log directory",
+      "name": "Detect disabled detection rule",
       "request": {
         "method": "GET",
-        "path": "/temp_logs/"
+        "path": "/api/soc/rules",
+        "headers": {
+          "Authorization": "Basic YWRtaW46SWNlQm91bmQyMDI1"
+        }
       },
       "expected_response": {
         "status": 200,
         "body_contains": [
-          "error.log"
+          "HEL-R007",
+          "pending tuning"
         ]
       }
     },
     {
-      "name": "Detect sensitive data in logs",
+      "name": "Detect alerting reported healthy without a self-test",
+      "request": {
+        "method": "GET",
+        "path": "/api/soc/pipeline/health",
+        "headers": {
+          "Authorization": "Basic YWRtaW46SWNlQm91bmQyMDI1"
+        }
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": [
+          "operational",
+          "lastSelfTest"
+        ]
+      }
+    },
+    {
+      "name": "Detect empty control-plane audit trail",
+      "request": {
+        "method": "GET",
+        "path": "/api/soc/audit",
+        "headers": {
+          "Authorization": "Basic YWRtaW46SWNlQm91bmQyMDI1"
+        }
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": [
+          "\"total\":0"
+        ]
+      }
+    },
+    {
+      "name": "Detect the resolved Niflheim correlation artefact",
+      "request": {
+        "method": "GET",
+        "path": "/admin/logs?file=niflheim_correlation.log",
+        "headers": {
+          "Authorization": "Basic YWRtaW46SWNlQm91bmQyMDI1"
+        }
+      },
+      "expected_response": {
+        "status": 200,
+        "body_contains": [
+          "a7f3c1d8",
+          "NO ALERT GENERATED"
+        ]
+      }
+    },
+    {
+      "name": "Confirm the retired public log drop no longer serves secrets",
       "request": {
         "method": "GET",
         "path": "/temp_logs/error.log"
       },
       "expected_response": {
-        "status": 200,
-        "body_contains": [
-          "YGGDRASIL",
-          "HELHEIM"
-        ]
-      }
-    },
-    {
-      "name": "Trigger error logging via invalid memorial",
-      "request": {
-        "method": "POST",
-        "path": "/api/memorial",
-        "body": {}
-      },
-      "expected_response": {
-        "status": 400
+        "status": 410
       }
     }
   ],
   "metadata": {
     "created": "2026-01-21",
-    "last_updated": "2026-01-21",
-    "version": "1.0.0",
+    "last_updated": "2026-07-26",
+    "version": "2.0.0",
     "maintainer": "Project Yggdrasil",
     "validated": true
   },
   "hints": [
     {
       "order": 1,
-      "text": "Administrative actions are not always protected as well as they should be. Hunt for an admin area."
+      "text": "Helheim is the central log correlation service — every realm forwards its security events here. An upstream crash report told you how to get in and what to look for."
     },
     {
       "order": 2,
-      "text": "The memorial forum's admin panel trusts the client to declare who is an admin. Inspect that decision."
+      "text": "The correlation log proves an intrusion crossed from Niflheim into Helheim, and that no alert was ever raised for it. The console insists alerting is operational. Both cannot be true — replay the pipeline and read the per-stage drop counters."
     },
     {
       "order": 3,
-      "text": "These privileged actions are never logged or alerted on — abuse the silent admin access to reach the flag."
+      "text": "Three separate things break detection and none of them errors: a rule disabled 'pending tuning', a severity floor set above anything a rule emits, and a sink pointing at a decommissioned collector. Fix all three, replay, and the alert itself carries the incident record."
     }
   ]
 }

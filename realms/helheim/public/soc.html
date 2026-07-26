@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Níðhöggr SOC — Helheim</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #9d4edd;
+      --secondary: #c77dff;
+      --accent: #e0aaff;
+      --danger: #ff006e;
+      --warning: #ffbe0b;
+      --success: #06ffa5;
+      --bg: #0f0f1e;
+      --bg-panel: #16162a;
+      --bg-sunken: rgba(0, 0, 0, 0.42);
+      --text: #eaeaea;
+      --muted: #8f8fae;
+      --border: rgba(157, 78, 221, 0.32);
+    }
+
+    body {
+      font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(157, 78, 221, 0.09) 0%, transparent 45%),
+        radial-gradient(circle at 88% 92%, rgba(114, 9, 183, 0.09) 0%, transparent 45%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .wrap { max-width: 1180px; margin: 0 auto; }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.75rem;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      color: var(--primary);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .tagline { color: var(--muted); font-size: 0.82rem; letter-spacing: 1px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.1rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.1rem;
+      min-width: 0;
+    }
+
+    .panel h2 {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--secondary);
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(157, 78, 221, 0.18);
+    }
+
+    .kv { display: flex; justify-content: space-between; gap: 1rem; padding: 0.22rem 0; }
+    .kv span:first-child { color: var(--muted); }
+    .kv span:last-child { text-align: right; word-break: break-word; }
+
+    .pill {
+      display: inline-block;
+      padding: 0.1rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: 1px solid currentColor;
+    }
+    .pill.ok      { color: var(--success); }
+    .pill.warn    { color: var(--warning); }
+    .pill.bad     { color: var(--danger); }
+    .pill.muted   { color: var(--muted); }
+
+    button {
+      background: rgba(157, 78, 221, 0.14);
+      color: var(--accent);
+      border: 1px solid var(--primary);
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      font-family: inherit;
+      font-size: 0.82rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    button:hover { background: rgba(157, 78, 221, 0.3); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1.1rem; }
+
+    pre {
+      background: var(--bg-sunken);
+      border: 1px solid rgba(157, 78, 221, 0.2);
+      border-radius: 4px;
+      padding: 0.85rem;
+      overflow-x: auto;
+      font-size: 0.79rem;
+      color: #cfc6dd;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.79rem; }
+    th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid rgba(157, 78, 221, 0.12); }
+    th { color: var(--muted); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; }
+    td.rule-id { color: var(--accent); white-space: nowrap; }
+
+    .scroll-x { overflow-x: auto; }
+
+    .diag { list-style: none; }
+    .diag li {
+      padding: 0.4rem 0 0.4rem 1rem;
+      border-left: 2px solid var(--warning);
+      margin-bottom: 0.45rem;
+      color: #d8cfe4;
+    }
+    .diag li.good { border-left-color: var(--success); }
+
+    .flag-banner {
+      display: none;
+      margin-bottom: 1.1rem;
+      padding: 1rem 1.2rem;
+      border: 1px solid var(--success);
+      border-radius: 6px;
+      background: rgba(6, 255, 165, 0.07);
+    }
+    .flag-banner h2 { color: var(--success); border: 0; margin-bottom: 0.4rem; }
+    .flag-banner code {
+      display: block;
+      margin-top: 0.4rem;
+      font-size: 1rem;
+      color: var(--success);
+      word-break: break-all;
+    }
+
+    footer { margin-top: 1.6rem; color: var(--muted); font-size: 0.76rem; }
+    a { color: var(--secondary); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Níðhöggr SOC</h1>
+      <span class="tagline">Central log correlation service · Helheim · realm 9</span>
+    </header>
+
+    <div class="flag-banner" id="flag-banner">
+      <h2>Incident record released</h2>
+      <div id="flag-context"></div>
+      <code id="flag-value"></code>
+    </div>
+
+    <div class="toolbar">
+      <button id="btn-refresh">Refresh state</button>
+      <button id="btn-replay">Run pipeline replay</button>
+      <a href="/admin/logs?file=niflheim_correlation.log"><button type="button">Correlation log</button></a>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Reported health</h2>
+        <div id="health"></div>
+        <p style="margin-top:0.7rem;color:var(--muted);font-size:0.76rem;" id="health-note"></p>
+      </div>
+
+      <div class="panel">
+        <h2>Alert pipeline</h2>
+        <div id="pipeline"></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:1.1rem;">
+      <h2>Detection rules</h2>
+      <div class="scroll-x"><table id="rules"><tbody></tbody></table></div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Last replay — stage counters</h2>
+        <div id="counters"><span style="color:var(--muted)">No replay run in this session.</span></div>
+      </div>
+
+      <div class="panel">
+        <h2>Pipeline diagnostics</h2>
+        <ul class="diag" id="diagnostics">
+          <li>Run a replay to see where detection stops.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Delivered alerts</h2>
+      <pre id="alerts">none</pre>
+    </div>
+
+    <footer>
+      Archive is read-only. Control-plane changes are applied through
+      <code>PATCH /api/soc/rules/:id</code> and <code>PUT /api/soc/pipeline/config</code>.
+      See <a href="/admin/logs">/admin/logs</a> for the flat archive.
+    </footer>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+
+    const kv = (k, v) => `<div class="kv"><span>${esc(k)}</span><span>${v}</span></div>`;
+    const pill = (text, cls) => `<span class="pill ${cls}">${esc(text)}</span>`;
+
+    async function api(path, options) {
+      const res = await fetch(path, options);
+      if (!res.ok) throw new Error(`${path} → ${res.status}`);
+      return res.json();
+    }
+
+    async function loadHealth() {
+      const h = await api('/api/soc/pipeline/health');
+      $('health').innerHTML =
+        kv('status', pill(h.status, 'ok')) +
+        kv('ingest', pill(h.ingest, 'ok')) +
+        kv('rules', esc(h.rules)) +
+        kv('alerting', pill(h.alerting, h.alerting === 'operational' ? 'ok' : 'bad')) +
+        kv('last delivery self-test', h.lastSelfTest ? esc(h.lastSelfTest) : pill('never', 'bad'));
+      $('health-note').textContent = h.note;
+    }
+
+    async function loadPipeline() {
+      const p = await api('/api/soc/pipeline/config');
+      const sinkClass = p.sink === 'null' ? 'bad' : 'ok';
+      $('pipeline').innerHTML =
+        kv('severity floor', pill(p.minSeverity, p.minSeverity === 'CRITICAL' ? 'warn' : 'ok')) +
+        kv('sink', pill(p.sink, sinkClass)) +
+        kv('sink behaviour', `<span style="color:var(--muted)">${esc(p.sinkNotes[p.sink] || '')}</span>`) +
+        kv('valid sinks', esc(p.validSinks.join(', ')));
+    }
+
+    async function loadRules() {
+      const data = await api('/api/soc/rules');
+      const head = '<tr><th>id</th><th>rule</th><th>severity</th><th>state</th><th>note</th></tr>';
+      const rows = data.rules.map((r) => `
+        <tr>
+          <td class="rule-id">${esc(r.id)}</td>
+          <td>${esc(r.name)}<br><span style="color:var(--muted)">${esc(r.kind)}</span></td>
+          <td>${esc(r.severity)}</td>
+          <td>${r.enabled ? pill('enabled', 'ok') : pill('disabled', 'bad')}</td>
+          <td style="color:var(--muted)">${esc(r.note || '')}</td>
+        </tr>`).join('');
+      $('rules').innerHTML = head + rows;
+    }
+
+    async function loadAlerts() {
+      const data = await api('/api/soc/alerts');
+      $('alerts').textContent = data.total === 0
+        ? (data.note || 'none')
+        : JSON.stringify(data.alerts, null, 2);
+      revealFlag(data.alerts || []);
+    }
+
+    function revealFlag(alerts) {
+      const bearer = alerts.find((a) => a.flag);
+      if (!bearer) { $('flag-banner').style.display = 'none'; return; }
+      $('flag-context').textContent =
+        `${bearer.ruleId} ${bearer.ruleName} · ${bearer.severity} · correlation ${bearer.correlationId || 'n/a'}`;
+      $('flag-value').textContent = bearer.flag;
+      $('flag-banner').style.display = 'block';
+    }
+
+    async function refresh() {
+      await Promise.all([loadHealth(), loadPipeline(), loadRules(), loadAlerts()]);
+    }
+
+    async function replay() {
+      $('btn-replay').disabled = true;
+      try {
+        const r = await api('/api/soc/pipeline/replay', { method: 'POST' });
+        const c = r.counters;
+        $('counters').innerHTML =
+          kv('events scanned', esc(c.eventsScanned)) +
+          kv('rules evaluated', esc(c.rulesEvaluated)) +
+          kv('rules skipped (disabled)', c.rulesSkippedDisabled ? pill(c.rulesSkippedDisabled, 'bad') : '0') +
+          kv('matches', esc(c.matched)) +
+          kv('dropped — severity filter', c.droppedBySeverityFilter ? pill(c.droppedBySeverityFilter, 'warn') : '0') +
+          kv('dropped — sink', c.droppedBySink ? pill(c.droppedBySink, 'warn') : '0') +
+          kv('delivered', c.delivered ? pill(c.delivered, 'ok') : pill('0', 'bad'));
+
+        $('diagnostics').innerHTML = r.diagnostics
+          .map((d) => `<li class="${c.delivered > 0 && d.startsWith(String(c.delivered)) ? 'good' : ''}">${esc(d)}</li>`)
+          .join('');
+
+        $('alerts').textContent = r.alerts.length
+          ? JSON.stringify(r.alerts, null, 2)
+          : 'No alerts reached an operator.';
+        revealFlag(r.alerts);
+        await Promise.all([loadHealth(), loadPipeline(), loadRules()]);
+      } catch (err) {
+        $('diagnostics').innerHTML = `<li>${esc(err.message)}</li>`;
+      } finally {
+        $('btn-replay').disabled = false;
+      }
+    }
+
+    $('btn-refresh').addEventListener('click', refresh);
+    $('btn-replay').addEventListener('click', replay);
+    refresh();
+  </script>
+</body>
+</html>

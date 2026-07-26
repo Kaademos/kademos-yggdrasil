@@ -309,7 +309,8 @@
     </div>
 
     <div class="hint-box">
-      💀 <strong>Notice:</strong> All memorial submissions are logged for moderation. System errors are recorded in /temp_logs/ for administrative review.
+      💀 <strong>Notice:</strong> All memorial submissions are logged for moderation and forwarded to the
+      Níðhöggr correlation service. Diagnostic access to the SOC console is restricted to operators.
     </div>
 
     <div class="memorials-section">
@@ -338,11 +339,11 @@
     </div>
 
     <div class="footer">
-      Helheim Memorial Forum v1.2.0 
+      Helheim Memorial Forum v1.2.0
       <span>|</span>
       <a href="/api/system-status">System Status</a>
       <span>|</span>
-      <a href="/temp_logs/">System Logs</a>
+      <a href="/admin">Níðhöggr SOC Console</a>
     </div>
   </div>
 
@@ -357,11 +358,17 @@
         const data = await response.json();
         
         if (data.memorials && data.memorials.length > 0) {
+          // Escape forum content: stored XSS is not this realm's category, and an
+          // undeclared injection sink here would mislead players and scanners alike.
+          const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+          }[c]));
+
           memorialsListDiv.innerHTML = data.memorials.map(m => `
             <div class="memorial-item">
-              <div class="memorial-name">${m.name}</div>
-              <div class="memorial-message">${m.message}</div>
-              <div class="memorial-time">${new Date(m.timestamp).toLocaleString()}</div>
+              <div class="memorial-name">${esc(m.name)}</div>
+              <div class="memorial-message">${esc(m.message)}</div>
+              <div class="memorial-time">${esc(new Date(m.timestamp).toLocaleString())}</div>
             </div>
           `).join('');
         } else {

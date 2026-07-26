@@ -1,95 +1,73 @@
 /**
- * Admin Backend Route (M9)
- * 
- * VULNERABILITY: A01:2025 - Broken Access Control (LFI via path traversal)
- * 
- * Admin panel for log viewing with intentional LFI vulnerability.
+ * Níðhöggr SOC — Log Archive Viewer
+ *
+ * VULNERABILITY: A09:2025 - Logging & Alerting Failures (CWE-778)
+ *
+ * This viewer is deliberately *not* a path-traversal challenge. Filenames resolve
+ * against a fixed allow-list, so `../` is not expressible — access control here is
+ * sound, and broken access control belongs to Asgard (A01), not to this realm.
+ *
+ * What is wrong is downstream of that: an operator authenticating with a
+ * credential harvested from another realm's crash dump, then reading the full
+ * cross-realm correlation archive, generates no alert and leaves no audit record.
+ * The read is permitted, recorded nowhere anyone will look, and escalated to no one.
  */
 
 import { Router, Request, Response } from 'express';
-import * as fs from 'fs';
 import * as path from 'path';
+import { ARCHIVE_FILES, readArchiveFile } from '../services/log-archive';
 
 export function createAdminRouter(): Router {
   const router = Router();
 
   /**
    * GET /admin
-   * 
-   * Admin panel landing page
-   * VULNERABLE: Weak basic auth (credential from Niflheim)
+   * SOC console shell.
    */
-  router.get('/admin', (req: Request, res: Response) => {
-    const auth = req.headers.authorization;
-    
-    // VULNERABLE: Weak credential check
-    // SPOILER: Credential is admin:IceBound2025 (from Niflheim crash report)
-    // Base64 encoding of "admin:IceBound2025" is "YWRtaW46SWNlQm91bmQyMDI1"
-    if (auth !== 'Basic YWRtaW46SWNlQm91bmQyMDI1') {
-      res.setHeader('WWW-Authenticate', 'Basic realm="Helheim Admin"');
-      return res.status(401).json({ 
-        error: 'Unauthorized',
-        message: 'Admin credentials required'
-      });
-    }
-
-    // Serve admin panel HTML
-    res.sendFile(path.join(__dirname, '../../public/admin.html'));
+  router.get('/admin', (_req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, '../../public/soc.html'));
   });
 
   /**
    * GET /admin/logs
-   * 
-   * Log viewer endpoint
-   * VULNERABLE: Local File Inclusion via path traversal
-   * EXPLOIT: Use file=../sensitive/niflheim_correlation.log to access sensitive logs
+   *
+   * Lists the archive when called without a filename, serves a file when called
+   * with one. `niflheim_correlation.log` is the artefact Niflheim's crash report
+   * directs the player to.
    */
   router.get('/admin/logs', (req: Request, res: Response) => {
-    const auth = req.headers.authorization;
-    
-    // Check auth
-    if (auth !== 'Basic YWRtaW46SWNlQm91bmQyMDI1') {
-      return res.status(401).json({ 
-        error: 'Unauthorized',
-        message: 'Admin credentials required'
+    const { file } = req.query;
+
+    if (file === undefined) {
+      return res.status(200).json({
+        directory: '/var/log/nidhoggr',
+        files: ARCHIVE_FILES,
+        usage: 'GET /admin/logs?file=<name>',
+        note:
+          'Reads from this archive are not alerted on. Cross-realm reconstruction ' +
+          'requires the correlation engine, not these flat files.',
       });
     }
 
-    const { file } = req.query;
-    
-    if (!file || typeof file !== 'string') {
+    if (typeof file !== 'string') {
       return res.status(400).json({
         error: 'Bad request',
-        message: 'file parameter is required'
+        message: 'file parameter must be a string',
       });
     }
 
-    const logsDir = path.join(__dirname, '../../logs');
-    const filePath = path.join(logsDir, file);
-    
-    // VULNERABLE: No path validation!
-    // EXPLOIT: This allows directory traversal
-    // Should check: path.resolve(filePath).startsWith(logsDir)
-    // But intentionally omitted for the vulnerability
-    
-    if (!fs.existsSync(filePath)) {
+    const content = readArchiveFile(file);
+
+    if (content === null) {
       return res.status(404).json({
         error: 'File not found',
-        message: `Log file "${file}" does not exist`,
-        hint: 'Available logs: app.log, error.log, memorial.log'
+        message: `Log file "${file}" is not present in the archive`,
+        available: ARCHIVE_FILES,
       });
     }
 
-    try {
-      const content = fs.readFileSync(filePath, 'utf-8');
-      res.setHeader('Content-Type', 'text/plain');
-      res.status(200).send(content);
-    } catch (error) {
-      res.status(500).json({
-        error: 'Internal error',
-        message: 'Failed to read log file'
-      });
-    }
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    return res.status(200).send(content);
   });
 
   return router;

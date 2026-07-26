@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil/gatekeeper",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Yggdrasil Gatekeeper - Reverse proxy and progression enforcement",
   "main": "dist/index.js",
   "scripts": {
