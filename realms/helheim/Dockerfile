@@ -22,6 +22,9 @@ RUN npm ci --only=production
 COPY --from=builder /app/dist ./dist
 COPY public ./public
 
+
+RUN mkdir -p /app/logs && chown -R node:node /app/logs
+
 USER node
 
 EXPOSE 3000

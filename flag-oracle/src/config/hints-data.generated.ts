@@ -41,15 +41,15 @@ export const REALM_HINTS: Record<string, RealmHint[]> = {
   "HELHEIM": [
     {
       "order": 1,
-      "text": "Administrative actions are not always protected as well as they should be. Hunt for an admin area."
+      "text": "Helheim is the central log correlation service — every realm forwards its security events here. An upstream crash report told you how to get in and what to look for."
     },
     {
       "order": 2,
-      "text": "The memorial forum's admin panel trusts the client to declare who is an admin. Inspect that decision."
+      "text": "The correlation log proves an intrusion crossed from Niflheim into Helheim, and that no alert was ever raised for it. The console insists alerting is operational. Both cannot be true — replay the pipeline and read the per-stage drop counters."
     },
     {
       "order": 3,
-      "text": "These privileged actions are never logged or alerted on — abuse the silent admin access to reach the flag."
+      "text": "Three separate things break detection and none of them errors: a rule disabled 'pending tuning', a severity floor set above anything a rule emits, and a sink pointing at a decommissioned collector. Fix all three, replay, and the alert itself carries the incident record."
     }
   ],
   "JOTUNHEIM": [

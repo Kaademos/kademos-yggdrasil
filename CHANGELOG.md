@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-07-26
+
+> **Helheim rebuilt around alerting.** Realm 9 was labelled A09:2025 but taught
+> sensitive-data-in-logs (CWE-532) and path traversal (CWE-778's neighbour, A01) —
+> neither of which is the category. It now teaches the failure the 2025 rename
+> exists to name: complete, accurate logging that alerts nobody. Also fixes a dead
+> cross-realm pointer that broke Niflheim → Helheim progression. No changes to the
+> gatekeeper API, flag oracle API, flag format, or the progression contract.
+
+### Changed
+
+- **Helheim (realm 9) rebuilt as the Níðhöggr SIEM** — the central log-correlation service the platform already referenced but never implemented. The realm now models an alert pipeline (`rule match → severity filter → sink delivery`) that is broken at three independent stages, none of which produces an error: the only cross-realm correlation rule ships disabled "pending tuning", the severity floor is set to `CRITICAL` while no rule emits above `HIGH`, and the alert sink points at a decommissioned collector that accepts writes and discards them. Each fault suppresses detection on its own; all three must be repaired.
+- **The Helheim flag is no longer stored anywhere.** It is emitted as the body of a delivered alert and exists only once that alert has survived every pipeline stage — making detection, rather than extraction, the win condition. Integration tests pin the negative property: the flag is absent from the event archive, the log files, the rule catalogue, the pipeline config, and the alert store until a replay delivers it.
+- **Helheim difficulty** raised from Easy (10 min) to Medium (25 min), and its manifest, hints, and README rewritten. The previous manifest described three mutually inconsistent realms: its `vulnerabilities` block documented log exposure, its `hints` described a client-trusted admin role that was never implemented, and the source implemented Basic auth plus path traversal.
+- **`GET /temp_logs/*` now returns `410 Gone`** with an explanation rather than serving flag-bearing logs, so existing walkthroughs get a pointer instead of a dead end.
+- **Helheim log records are redacted before write** (`redactSecrets` strips flags, authorization headers, and inline credentials). The logging in this realm is now deliberately *correct* — and the realm is still undetectable, which is the lesson.
+
+### Added
+
+- **Cross-realm correlation engine** (`detection-engine.ts`): declarative single-event and time-windowed correlation matchers, a severity filter, pluggable alert sinks (`null` / `console` / `soc-queue`), and per-stage drop counters. Delivered correlation alerts are widened from the matched trigger events to the full incident window, so an alert carries the whole chain rather than the three records that happened to fire it.
+- **Seeded event archive**: ~1800 deterministically generated events (fixed seed, byte-identical across restarts) concealing the five-event "Fenrir" intrusion that crosses the Niflheim → Helheim trust boundary on a single source host, plus three decoys that each share one attribute with the intrusion but not the crossing.
+- **Níðhöggr SOC console** (`/admin`) and SIEM API (`/api/soc/*`): event query with filters and paging, detection-rule catalogue and mutation, alert pipeline configuration, replay with honest stage diagnostics, delivered-alert retrieval, control-plane audit trail, and forwarded-event ingest.
+- **Helheim test suite**: 87 tests (94.6% statements, 87% branches) covering the engine, the full player walk, API validation, and the negative flag-reachability properties.
+
+### Fixed
+
+- **Niflheim → Helheim progression was broken.** Niflheim's crash report directed players to `../sensitive/niflheim_correlation.log`, a file that existed nowhere in the repository, the Docker image, or any seed script — the chain terminated in a 404. The archive is now materialised at boot and the crash report points at the real artefact, citing correlation ID `a7f3c1d8`. Its "look for entries matching timestamp" hint, which used a live timestamp that could never match the archive, was replaced with the correlation ID.
+- **Helheim's landing page was never served.** `index.html` lived in `src/public/`, but both the dev and production paths resolve `../public` — `GET /` fell through to the error handler in every environment. The file was moved to the served directory.
+- **Stored XSS in the Helheim memorial forum**: submitted names and messages were rendered via unescaped `innerHTML`. Not a declared vulnerability for this realm, so it misled players and scanners alike; forum content is now escaped.
+- **A bare `data/` rule in `.gitignore` silently excluded realm TypeScript sources** in any `src/data/` directory — the same failure mode as the `*.d.ts` bug fixed in 1.4.1, and it would have broken clean-clone builds again. Scoped negations added for `*/src/data/`; generated `dist/data` and `coverage/data` remain ignored.
+
+### Category alignment
+
+Two mechanics were removed from Helheim because they taught other realms' categories under an A09 label:
+
+- **Flag written into a world-readable `error.log`** (CWE-532, sensitive data in logs) — this let a player finish realm 9 without ever touching alerting.
+- **Local file inclusion via path traversal in `/admin/logs`**, whose own source comment read `VULNERABILITY: A01:2025 - Broken Access Control`. Access control belongs to Asgard. Filenames now resolve against a fixed allow-list.
+
+Both were replaced by the failure that is genuinely A09: every event was logged, and nothing raised an alarm.
+
 ## [1.4.1] - 2026-07-21
 
 > **Clean-clone build fix.** A fresh checkout of `v1.4.0` failed `make yggdrasil`
@@ -168,7 +208,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.2.0...v1.3.0

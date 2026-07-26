@@ -1,14 +1,16 @@
 /**
- * Realm Template Entry Point
- * 
- * This template provides a standardized structure for all Yggdrasil realms.
- * To use this template:
- * 1. Copy this directory to /realms/<realm-name>
- * 2. Update package.json (name, description)
- * 3. Update config/index.ts with realm-specific config
- * 4. Implement realm-specific routes
- * 5. Add your vulnerability implementation
- * 6. Update README.md with realm details
+ * Helheim — A09:2025 Logging & Alerting Failures
+ *
+ * Helheim runs the Níðhöggr SIEM, the central log-correlation service every other
+ * realm forwards to. The realm's subject is the half of A09 that the 2025 rename
+ * exists to emphasise: logging that is complete, accurate, and useless, because
+ * nothing downstream of it ever reaches a human.
+ *
+ * The flag is not stored anywhere. It is emitted as the body of an alert, and
+ * only once that alert has survived every stage of the pipeline.
+ *
+ * Exported `createApp` so integration tests can drive the realm without binding
+ * a port.
  */
 
 import express, { Request, Response, NextFunction } from 'express';
@@ -18,102 +20,72 @@ import { createHealthRouter } from './routes/health';
 import { requestLogger, errorLogger } from './middleware/logging';
 import { createMemorialRouter } from './routes/memorial';
 import { createAdminRouter } from './routes/admin';
+import { createSocRouter } from './routes/soc';
+import { createSocAuth } from './middleware/soc-auth';
+import { SocState } from './services/soc-state';
+import { seedLogArchive } from './services/log-archive';
 
 /**
  * Create and configure Express application
  */
-function createApp(config: RealmConfig): express.Application {
+export function createApp(config: RealmConfig): express.Application {
   const app = express();
+  const state = new SocState(config.flag);
+  const socAuth = createSocAuth(config);
 
-  // Body parsing middleware
+  // Materialise the flat log archive, including the correlation log that
+  // Niflheim's crash diagnostics point at.
+  seedLogArchive();
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Logging middleware (in development mode)
   if (config.nodeEnv === 'development') {
     app.use(requestLogger);
   }
 
-  // Serve static files from public directory
   app.use(express.static(path.join(__dirname, '../public')));
 
-  // Mount health check router
   app.use(createHealthRouter(config));
 
-  // Mount memorial forum routes (vulnerable logging endpoint)
-  app.use(createMemorialRouter(config));
+  // Public memorial forum. Feeds benign traffic into the correlation archive.
+  app.use(createMemorialRouter(config, state));
 
-  // Mount admin routes (M9 - LFI vulnerability)
+  // SOC console and correlation API. Gated on the credential Niflheim leaks.
+  // Scoped by path prefix so the public forum and health check stay open.
+  app.use(['/admin', '/api/soc'], socAuth);
   app.use(createAdminRouter());
+  app.use(createSocRouter(state));
 
-  // VULNERABILITY: Serve temp_logs directory as static files (legacy)
-  // This allows anyone to read error logs containing sensitive information
-  app.use('/temp_logs', express.static(path.join(__dirname, '../public/temp_logs')));
+  /**
+   * The former public log drop. Retired: it embedded the realm flag in every
+   * stack trace, which taught CWE-532 rather than this realm's category. Answers
+   * 410 rather than 404 so older walkthroughs get an explanation instead of a
+   * dead end.
+   */
+  app.use('/temp_logs', (_req: Request, res: Response) => {
+    res.status(410).json({
+      error: 'Gone',
+      message:
+        'The public log drop was retired. Log records are redacted before write and ' +
+        'served from the SOC archive at GET /admin/logs.',
+      note:
+        'Reading logs was never the gap here. Nothing raises an alert on what they contain.',
+    });
+  });
 
-  // Helheim landing page - serve static HTML
+  // Helheim landing page
   app.get('/', (_req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
   });
 
-  // Legacy route for template rendering (can be removed)
-  app.get('/template', (_req: Request, res: Response) => {
-    res.status(200).send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${config.realmName} - Yggdrasil</title>
-        <style>
-          body {
-            font-family: 'Courier New', monospace;
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-          }
-          .container {
-            text-align: center;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 3rem;
-            border-radius: 10px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
-          }
-          h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-          }
-          p {
-            font-size: 1.2rem;
-            margin: 1rem 0;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h1>⚡ ${config.realmName.toUpperCase()} Realm</h1>
-          <p>Welcome to the ${config.realmName} realm of Yggdrasil.</p>
-          <p><em>TODO: Customize this page with realm-specific content</em></p>
-        </div>
-      </body>
-      </html>
-    `);
-  });
-
-  // Error logging middleware
   if (config.nodeEnv === 'development') {
     app.use(errorLogger);
   }
 
-  // Error handling middleware (must be last)
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
-    
+
     res.status(statusCode).json({
       error: config.nodeEnv === 'development' ? err.message : 'Internal Server Error',
       ...(config.nodeEnv === 'development' && { stack: err.stack }),
@@ -133,12 +105,14 @@ async function main() {
   app.listen(config.port, () => {
     console.info(`${config.realmName.toUpperCase()} Realm listening on port ${config.port}`);
     console.info(`Environment: ${config.nodeEnv}`);
-    console.info(`Flag loaded: ${config.flag.substring(0, 20)}...`);
+    console.info('Nidhoggr SIEM: archive seeded, alert pipeline UNVERIFIED');
   });
 }
 
-// Start the server
-main().catch((error) => {
-  console.error(`Fatal error starting realm:`, error);
-  process.exit(1);
-});
+// Start the server unless imported by a test harness.
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(`Fatal error starting realm:`, error);
+    process.exit(1);
+  });
+}

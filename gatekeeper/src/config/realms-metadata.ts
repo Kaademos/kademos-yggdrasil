@@ -45,7 +45,7 @@ export const REALMS_METADATA: RealmMetadata[] = [
   {
     name: 'helheim',
     displayName: 'Helheim',
-    description: 'Memorial Forum - Logging & Alerting Failures',
+    description: 'Níðhöggr SOC - Logging & Alerting Failures',
     order: 9,
     internalUrl: 'http://helheim:3000',
     theme: {

@@ -208,6 +208,12 @@ docker-compose.*.override.yml
 volumes/
 data/
 
+# Realm/service source directories named `data` are TypeScript sources, not
+# container volumes. Without these negations a bare `data/` silently excludes
+# them from commits and breaks clean-clone builds (see 0fdb229, 436ad65).
+!realms/*/src/data/
+!*/src/data/
+
 # ============================================================
 # Secrets & Sensitive Data
 # ============================================================

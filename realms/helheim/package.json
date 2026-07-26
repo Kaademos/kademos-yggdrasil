@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil/helheim",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Helheim Realm - A09:2025 Logging & Alerting Failures vulnerability",
   "main": "dist/index.js",
   "scripts": {
@@ -13,7 +13,12 @@
     "lint": "eslint src tests --ext .ts",
     "lint:fix": "eslint src tests --ext .ts --fix"
   },
-  "keywords": ["security", "ctf", "realm", "template"],
+  "keywords": [
+    "security",
+    "ctf",
+    "realm",
+    "template"
+  ],
   "author": "Project Yggdrasil",
   "license": "MIT",
   "dependencies": {

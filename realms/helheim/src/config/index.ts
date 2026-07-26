@@ -10,6 +10,10 @@ export interface RealmConfig {
   flag: string;
   realmName: string;
   nodeEnv: string;
+  /** Basic-auth credential for the SOC console, leaked by Niflheim's crash report. */
+  adminCredential: string;
+  /** Upstream realm whose incident is buried in the archive. */
+  correlatedRealm: string;
 }
 
 export function loadConfig(): RealmConfig {
@@ -17,6 +21,8 @@ export function loadConfig(): RealmConfig {
   const flag = process.env.FLAG || 'YGGDRASIL{HELHEIM:e1a93eab-4720-4ef8-a2eb-342a77e9f200}';
   const realmName = process.env.REALM_NAME || 'helheim';
   const nodeEnv = process.env.NODE_ENV || 'development';
+  const adminCredential = process.env.ADMIN_CREDENTIAL || 'admin:IceBound2025';
+  const correlatedRealm = process.env.CORRELATED_REALM || 'niflheim';
 
   // Validate port range
   if (isNaN(port) || port < 1 || port > 65535) {
@@ -33,5 +39,7 @@ export function loadConfig(): RealmConfig {
     flag,
     realmName,
     nodeEnv,
+    adminCredential,
+    correlatedRealm,
   };
 }
