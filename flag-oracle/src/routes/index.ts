@@ -235,6 +235,25 @@ export function createRoutes(config: RouteConfig | ProgressionService): Router {
       });
     }
   });
+router.get('/achievements/:userId', rateLimitMiddleware, async (req: Request, res: Response) => {
+    try {
+      const userId = InputSanitizer.sanitizeUserId(req.params.userId);
+      if (!userId) {
+        return res.status(400).json({ status: 'error', message: 'Invalid userId parameter' });
+      }
 
+      const progression = await progressionService.getProgression(userId);
+      if (!progression) {
+        return res.status(404).json({ status: 'error', message: 'User progression not found' });
+      }
+
+      res.status(200).json({ status: 'ok', achievements: progression.achievements });
+    } catch (error) {
+      if (logger) {
+        logger.logError(error as Error, { userId: req.params.userId, endpoint: '/achievements' });
+      }
+      res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+  });
   return router;
 }

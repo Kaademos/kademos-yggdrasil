@@ -5,11 +5,13 @@ import {
   FlagData,
   LeaderboardEntry,
   CompletionDetails,
+  EarnedAchievement,        
   FileBasedFlagRepository,
   emptyProgression,
   normaliseProgression,
   applyCapture,
   applyHintReveal,
+  applyAchievements,        
 } from './flag-repository';
 
 type RedisClient = ReturnType<typeof createClient>;
@@ -46,7 +48,50 @@ export class RedisFlagRepository implements IFlagRepository {
       this.connected = false;
     }
   }
+async awardAchievements(
+    userId: string,
+    earned: EarnedAchievement[]
+  ): Promise<EarnedAchievement[]> {
+    if (earned.length === 0) return [];
+    try {
+      await this.connect();
+      const existing = (await this.getProgression(userId)) || emptyProgression(userId);
+      const added = applyAchievements(existing, earned);
+      if (added.length === 0) return [];
 
+      // Achievements don't change score, so the leaderboard ZSET is untouched.
+      const multi = this.redisClient.multi();
+      multi.set(`progression:${userId}`, JSON.stringify(existing));
+      multi.expire(`progression:${userId}`, PROGRESSION_TTL_SECONDS);
+      await multi.exec();
+      return added;
+    } catch (error) {
+      if (this.fallbackRepo) {
+        return this.fallbackRepo.awardAchievements(userId, earned);
+      }
+      throw error;
+    }
+  }
+
+  async getAllProgressions(): Promise<UserProgression[]> {
+    try {
+      await this.connect();
+      // Every scoring capture zAdds the user, so the leaderboard ZSET is the user index.
+      const userIds = await this.redisClient.zRange(LEADERBOARD_KEY, 0, -1);
+      const out: UserProgression[] = [];
+      for (const userId of userIds) {
+        const p = await this.getProgression(userId);
+        if (p) out.push(p);
+      }
+      return out;
+    } catch (error) {
+      if (this.fallbackRepo) {
+        return this.fallbackRepo.getAllProgressions();
+      }
+      throw error;
+    }
+  }
+  
   async getProgression(userId: string): Promise<UserProgression | null> {
     try {
       await this.connect();

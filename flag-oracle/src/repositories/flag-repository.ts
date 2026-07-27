@@ -15,6 +15,12 @@ export interface RevealedHint {
   revealedAt: string;
 }
 
+export interface EarnedAchievement {
+  id: string; // stable achievement id, e.g. 'SWIFT'
+  awardedAt: string; // server-set ISO timestamp
+  realm?: string; // set for realm-scoped achievements; absent for global ones
+}
+
 export interface UserProgression {
   userId: string;
   unlockedRealms: string[];
@@ -22,6 +28,7 @@ export interface UserProgression {
   score: number;
   completions: RealmCompletion[];
   hintsRevealed: RevealedHint[];
+  achievements: EarnedAchievement[];
   lastUpdated: string;
 }
 
@@ -63,6 +70,10 @@ export interface IFlagRepository {
    * Returns true only the first time any user captures that realm (for first-blood events).
    */
   recordRealmCapture(realm: string): Promise<boolean>;
+  /** Append earned achievements to a user; returns the newly-added ones. */
+  awardAchievements(userId: string, earned: EarnedAchievement[]): Promise<EarnedAchievement[]>;
+  /** Every stored progression (needed for the backfill routine). */
+  getAllProgressions(): Promise<UserProgression[]>;
 }
 
 /** Build a fresh, fully-initialised progression record. */
@@ -74,6 +85,7 @@ export function emptyProgression(userId: string): UserProgression {
     score: 0,
     completions: [],
     hintsRevealed: [],
+    achievements: [],
     lastUpdated: new Date().toISOString(),
   };
 }
@@ -95,6 +107,7 @@ export function normaliseProgression(
     score: typeof raw.score === 'number' ? raw.score : 0,
     completions: raw.completions || [],
     hintsRevealed: raw.hintsRevealed || [],
+    achievements: raw.achievements || [],
     lastUpdated: raw.lastUpdated || base.lastUpdated,
   };
 }
@@ -120,6 +133,33 @@ export function applyHintReveal(
   progression.hintsRevealed.push({ realm, order, revealedAt: new Date().toISOString() });
   progression.lastUpdated = new Date().toISOString();
   return true;
+}
+
+/**
+ * Append newly-earned achievements in place, de-duplicated by (id, realm).
+ * Returns only the ones actually added (idempotent — never awarded twice).
+ */
+export function applyAchievements(
+  progression: UserProgression,
+  earned: EarnedAchievement[]
+): EarnedAchievement[] {
+  const already = (a: EarnedAchievement) =>
+    progression.achievements.some(
+      (x) => x.id === a.id && (x.realm ?? null) === (a.realm ?? null)
+    );
+  const seen = new Set<string>();
+  const added: EarnedAchievement[] = [];
+  for (const a of earned) {
+    const key = `${a.id}::${a.realm ?? ''}`;
+    if (already(a) || seen.has(key)) continue;
+    seen.add(key);
+    progression.achievements.push(a);
+    added.push(a);
+  }
+  if (added.length > 0) {
+    progression.lastUpdated = new Date().toISOString();
+  }
+  return added;
 }
 
 /**
@@ -254,6 +294,32 @@ export class FileBasedFlagRepository implements IFlagRepository {
     await fs.writeFile(tempFile, JSON.stringify(progressions, null, 2), 'utf-8');
     await fs.rename(tempFile, this.progressionFile);
     return existing;
+  }
+
+  async awardAchievements(
+    userId: string,
+    earned: EarnedAchievement[]
+  ): Promise<EarnedAchievement[]> {
+    if (earned.length === 0) return [];
+    await this.ensureDataDirectory();
+
+    const progressions = await this.readAllProgressions();
+    const existing = progressions[userId] || emptyProgression(userId);
+
+    const added = applyAchievements(existing, earned);
+    if (added.length === 0) return [];
+
+    progressions[userId] = existing;
+    const tempFile = `${this.progressionFile}.tmp`;
+    await fs.writeFile(tempFile, JSON.stringify(progressions, null, 2), 'utf-8');
+    await fs.rename(tempFile, this.progressionFile);
+    return added;
+  }
+
+  async getAllProgressions(): Promise<UserProgression[]> {
+    await this.ensureDataDirectory();
+    const progressions = await this.readAllProgressions();
+    return Object.values(progressions);
   }
 
   async getLeaderboard(limit = 100): Promise<LeaderboardEntry[]> {

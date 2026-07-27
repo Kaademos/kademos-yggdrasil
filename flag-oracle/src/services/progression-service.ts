@@ -4,12 +4,14 @@ import {
   IFlagRepository,
   LeaderboardEntry,
   UserProgression,
+  EarnedAchievement,
   countHintsRevealed,
 } from '../repositories/flag-repository';
 import { ProgressionValidator } from './progression-validator';
 import { ScoringService } from './scoring-service';
 import { HintService } from './hint-service';
 import { DiscordBroadcaster } from './discord-broadcaster';
+import { AchievementService } from './achievement-service';
 
 /** Number of scored (non-SAMPLE) realms that constitutes full platform completion. */
 const TOTAL_SCORED_REALMS = 10;
@@ -21,6 +23,7 @@ export interface ValidationResult {
   realm?: string;
   points?: number;
   score?: number;
+  achievements?: EarnedAchievement[];
 }
 
 export interface HintView {
@@ -52,6 +55,7 @@ export class ProgressionService {
   private readonly scoringService: ScoringService;
   private readonly hintService: HintService;
   private readonly broadcaster?: DiscordBroadcaster;
+  private readonly achievementService: AchievementService;
 
   constructor(
     @inject('IFlagRepository') private repository: IFlagRepository,
@@ -59,21 +63,30 @@ export class ProgressionService {
     @inject(ProgressionValidator) private progressionValidator?: ProgressionValidator,
     scoringService?: ScoringService,
     hintService?: HintService,
-    broadcaster?: DiscordBroadcaster
+    broadcaster?: DiscordBroadcaster,
+    achievementService?: AchievementService
   ) {
     this.scoringService = scoringService ?? new ScoringService();
     this.hintService = hintService ?? new HintService();
     this.broadcaster = broadcaster;
+    this.achievementService = achievementService ?? new AchievementService(this.repository);
   }
 
   /**
    * Broadcast a capture (and first-blood / full-completion) to Discord, best-effort.
    * Only runs when a webhook is configured; never throws into the validation path.
+   * The first-blood signal is resolved once in the capture path and passed in, so it
+   * is available to achievements regardless of whether Discord is enabled.
    */
-  private async broadcastCapture(userId: string, realm: string, points: number, score: number) {
+  private async broadcastCapture(
+    userId: string,
+    realm: string,
+    points: number,
+    score: number,
+    firstBlood: boolean
+  ) {
     if (!this.broadcaster?.isEnabled()) return;
     try {
-      const firstBlood = await this.repository.recordRealmCapture(realm);
       void this.broadcaster.flagCaptured({ userId, realm, points, score, firstBlood });
 
       const progression = await this.repository.getProgression(userId);
@@ -158,7 +171,25 @@ export class ProgressionService {
     const previousScore = progression?.score ?? 0;
     const newScore = previousScore + points;
 
-    await this.broadcastCapture(userId, matchingFlag.realm, points, newScore);
+    // Global single-writer first-blood signal — resolved once, before broadcast/awards.
+    const firstBlood = await this.repository.recordRealmCapture(matchingFlag.realm);
+
+    // Evaluate achievements on capture (award timestamp is meaningful; reads stay cheap).
+    let earnedAchievements: EarnedAchievement[] = [];
+    try {
+      earnedAchievements = await this.achievementService.onCapture(
+        userId,
+        matchingFlag.realm,
+        firstBlood
+      );
+    } catch (err) {
+      console.warn(
+        '[ProgressionService] Achievement evaluation skipped:',
+        (err as Error).message
+      );
+    }
+
+    await this.broadcastCapture(userId, matchingFlag.realm, points, newScore, firstBlood);
 
     return {
       status: 'success',
@@ -167,6 +198,7 @@ export class ProgressionService {
       unlocked: matchingFlag.nextRealm,
       points,
       score: newScore,
+      achievements: earnedAchievements,
     };
   }
 
