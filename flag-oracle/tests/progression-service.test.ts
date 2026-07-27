@@ -66,6 +66,16 @@ class MockFlagRepository implements IFlagRepository {
         rank: i + 1,
       }));
   }
+  async awardAchievements(
+    _userId: string,
+    earned: import('../src/repositories/flag-repository').EarnedAchievement[]
+  ): Promise<import('../src/repositories/flag-repository').EarnedAchievement[]> {
+    return earned;
+  }
+
+  async getAllProgressions(): Promise<UserProgression[]> {
+    return [];
+  }
 }
 
 describe('ProgressionService', () => {

@@ -1,7 +1,8 @@
 import 'reflect-metadata';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { configureContainer } from './config/di';
+import { Config } from './config';
 import { enhancedSecurityHeaders } from './middleware/security-headers';
 import { createSessionMiddleware } from './middleware/session';
 import { createCorsMiddleware } from './middleware/cors-config';
@@ -21,7 +22,7 @@ import { createRealmGate } from './middleware/realm-gate';
 async function main() {
   // Configure DI container
   const container = configureContainer();
-  const config = container.resolve<any>('Config');
+  const config = container.resolve<Config>('Config');
 
   const app = express();
 
@@ -86,7 +87,7 @@ async function main() {
   app.use(csrfErrorHandler);
 
   // Generic error handler
-  app.use((err: any, req: any, res: any, _next: any) => {
+  app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     logger.error('Unhandled error', {
       error: err.message,
       stack: err.stack,
@@ -110,9 +111,7 @@ async function main() {
     console.info(`[Gatekeeper] Listening on port ${config.port}`);
     console.info(`[Gatekeeper] Environment: ${config.nodeEnv}`);
     console.info(`[Gatekeeper] Flag Oracle URL: ${config.flagOracleUrl}`);
-    console.info(
-      `[Gatekeeper] Configured realms: ${config.realms.map((r: any) => r.name).join(', ')}`
-    );
+    console.info(`[Gatekeeper] Configured realms: ${config.realms.map((r) => r.name).join(', ')}`);
   });
 }
 

@@ -17,7 +17,7 @@ export interface AttackTraceMetadata {
   session_id?: string;
   ip_address?: string;
   owasp_category?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface AttackTrace {

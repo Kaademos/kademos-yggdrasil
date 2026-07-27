@@ -68,10 +68,22 @@ declare -A MEDIUM_PATTERNS=(
 )
 
 # Directories to exclude (including realms which intentionally contain vulnerabilities)
-EXCLUDE_DIRS="node_modules .git dist coverage build .next .cache vendor .factory .docs realms tests scripts"
+EXCLUDE_DIRS=(
+  node_modules .git dist coverage build .next .cache vendor .factory .docs
+  realms tests scripts
+)
 
-# Files to exclude (exclude all markdown for documentation, and .env files)
-EXCLUDE_PATTERN="*.log *.md package-lock.json *.min.js *.map .env.example .env docker-compose.yml flag-repository.ts"
+# Files to exclude (all markdown is documentation, plus .env files and lockfiles).
+#
+# These MUST stay in an array and be expanded quoted. As a space-separated string
+# iterated unquoted, `*.md` was glob-expanded by the shell against the repo root,
+# so the loop only ever excluded the five top-level markdown files — every
+# docs/**/*.md was still scanned, and the flag-format examples in DEVELOPER.md and
+# QUICK_REFERENCE.md tripped the HIGH gate on every run.
+EXCLUDE_PATTERNS=(
+  '*.log' '*.md' 'package-lock.json' '*.min.js' '*.map'
+  '.env.example' '.env' 'docker-compose.yml' 'flag-repository.ts'
+)
 
 # Known example/dummy credentials to allow (AWS documentation standard examples)
 ALLOWED_EXAMPLES=(
@@ -86,19 +98,21 @@ scan_patterns() {
   
   echo -e "${BLUE}Scanning ${severity} patterns...${RESET}"
   
-  # Build exclude flags
-  local exclude_flags=""
-  for dir in $EXCLUDE_DIRS; do
-    exclude_flags="$exclude_flags --exclude-dir=$dir"
+  # Build exclude flags as an array so globs reach grep intact instead of being
+  # expanded by the shell first.
+  local exclude_flags=()
+  local dir pat
+  for dir in "${EXCLUDE_DIRS[@]}"; do
+    exclude_flags+=(--exclude-dir="$dir")
   done
-  for pattern in $EXCLUDE_PATTERN; do
-    exclude_flags="$exclude_flags --exclude=$pattern"
+  for pat in "${EXCLUDE_PATTERNS[@]}"; do
+    exclude_flags+=(--exclude="$pat")
   done
-  
+
   for pattern in "${!patterns[@]}"; do
     local description="${patterns[$pattern]}"
     local results
-    results=$(grep -rEn $exclude_flags "$pattern" . 2>/dev/null || true)
+    results=$(grep -rEn "${exclude_flags[@]}" "$pattern" . 2>/dev/null || true)
     
     # Filter out allowed example credentials
     if [ -n "$results" ]; then

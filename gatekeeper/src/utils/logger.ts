@@ -53,15 +53,23 @@ export const createLogger = (service: string) => {
 
 export const logger = createLogger('gatekeeper');
 
-export const sanitizeForLogging = (data: any): any => {
+/**
+ * Redact sensitive fields before a value reaches a log transport.
+ *
+ * Overloaded so that passing an object gives an object back — callers that spread
+ * the result keep their types without needing a cast.
+ */
+export function sanitizeForLogging(data: Record<string, unknown>): Record<string, unknown>;
+export function sanitizeForLogging(data: unknown): unknown;
+export function sanitizeForLogging(data: unknown): unknown {
   if (typeof data !== 'object' || data === null) {
     return data;
   }
 
   const sensitiveFields = ['password', 'token', 'secret', 'authorization', 'cookie', 'sessionId'];
-  const sanitized = { ...data };
+  const sanitized: Record<string, unknown> = { ...(data as Record<string, unknown>) };
 
-  for (const key in sanitized) {
+  for (const key of Object.keys(sanitized)) {
     if (sensitiveFields.some((field) => key.toLowerCase().includes(field))) {
       sanitized[key] = '[REDACTED]';
     } else if (typeof sanitized[key] === 'object') {
@@ -70,4 +78,4 @@ export const sanitizeForLogging = (data: any): any => {
   }
 
   return sanitized;
-};
+}

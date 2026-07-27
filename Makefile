@@ -1,4 +1,7 @@
-.PHONY: help setup up up-observability down restart clean logs test validate-env install dev-gatekeeper dev-flag-oracle info urls build-player build-instructor copy-stripper yggdrasil
+.PHONY: help setup up up-observability down restart clean logs validate-env install \
+	dev-gatekeeper dev-flag-oracle info urls build-player build-instructor copy-stripper yggdrasil \
+	test test-all test-lint test-unit test-realms test-manifests test-e2e-collect \
+	test-integration test-e2e test-security test-attack-traces quick-test test-landing test-health test-realms-api
 
 help:
 	@echo "╔════════════════════════════════════════════════════════════════╗"
@@ -23,12 +26,17 @@ help:
 	@echo "  make build-instructor  - Build instructor images (comments retained)"
 	@echo ""
 	@echo "🧪 Testing:"
-	@echo "  make test          - Run all core tests (unit + integration)"
-	@echo "  make test-unit     - Run unit tests only"
-	@echo "  make test-integration - Run integration tests"
-	@echo "  make test-e2e      - Run E2E journey tests"
-	@echo "  make test-security - Run security validation tests"
-	@echo "  make test-all      - Run complete test suite"
+	@echo "  make test          - Everything that needs no running platform (what CI gates on)"
+	@echo "  make test-lint     - Lint, format and type check both services"
+	@echo "  make test-unit     - Service unit tests (gatekeeper + flag-oracle)"
+	@echo "  make test-realms   - All realm test suites"
+	@echo "  make test-manifests   - Manifest validation + invariant tests"
+	@echo "  make test-attack-traces - Validate attack trace format (non-blocking)"
+	@echo "  make test-e2e-collect - Guard: Playwright must collect the full suite"
+	@echo "  make test-integration - Integration scripts (needs 'make up')"
+	@echo "  make test-e2e      - Full Playwright suite (needs 'make up')"
+	@echo "  make test-security - Security validation (secrets, CI config)"
+	@echo "  make test-all      - Complete suite (needs 'make up')"
 	@echo ""
 	@echo "🔧 Development:"
 	@echo "  make dev-gatekeeper    - Run gatekeeper in dev mode"
@@ -232,39 +240,128 @@ urls:
 	@echo "💡 Tip: Use 'curl http://localhost:8080/health' to check if services are ready"
 	@echo ""
 
+# ======================================================================
+# TEST SUITES — single source of truth
+#
+# .circleci/config.yml invokes these targets directly and defines no test
+# commands of its own. Anything added here runs in CI; anything CI needs
+# must live here. Never duplicate a test command in the CI config — that
+# is how the two drifted apart before (realm suites ran in neither, and
+# Playwright collected zero tests for months without CI noticing).
+# ======================================================================
+
+# Extra flags passed through to jest, e.g. `make test-unit JEST_FLAGS=--coverage`.
+JEST_FLAGS ?=
+
+# Realm packages with jest suites.
+#   svartalfheim - Java/maven, no jest
+#   sample-realm - no test script
+#   _shared      - not a package
+TESTED_REALMS := _template alfheim asgard helheim jotunheim midgard \
+                 muspelheim nidavellir niflheim vanaheim
+
+# Asgard's recon and full-chain suites read realms/asgard/public/.git/*, a
+# fixture that CANNOT be committed — git refuses to index any path containing a
+# `.git` component — and that nothing generates at build or run time. Asgard's
+# other 122 tests gate normally. Remove this skip once the fixture is generated.
+ASGARD_SKIP := --testPathIgnorePatterns tests/integration/recon.test.ts tests/e2e/complete-exploit-chain.test.ts
+
+# Playwright specs that may legitimately fail without a fully seeded platform.
+# Non-blocking in CI *and* locally — one list, one policy, declared once here
+# rather than as scattered `|| echo` in the CI config.
+E2E_SOFT_SPECS := tests/integration/attack-trace-generation.spec.ts \
+                  tests/e2e/journey/full-journey.spec.ts
+
+test-lint:
+	@echo "🔍 Linting, formatting and type checking..."
+	@cd gatekeeper && npm run lint
+	@cd flag-oracle && npm run lint
+	@cd gatekeeper && npx prettier --check "src/**/*.ts"
+	@cd flag-oracle && npx prettier --check "src/**/*.ts"
+	@cd gatekeeper && npx tsc --noEmit
+	@cd flag-oracle && npx tsc --noEmit
+	@echo "✅ Lint, format and types clean!"
+
 test-unit:
-	@echo "🧪 Running unit tests..."
+	@echo "🧪 Running service unit tests..."
 	@echo "Testing flag-oracle..."
-	@cd flag-oracle && npm test
+	@cd flag-oracle && npm test -- $(JEST_FLAGS)
 	@echo ""
 	@echo "Testing gatekeeper..."
-	@cd gatekeeper && npm test
-	@echo "✅ Unit tests passed!"
+	@cd gatekeeper && npm test -- $(JEST_FLAGS)
+	@echo "✅ Service unit tests passed!"
+
+test-realms:
+	@echo "🌍 Running realm test suites..."
+	@set -e; for realm in $(TESTED_REALMS); do \
+		echo ""; echo "── $$realm ──"; \
+		if [ "$$realm" = "asgard" ]; then \
+			( cd realms/$$realm && npm test -- $(ASGARD_SKIP) ); \
+		else \
+			( cd realms/$$realm && npm test ); \
+		fi; \
+	done
+	@echo ""
+	@echo "✅ Realm test suites passed!"
+
+test-manifests:
+	@echo "📋 Validating realm manifests..."
+	@bash ./scripts/create-all-manifests.sh
+	@cd flag-oracle && node_modules/.bin/ts-node --compiler-options '{"module":"node16","moduleResolution":"node16","esModuleInterop":true,"types":["node"]}' ../scripts/validate-manifests.ts
+	@npx playwright test tests/manifests/ --reporter=list
+	@echo "✅ Manifests valid!"
+
+# Attack-trace format check. Non-blocking when no traces exist yet, which is the
+# normal state on a fresh checkout.
+test-attack-traces:
+	@echo "🧾 Validating attack trace format..."
+	@bash ./scripts/validate-attack-traces.sh \
+		|| echo "⚠️  No attack traces found (expected on a fresh build)"
+
+# Guards against a collection break hiding an entire suite. Needs no platform.
+test-e2e-collect:
+	@./scripts/check-e2e-collection.sh 100 6
 
 test-integration:
 	@echo "🔗 Running integration tests..."
-	@./scripts/smoke-test.sh
-	@./scripts/test-m3-all.sh
-	@./scripts/test-m4-all.sh
-	@./scripts/test-m5-all.sh
+	@bash ./scripts/smoke-test.sh
+	@bash ./scripts/test-m3-all.sh
+	@bash ./scripts/test-m4-all.sh
+	@bash ./scripts/test-m5-all.sh
+	@bash ./scripts/test-e2e-journey.sh
+	@echo "-- realm vulnerability regression checks (non-blocking) --"
+	@if [ -f ./scripts/verify-realms.sh ]; then \
+		bash ./scripts/verify-realms.sh \
+			|| echo "⚠️  Realm regression checks failed (non-blocking)"; \
+	else \
+		echo "   scripts/verify-realms.sh not present — skipping"; \
+	fi
 	@echo "✅ Integration tests passed!"
 
-test-e2e:
-	@echo "🎭 Running E2E tests..."
-	@npx playwright test tests/e2e/landing-page.spec.ts --reporter=list
-	@./scripts/test-e2e-journey.sh
-	@echo "✅ E2E tests passed!"
+# Runs the WHOLE Playwright suite rather than a hand-maintained file list, so
+# a new spec is picked up automatically instead of silently never running.
+# Requires the platform to be up (`make up`).
+test-e2e: test-e2e-collect
+	@echo "🎭 Running E2E suite (blocking)..."
+	@PW_SKIP="$$(echo $(E2E_SOFT_SPECS) | tr ' ' ',')" npx playwright test --reporter=list
+	@echo ""
+	@echo "🎭 Running E2E suite (non-blocking)..."
+	@npx playwright test $(E2E_SOFT_SPECS) --reporter=list \
+		|| echo "⚠️  Non-blocking E2E suites reported failures (see above)"
+	@echo "✅ E2E suite complete!"
 
 test-security:
-	@echo "🔒 Running security tests..."
-	@npx playwright test tests/security/
-	@./scripts/scan-secrets.sh
-	@echo "✅ Security tests passed!"
+	@echo "🔒 Running security validation..."
+	@./scripts/validate-circleci.sh
+	@./scripts/scan-secrets-enhanced.sh
+	@echo "✅ Security validation passed!"
 
-test: test-unit test-integration
-	@echo "✅ All core tests passed!"
+# Everything that needs no running platform. This is what CI gates on.
+test: test-lint test-unit test-realms test-manifests test-attack-traces test-e2e-collect
+	@echo "🎉 All platform-independent tests passed!"
 
-test-all: test-unit test-integration test-e2e test-security
+# Everything, including suites that need `make up` first.
+test-all: test test-integration test-e2e test-security
 	@echo "🎉 All tests passed!"
 
 dev-gatekeeper:

@@ -35,41 +35,18 @@ jobs:
             - gatekeeper/node_modules
             - flag-oracle/node_modules
 
+      # Lint, format and type check — defined once in the Makefile so a local
+      # `make test-lint` and this step can never diverge.
+      #
+      # This doubles as the clean-clone typecheck: CircleCI's `checkout`
+      # contains tracked files ONLY, so a full `tsc` here reproduces a fresh
+      # clone. If a required source is gitignored or was never committed (e.g.
+      # a hand-written .d.ts swept up by a broad `*.d.ts` rule), it fails here
+      # rather than in the Docker build or on a contributor's first
+      # `make yggdrasil`.
       - run:
-          name: Lint gatekeeper
-          command: |
-            cd gatekeeper
-            npm run lint
-
-      - run:
-          name: Lint flag-oracle
-          command: |
-            cd flag-oracle
-            npm run lint
-
-      - run:
-          name: Check formatting (Prettier)
-          command: |
-            cd gatekeeper
-            npx prettier --check "src/**/*.ts"
-
-      # Clean-clone typecheck.
-      # CircleCI's `checkout` contains tracked files ONLY, so running a full
-      # `tsc` here reproduces a fresh clone: if a required source is gitignored
-      # or was never committed (e.g. a hand-written .d.ts swept up by a broad
-      # `*.d.ts` rule), the type check fails here — early and with a clear
-      # signal — instead of only surfacing in the Docker build or on a new
-      # contributor's first `make yggdrasil`.
-      - run:
-          name: Type check gatekeeper (clean checkout)
-          command: |
-            cd gatekeeper
-            npx tsc --noEmit
-      - run:
-          name: Type check flag-oracle (clean checkout)
-          command: |
-            cd flag-oracle
-            npx tsc --noEmit
+          name: Lint, format and type check (make test-lint)
+          command: make test-lint
 
   # ----------------------
   # UNIT TEST JOB
@@ -100,22 +77,38 @@ jobs:
             npm ci
 
       - run:
-          name: Test flag-oracle (with coverage)
+          name: Install realm dependencies
           command: |
-            cd flag-oracle
-            npm test -- --coverage
+            for realm in _template alfheim asgard helheim jotunheim midgard \
+                         muspelheim nidavellir niflheim vanaheim; do
+              echo "-- $realm --"
+              ( cd "realms/$realm" && npm ci )
+            done
 
+      # Service unit tests. Same Makefile target as a local `make test-unit`;
+      # JEST_FLAGS adds coverage here without forking the command.
+      # (attack-trace-integration is part of flag-oracle's jest run, so the
+      # separate step it used to have was redundant.)
       - run:
-          name: Test flag-oracle attack trace integration
-          command: |
-            cd flag-oracle
-            npm test -- attack-trace-integration.test.ts
+          name: Service unit tests (make test-unit)
+          command: make test-unit JEST_FLAGS=--coverage
 
+      # Realm suites — 472 tests across ten realm packages. These previously ran
+      # in neither CI nor any make target, so realm regressions were invisible.
       - run:
-          name: Test gatekeeper (with coverage)
+          name: Realm test suites (make test-realms)
+          command: make test-realms
+
+      # Guards the Playwright config itself: asserts the suite still collects.
+      # Needs no browser and no running platform. Without it, a stray Jest-style
+      # file under tests/ can collapse the whole e2e suite to zero tests — which
+      # is what happened before 1.6.0, invisible because every other CI step
+      # names an explicit spec path.
+      - run:
+          name: E2E collection guard (make test-e2e-collect)
           command: |
-            cd gatekeeper
-            npm test -- --coverage
+            npm install -D @playwright/test
+            make test-e2e-collect
 
       - store_artifacts:
           path: flag-oracle/coverage
@@ -145,17 +138,11 @@ jobs:
     steps:
       - checkout
 
+      # CI-config policy check + enhanced secret scan, both defined in the
+      # Makefile so `make test-security` locally runs exactly this.
       - run:
-          name: Validate CI configuration (M8)
-          command: |
-            chmod +x ./scripts/validate-circleci.sh
-            ./scripts/validate-circleci.sh
-
-      - run:
-          name: Scan for secrets (M8 Enhanced Scanner)
-          command: |
-            chmod +x ./scripts/scan-secrets-enhanced.sh
-            ./scripts/scan-secrets-enhanced.sh
+          name: Security validation (make test-security)
+          command: make test-security
 
       - run:
           name: Audit dependencies (gatekeeper - non-blocking, complements Snyk)
@@ -180,22 +167,22 @@ jobs:
     steps:
       - checkout
 
+      # make test-manifests drives the validator through flag-oracle's ts-node,
+      # matching how the repo invokes it everywhere else.
       - run:
-          name: Install ts-node globally
+          name: Install flag-oracle dependencies
           command: |
-            sudo npm install -g ts-node typescript
+            cd flag-oracle
+            npm ci
 
+      # Runs create-all-manifests.sh, the validator script, AND the invariant tests: ten realms,
+      # unique names and levels, full A01-A10 coverage, well-formed
+      # CWE/CVSS/endpoint data. No browser or running platform needed.
       - run:
-          name: Validate all realm manifests
+          name: Validate manifests (make test-manifests)
           command: |
-            chmod +x ./scripts/validate-manifests.ts
-            ./scripts/validate-manifests.ts
-
-      - run:
-          name: Check manifest existence
-          command: |
-            chmod +x ./scripts/create-all-manifests.sh
-            ./scripts/create-all-manifests.sh
+            npm install -D @playwright/test
+            make test-manifests
 
   # ----------------------
   # VALIDATE ATTACK TRACES
@@ -208,12 +195,11 @@ jobs:
     steps:
       - checkout
 
+      # Non-blocking policy lives in the Makefile target, so a local run and this
+      # step behave identically.
       - run:
-          name: Validate attack trace format
-          command: |
-            chmod +x ./scripts/validate-attack-traces.sh
-            # This is non-blocking if no traces exist yet (expected for CI)
-            ./scripts/validate-attack-traces.sh || echo "No attack traces found (expected for fresh builds)"
+          name: Validate attack trace format (make test-attack-traces)
+          command: make test-attack-traces
 
   # ----------------------
   # SNYK SECURITY GATE (blocking for Gatekeeper + Flag-Oracle)
@@ -315,12 +301,6 @@ jobs:
             echo "Gatekeeper is healthy - all dependent services are operational"
 
       - run:
-          name: Run smoke tests
-          command: |
-            chmod +x ./scripts/smoke-test.sh
-            ./scripts/smoke-test.sh
-
-      - run:
           name: Install Playwright
           command: |
             npm install -D @playwright/test
@@ -334,51 +314,26 @@ jobs:
             # Install Playwright browsers
             npx playwright install chromium
 
+      # The WHOLE Playwright suite, via the same Makefile target a developer
+      # runs. Previously CI named five specs explicitly, which meant
+      # tests/e2e/journey/isolation.spec.ts and
+      # tests/scanner-benchmark/manifest-accuracy.spec.ts were never executed
+      # anywhere, and a new spec would silently never run until someone
+      # remembered to add a step here.
+      #
+      # `make test-e2e` splits the run into blocking and non-blocking using
+      # E2E_SOFT_SPECS from the Makefile, so the soft-fail policy lives in one
+      # place instead of as `|| echo` scattered through this file.
       - run:
-          name: Run landing page regression tests (Playwright)
-          command: |
-            npx playwright test tests/e2e/landing-page.spec.ts --reporter=list
+          name: Full E2E suite (make test-e2e)
+          command: make test-e2e
 
+      # smoke-test, the m3/m4/m5 suites, the automated exploit journey, and the
+      # realm regression checks — all defined in the Makefile target so a local
+      # `make test-integration` runs exactly this set.
       - run:
-          name: Run security header tests (Playwright)
-          command: |
-            npx playwright test tests/security/headers.spec.ts --reporter=list
-
-      - run:
-          name: Run rate limiting tests (Playwright)
-          command: |
-            npx playwright test tests/security/rate-limiting.spec.ts --reporter=list
-
-      - run:
-          name: Run attack trace generation integration tests (Playwright)
-          command: |
-            npx playwright test tests/integration/attack-trace-generation.spec.ts --reporter=list || echo "Attack trace integration tests completed (some may fail without running services)"
-
-      - run:
-          name: Run enhanced E2E journey tests with attack trace validation
-          command: |
-            npx playwright test tests/e2e/journey/full-journey.spec.ts --reporter=list || echo "E2E journey tests completed"
-
-      - run:
-          name: Realm vulnerability regression checks (non-blocking)
-          command: |
-            if [ -x ./scripts/verify-realms.sh ]; then
-              echo "Running realm vulnerability regression checks..."
-              ./scripts/verify-realms.sh || echo "Realm regression checks FAILED (non-blocking) – investigate but pipeline continues."
-            else
-              echo "No ./scripts/verify-realms.sh found – skipping realm regression checks."
-            fi
-
-      - run:
-          name: Run exploit tests (Automated exploitation)
-          command: |
-            if [ -x ./scripts/test-e2e-journey.sh ]; then
-              echo "Running automated exploit journey..."
-              ./scripts/test-e2e-journey.sh
-            else
-              echo "Exploit journey script not found."
-              exit 1
-            fi
+          name: Integration suites (make test-integration)
+          command: make test-integration
 
       - run:
           name: Cleanup Docker resources

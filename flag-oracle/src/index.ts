@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import express from 'express';
 import { configureContainer } from './config/di';
+import { Config } from './config';
 import { FlagService } from './services/flag-service';
 import { ProgressionService } from './services/progression-service';
 import { RateLimiter } from './services/rate-limiter';
@@ -10,7 +11,7 @@ import { securityHeaders } from './middleware/security-headers';
 
 async function main() {
   const container = configureContainer();
-  const config = container.resolve<any>('Config');
+  const config = container.resolve<Config>('Config');
 
   const app = express();
   app.use(securityHeaders);

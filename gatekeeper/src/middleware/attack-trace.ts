@@ -2,6 +2,18 @@ import { Request, Response, NextFunction } from 'express';
 import { attackTraceLogger } from '../services/attack-trace-logger';
 
 /**
+ * The fields this middleware reads off a JSON response body. Everything else is
+ * passed through untouched, so the shape stays open.
+ */
+interface ResponseBody {
+  error?: string;
+  message?: string;
+  realm?: string;
+  unlockedRealm?: string;
+  [key: string]: unknown;
+}
+
+/**
  * Middleware to capture attack traces for authentication and authorization events
  */
 export const captureAttackTrace = (req: Request, res: Response, next: NextFunction) => {
@@ -9,7 +21,7 @@ export const captureAttackTrace = (req: Request, res: Response, next: NextFuncti
   const originalJson = res.json.bind(res);
 
   // Override json to capture response
-  res.json = function (body: any): Response {
+  res.json = function (body: ResponseBody): Response {
     // Check if this is an authentication-related endpoint
     if (req.path.includes('/auth') || req.path.includes('/login')) {
       const isSuccess = res.statusCode >= 200 && res.statusCode < 300;
@@ -32,7 +44,7 @@ export const captureAttackTrace = (req: Request, res: Response, next: NextFuncti
       const isSuccess = res.statusCode >= 200 && res.statusCode < 300;
 
       if (req.body?.flag) {
-        const userId = (req.session as any)?.userId || 'anonymous';
+        const userId = req.session?.userId || 'anonymous';
 
         // Log flag submission asynchronously
         attackTraceLogger

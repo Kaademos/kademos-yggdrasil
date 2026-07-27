@@ -42,6 +42,7 @@ describe('RedisFlagRepository', () => {
         score: 0,
         completions: [],
         hintsRevealed: [],
+        achievements: [],
         lastUpdated: '2025-12-04T00:00:00.000Z',
       };
 
