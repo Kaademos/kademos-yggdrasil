@@ -25,11 +25,24 @@ const SAMPLE_REALM = 'SAMPLE';
 export const TOTAL_SCORED_REALMS = 10;
 
 /**
- * Tunable thresholds. These are placeholders — pick the values the platform wants.
- * They live here (declarative) rather than scattered through the predicates.
+ * Tunable thresholds, calibrated against the per-realm time estimates in
+ * `docs/instructor/README.md` (30–90 min per realm, 8–10 hours for a full ascent).
+ * Both are deliberately set so the badge means "notably faster than expected"
+ * rather than "finished at all".
  */
-export const SWIFT_WINDOW_MS = 10 * 60 * 1000; // capture within 10 min of the previous capture
-export const RAGNAROK_WINDOW_MS = 6 * 60 * 60 * 1000; // full ascent inside 6 hours
+
+/**
+ * Swift: a realm captured within this window of the capture that unlocked it.
+ * Progression is linear, so the previous capture *is* the unlock event. Well
+ * under the 30-minute low end of the documented per-realm estimate.
+ */
+export const SWIFT_WINDOW_MS = 15 * 60 * 1000;
+
+/**
+ * Ragnarök Run: full ascent inside this window — 25% faster than the 8-hour low
+ * end of the documented estimate for all ten realms.
+ */
+export const RAGNAROK_WINDOW_MS = 6 * 60 * 60 * 1000;
 
 export type AchievementScope = 'realm' | 'global';
 
@@ -88,8 +101,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
       // idx <= 0 → this is the player's first scored capture; "unlock time" is unknown,
       // so Swift is not earnable on the entry realm (see issue: deltas between captures).
       if (idx <= 0) return null;
-      const delta =
-        Date.parse(sorted[idx].completedAt) - Date.parse(sorted[idx - 1].completedAt);
+      const delta = Date.parse(sorted[idx].completedAt) - Date.parse(sorted[idx - 1].completedAt);
       return delta >= 0 && delta <= SWIFT_WINDOW_MS ? { realm: cap } : null;
     },
   },

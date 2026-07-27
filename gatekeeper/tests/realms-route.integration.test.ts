@@ -28,9 +28,12 @@ function buildApp(unlockedRealms: string[]) {
     },
   };
 
-  const realmGate = {
-    checkAccess: (_req: Request, _res: Response, next: NextFunction) => next(),
-  };
+  // createRealmGate returns a factory: realmGate(realmName) yields the middleware.
+  // The previous mock was an object with a `checkAccess` method, which never
+  // matched that shape — it survived only because this test passes no realms, so
+  // the gate is never constructed.
+  const realmGate = (_realmName: string) => (_req: Request, _res: Response, next: NextFunction) =>
+    next();
 
   const app = express();
   app.use(express.json());

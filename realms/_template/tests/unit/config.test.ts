@@ -22,7 +22,9 @@ describe('loadConfig', () => {
     const config = loadConfig();
     
     expect(config.port).toBe(3000);
-    expect(config.nodeEnv).toBe('development');
+    // Jest sets NODE_ENV=test, so accept either. The realms already do this;
+    // the template had drifted behind them.
+    expect(['development', 'test']).toContain(config.nodeEnv);
     expect(config.realmName).toBe('template');
     expect(config.flag).toContain('YGGDRASIL{');
   });

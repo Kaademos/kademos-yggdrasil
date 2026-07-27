@@ -218,12 +218,67 @@ else
 fi
 echo ""
 
+# Policy 11: CI/local test parity
+#
+# Every test suite must be defined once, in the Makefile, and invoked by CI via
+# its target. Before this policy existed the two had drifted badly: ten realm
+# packages (472 tests) ran in neither CI nor any make target, two Playwright
+# specs ran nowhere, and the e2e suite collected zero tests for months because
+# every CI step named an explicit spec path.
+echo -e "${BLUE}[POLICY 11]${RESET} Checking CI/local test parity..."
+
+PARITY_OK=true
+
+# 11a. CI must not invoke test runners directly — only make targets.
+DIRECT_RUNNERS=$(grep -nE '^\s+(npm (test|run lint)|npx (playwright test|tsc|prettier)|jest)' \
+  "$CIRCLECI_CONFIG" || true)
+if [ -n "$DIRECT_RUNNERS" ]; then
+  echo -e "${RED}  ❌ VIOLATION: CI invokes a test runner directly${RESET}"
+  echo "$DIRECT_RUNNERS" | sed 's/^/       /'
+  echo "     Add a Makefile target and call that instead, so a local run matches."
+  VIOLATIONS=$((VIOLATIONS + 1))
+  PARITY_OK=false
+fi
+
+# Targets CI actually *invokes*. YAML comments and `name:` lines are stripped
+# first — otherwise a step named "Realm test suites (make test-realms)" would
+# satisfy the check even after its command was changed to something else.
+CI_INVOKED=$(grep -vE '^\s*#' "$CIRCLECI_CONFIG" \
+  | grep -vE '^\s*name:' \
+  | grep -oE 'make test[a-z0-9-]*' \
+  | awk '{print $2}' | sort -u)
+
+# 11b. Every make target CI invokes must exist in the Makefile.
+for target in $CI_INVOKED; do
+  if ! grep -qE "^${target}:" Makefile; then
+    echo -e "${RED}  ❌ VIOLATION: CI calls 'make ${target}' but the Makefile has no such target${RESET}"
+    VIOLATIONS=$((VIOLATIONS + 1))
+    PARITY_OK=false
+  fi
+done
+
+# 11c. Every suite target in the Makefile must be reached by CI, so a suite
+#      cannot be added locally and silently skipped in CI.
+SUITE_TARGETS="test-lint test-unit test-realms test-manifests test-attack-traces test-e2e-collect test-e2e test-integration test-security"
+for target in $SUITE_TARGETS; do
+  if ! echo "$CI_INVOKED" | grep -qx "$target"; then
+    echo -e "${RED}  ❌ VIOLATION: Makefile defines suite '${target}' but no CI job runs it${RESET}"
+    VIOLATIONS=$((VIOLATIONS + 1))
+    PARITY_OK=false
+  fi
+done
+
+if [ "$PARITY_OK" = true ]; then
+  echo -e "${GREEN}  ✅ PASS: CI and local run the same suites via shared make targets${RESET}"
+fi
+echo ""
+
 # Summary
 echo "═══════════════════════════════════════════════════════════════"
 echo "                    VALIDATION SUMMARY"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
-echo "Policies Checked: 10"
+echo "Policies Checked: 11"
 echo -e "Violations:       ${RED}$VIOLATIONS${RESET}"
 echo -e "Warnings:         ${YELLOW}$WARNINGS${RESET}"
 echo ""

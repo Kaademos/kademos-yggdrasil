@@ -144,9 +144,7 @@ export function applyAchievements(
   earned: EarnedAchievement[]
 ): EarnedAchievement[] {
   const already = (a: EarnedAchievement) =>
-    progression.achievements.some(
-      (x) => x.id === a.id && (x.realm ?? null) === (a.realm ?? null)
-    );
+    progression.achievements.some((x) => x.id === a.id && (x.realm ?? null) === (a.realm ?? null));
   const seen = new Set<string>();
   const added: EarnedAchievement[] = [];
   for (const a of earned) {

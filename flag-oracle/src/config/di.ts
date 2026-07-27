@@ -49,7 +49,7 @@ export function configureContainer() {
   container.register(ScoringService, { useClass: ScoringService });
   container.register(HintService, { useClass: HintService });
   container.register(DiscordBroadcaster, { useClass: DiscordBroadcaster });
-  container.register(AchievementService, { useClass: AchievementService }); 
+  container.register(AchievementService, { useClass: AchievementService });
 
   // RateLimiter now takes config object injected via 'RateLimitConfig'
   container.register(RateLimiter, { useClass: RateLimiter });

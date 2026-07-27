@@ -11,10 +11,7 @@ import { ProgressionValidator } from './progression-validator';
 import { ScoringService } from './scoring-service';
 import { HintService } from './hint-service';
 import { DiscordBroadcaster } from './discord-broadcaster';
-import { AchievementService } from './achievement-service';
-
-/** Number of scored (non-SAMPLE) realms that constitutes full platform completion. */
-const TOTAL_SCORED_REALMS = 10;
+import { AchievementService, TOTAL_SCORED_REALMS } from './achievement-service';
 
 export interface ValidationResult {
   status: 'success' | 'error' | 'invalid';
@@ -183,10 +180,7 @@ export class ProgressionService {
         firstBlood
       );
     } catch (err) {
-      console.warn(
-        '[ProgressionService] Achievement evaluation skipped:',
-        (err as Error).message
-      );
+      console.warn('[ProgressionService] Achievement evaluation skipped:', (err as Error).message);
     }
 
     await this.broadcastCapture(userId, matchingFlag.realm, points, newScore, firstBlood);

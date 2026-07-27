@@ -1,4 +1,4 @@
-﻿import { RedisFlagRepository } from '../src/repositories/redis-flag-repository';
+import { RedisFlagRepository } from '../src/repositories/redis-flag-repository';
 import { FileBasedFlagRepository } from '../src/repositories/flag-repository';
 
 const mockRedisClient = {

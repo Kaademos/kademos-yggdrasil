@@ -235,7 +235,8 @@ export function createRoutes(config: RouteConfig | ProgressionService): Router {
       });
     }
   });
-router.get('/achievements/:userId', rateLimitMiddleware, async (req: Request, res: Response) => {
+
+  router.get('/achievements/:userId', rateLimitMiddleware, async (req: Request, res: Response) => {
     try {
       const userId = InputSanitizer.sanitizeUserId(req.params.userId);
       if (!userId) {
@@ -255,5 +256,6 @@ router.get('/achievements/:userId', rateLimitMiddleware, async (req: Request, re
       res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
   });
+
   return router;
 }

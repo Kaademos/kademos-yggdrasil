@@ -1,8 +1,16 @@
 import { createHmac } from 'crypto';
 import { injectable, inject } from 'tsyringe';
 
+/**
+ * The subset of configuration this service needs.
+ *
+ * Both spellings are accepted: the DI container injects the full platform
+ * `Config` (which carries `flagMasterSecret`), while tests construct the service
+ * directly with `{ masterSecret }`. Either satisfies the constructor.
+ */
 export interface FlagConfig {
-  masterSecret: string;
+  masterSecret?: string;
+  flagMasterSecret?: string;
 }
 
 export interface FlagVerificationResult {
@@ -24,7 +32,7 @@ export interface FlagVerificationResult {
 export class FlagService {
   private readonly masterSecret: string;
 
-  constructor(@inject('Config') private config: any) {
+  constructor(@inject('Config') private config: FlagConfig) {
     const secret = config.flagMasterSecret || config.masterSecret;
     if (!secret || secret.length < 32) {
       throw new Error('Master secret must be at least 32 characters for security');

@@ -1,4 +1,7 @@
 import { Router, Request, Response } from 'express';
+import { createAuthMiddleware } from '../middleware/auth';
+
+type AuthMiddleware = ReturnType<typeof createAuthMiddleware>;
 import { AuthService } from '../services/auth-service';
 import { Logger } from '../services/logger';
 import { toPublicUser } from '../models/user';
@@ -9,8 +12,8 @@ import { csrfProtection, csrfTokenHandler, csrfErrorHandler } from '../middlewar
 export function createAuthRoutes(
   authService: AuthService,
   authRateLimiter: AuthRateLimiter,
-  requireAuth: any,
-  ensureSession: any
+  requireAuth: AuthMiddleware['requireAuth'],
+  ensureSession: AuthMiddleware['ensureSession']
 ): Router {
   const router = Router();
   const rateLimitMiddleware = createRateLimitMiddleware(authRateLimiter);

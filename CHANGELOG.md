@@ -7,6 +7,80 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-07-27
+
+> **Server-side achievement system.** Named, earned markers derived from a
+> player's capture history — speed, skill, and progress — evaluated on capture and
+> exposed via the progression API. Backend only; badge rendering in the leaderboard
+> UI follows separately. Contributed by **@Radityaaa27** in #22.
+
+### Added
+
+- **Achievement system** (#18): six achievements across three groups — `SWIFT` and `RAGNAROK_RUN` (speed), `UNAIDED` and `SIGHTLESS` (skill), `FIRST_BLOOD` and `ASCENDANT` (progress). Definitions live in a declarative table of predicates over the completion history, so adding an achievement is a data change rather than new branching logic.
+- **`GET /achievements/:userId`** on the flag oracle, returning a user's earned markers.
+- **`EarnedAchievement[]` persisted on `UserProgression`**, de-duplicated by `(id, realm)` so an award can never be granted twice. `normaliseProgression` defaults the field, so records written before this release deserialise unchanged.
+- **Backfill routine** (`npm run backfill:achievements`) for progression records that predate the system. Realm-scoped awards are dated to that realm's own `completedAt` and global ones to the final scored completion, so backfilled markers line up with when the player actually earned them. Safe to run repeatedly — a second pass awards nothing.
+- **`AchievementService` test suite**: 36 tests covering every predicate, both scope filters, the on-capture path, backfill dating, first-blood attribution, and idempotency.
+
+### Fixed
+
+- **First blood was never recorded unless Discord was enabled.** `recordRealmCapture()` — the global single-writer signal for "has any player taken this realm yet" — was called inside `broadcastCapture()`, behind the broadcaster's `isEnabled()` check. Discord is opt-in and off by default, so on a default deployment the signal never fired. It is now resolved once in the capture path and passed to both the broadcaster and the achievement evaluator. Found and fixed by **@Radityaaa27** while implementing #18.
+
+### Security
+
+- Achievement inputs are entirely server-derived: `completedAt` is server-set, `hintsUsed` is server-counted, and first blood comes from the repository's single-writer signal. No achievement can be earned from a client-supplied value, and the on-capture award timestamp is taken from the server clock rather than any completion payload. Pinned by test.
+
+### Notes
+
+- `SWIFT_WINDOW_MS` (15 min) and `RAGNAROK_WINDOW_MS` (6 h) are calibrated against the per-realm estimates in `docs/instructor/README.md` — 30–90 minutes per realm and 8–10 hours for a full ascent — so each badge means "notably faster than expected" rather than "finished at all".
+- Achievement evaluation is wrapped so a failure cannot break flag submission; a capture still succeeds if awarding throws.
+
+### CI/local test parity
+
+The CI config and the Makefile had drifted into describing two different test
+suites. Both now run the same set, because the Makefile is the only place a test
+command is defined and CI invokes its targets.
+
+- **Ten realm packages — 472 tests — ran in neither CI nor any make target.** Realm regressions were completely invisible to the pipeline. `make test-realms` now runs all ten and CI calls it.
+- **Two Playwright specs ran nowhere**: `tests/e2e/journey/isolation.spec.ts` and `tests/scanner-benchmark/manifest-accuracy.spec.ts`. CI named five specs explicitly, so any spec not on that list was silently skipped forever. `make test-e2e` now runs the **whole** suite rather than a hand-maintained file list.
+- **`make test-e2e-collect`**, on its own CI step, runs the suite unqualified and asserts it still collects at least 100 tests across 6 files. This is the guard that was missing: the collection break above exits non-zero, but nothing ever invoked the suite without a path filter, so it hid for months. Verified against both failure modes — a Jest-style file under `tests/`, and a `testMatch` that matches nothing.
+- **New Makefile targets**, each the single definition of a suite: `test-lint`, `test-unit`, `test-realms`, `test-manifests`, `test-attack-traces`, `test-e2e-collect`, `test-e2e`, `test-integration`, `test-security`. `make test` is everything that needs no running platform (~34s); `make test-all` adds the suites that need `make up`.
+- **The soft-fail list lives in one place.** Previously CI marked two specs non-blocking with inline `|| echo` while the Makefile had no equivalent, so local runs and CI applied different policies. `E2E_SOFT_SPECS` in the Makefile now drives both, via a `PW_SKIP` hook in `playwright.config.ts`.
+- **CI no longer invokes a test runner directly** — no `npm test`, `npx playwright test`, `npx tsc`, `prettier` or `jest` anywhere in `.circleci/config.yml`. It also drops the `chmod +x` preamble on every script, because the executable bits are now correct in git (22 of 29 scripts were committed mode 100644).
+- **Policy 11 in `scripts/validate-circleci.sh`** enforces this going forward: CI must not call a runner directly, every `make` target CI names must exist, and every suite target must be reached by CI. Verified it catches drift in both directions.
+- **Coverage is still collected** — `make test-unit JEST_FLAGS=--coverage` in CI keeps one command definition with a coverage knob, rather than a forked invocation.
+- Also folded into shared targets so they run identically in both places: `create-all-manifests.sh`, `validate-attack-traces.sh`, `test-e2e-journey.sh`, `verify-realms.sh`, `validate-circleci.sh`, `scan-secrets-enhanced.sh` and the m3/m4/m5 suites — several of which previously ran on only one side. Removed a redundant CI step that ran flag-oracle's `attack-trace-integration` suite a second time, and a duplicate `smoke-test.sh` invocation.
+
+### Fixed — test suites that could not have gated anything
+
+Wiring the realm suites into CI required them to actually pass, which surfaced four separate defects:
+
+- **`realms/vanaheim` had a test that failed ~40% of runs** and contradicted its own realm. `should generate different tokens for different userIds` asserted that two tokens never share a value — but Vanaheim *is* A04 Cryptographic Failures, its PRNG is an LCG with deliberately poor mixing, and colliding tokens are the vulnerability being taught. Split into a deterministic assertion (the userId always shifts the seed) and a format check, with the collision behaviour documented rather than asserted against. 8/8 clean runs after.
+- **`realms/alfheim/tests/unit/imds-service.test.ts` did not compile** (`TS18047: 'paths' is possibly 'null'`), so the whole suite was skipped. Fixing it brought alfheim from 51 to **70** passing tests.
+- **`realms/_template`'s config test asserted `nodeEnv === 'development'`** while jest sets `NODE_ENV=test`. The realms had already been corrected to accept either; the template had drifted behind them.
+- **`realms/asgard`'s recon and full-chain suites** read `realms/asgard/public/.git/*` — a fixture that **cannot exist in the repository**, because git refuses to index any path containing a `.git` component (`git add` exits 0 and stages nothing), and nothing generates it at build or run time. Asgard's other **122** tests now gate; the two fixture-dependent suites are skipped via `ASGARD_SKIP` in the Makefile with the reason recorded. The fixture needs generating — same class of defect as the dead Niflheim correlation log fixed above.
+
+### Fixed — secret scanner was failing on every run
+
+`scripts/scan-secrets-enhanced.sh` exited 1 on a clean checkout of `main`, which failed the `security` CI job and therefore blocked `build-and-integration` (it declares `requires: security`).
+
+The cause was a shell-globbing bug. `EXCLUDE_PATTERN` was a space-separated string iterated **unquoted**, so `*.md` was pathname-expanded by the shell against the repo root before reaching grep. The loop therefore excluded exactly five files — `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `QUICKSTART.md`, `SECURITY.md` — while every `docs/**/*.md` was still scanned, despite the comment reading "exclude all markdown for documentation". The flag-format examples in `docs/guides/DEVELOPER.md` and `docs/workflows/QUICK_REFERENCE.md` then tripped the HIGH gate. Exclusions are now arrays expanded quoted, so globs reach grep intact. Confirmed the scanner still detects a planted AWS key (CRITICAL, exit 1) rather than having been blinded.
+
+### Maintenance
+
+- **Migrated every TypeScript project off the deprecated `moduleResolution: "node"` (node10)**, which TypeScript 7.0 will stop supporting. All 14 backend `tsconfig.json` files now use `module`/`moduleResolution: "node16"`; the frontend already used `"bundler"` and is unchanged. Emitted JavaScript was diffed before and after and is byte-identical, so this is a configuration change with no runtime effect. Note that `"typescript": "^5.3.3"` currently resolves to 5.9.3, which rejects the `ignoreDeprecations: "6.0"` escape hatch — migrating was the only fix that does not break the build.
+- **Fixed the `sync-hints` script**, which passed `--compiler-options '{"module":"commonjs"}'` and began failing with `TS5110` once `moduleResolution` moved to `node16`. The override now specifies both options consistently.
+- **The Playwright suite was collecting zero tests.** `playwright.config.ts` set `testDir: './tests'` with no `testMatch`, and Playwright's default matches `*.test.ts` as well as `*.spec.ts`. `tests/manifests/manifest-validator.test.ts` is a Jest file, so it threw `ReferenceError: describe is not defined` during collection and collapsed the whole run to `Total: 0 tests in 0 files`. The failure exits non-zero; it went unnoticed because **every CI step named an explicit spec path**, so nothing ever invoked the suite unqualified. `testMatch: '**/*.spec.ts'` now pins the convention the repo already follows, and a dedicated CI step runs the suite unqualified so the same class of break cannot hide again. Bare `npx playwright test` collects **142 tests across 8 files**.
+- **Removed the placeholder `webServer` block** from `playwright.config.ts`. Its command was an `echo`, so with the platform down Playwright aborted every run with "Process from config.webServer exited early" — including suites needing no server at all. The platform is started out of band (`make up`, or `docker-compose up -d` in CI); suites that need it now fail with a plain connection error while the rest still run.
+- **Converted the orphaned manifest test into a running Playwright spec.** It was a Jest file in a repo with no root Jest config, no root Jest dependency, and no CI or Makefile reference — it had never run. Roughly half its assertions were tautological (`expect(0).toBeGreaterThanOrEqual(0)`, literals matched against their own regexes); those are now pointed at the real manifests, so they assert genuine invariants: ten realms, unique names and levels, full A01–A10 coverage, realm name matching its directory, and well-formed CWE/CVSS/endpoint data everywhere. 19 tests, wired into the existing `validate-manifests` CI job. No browser or running platform required.
+- **Fixed `realms/_template`'s lockfile**, which recorded 4 devDependencies against the 12 in `package.json` — `npm ci` failed with `EUSAGE`, so the template realm could not be bootstrapped the documented way.
+- **Corrected a structurally wrong mock** in `gatekeeper/tests/realms-route.integration.test.ts`: `realmGate` was mocked as an object with a `checkAccess` method, but `createRealmGate` returns a factory called as `realmGate(realmName)`. The mock only survived because that test passes zero realms, leaving the gate unreachable. Surfaced once the parameter was typed.
+- **Cleared all gatekeeper lint warnings** (26 → 0) with the same approach used in flag-oracle: real types for injected config, `RequestHandler` for middleware parameters typed to what the function actually uses, narrowed error handling (`upstreamStatus` / `errorMessage` helpers instead of `catch (error: any)`), a declared shape for the captured response body, and the removal of a now-redundant `req.session as any` cast — `src/types/express.d.ts` has declared `SessionData.userId` since 1.4.1.
+- **Cleared all flag-oracle lint warnings** (8 → 0), without weakening any rule:
+  - `container.resolve<any>('Config')` and `FlagService`'s `config: any` now use real types. `FlagConfig` was widened to accept both `masterSecret` (used by tests constructing the service directly) and `flagMasterSecret` (supplied by the DI container), which the constructor already read from either.
+  - `sanitizeForLogging` moved from `any → any` to an overloaded `Record<string, unknown>` / `unknown` signature, so callers that spread the result keep their types without a cast.
+  - The four `no-console` warnings in `services/logger.ts` are scoped disables with a stated reason: that class emits structured JSON lines to stdout as its transport for container log collection, alongside winston. It is not stray debug output, so silencing beat rewriting it.
+
 ### Documentation
 
 - **Corrected two miscategorisations repeated across the summary tables.** `README.md`, `QUICKSTART.md`, `SECURITY.md`, `docs/SCANNER-BENCHMARKING.md`, `docs/instructor/README.md`, `docs/guides/OPERATOR_GUIDE.md`, `docs/workflows/ASVS_COMPLIANCE.md`, and `realms/_shared/ERROR-HANDLING-README.md` described Helheim as "Memorial Forum — LFI" / "exposed logs" — stale as of 1.5.0 — and described **Niflheim as SSRF**. Niflheim has never contained an SSRF: it has no proxy and no user-controlled outbound request. `docs/realms/10-niflheim.md` has always documented it correctly as an unhandled exceptional condition; the error existed only in the summary tables, which is where readers form their mental model of the tree.
@@ -212,7 +286,8 @@ Both were replaced by the failure that is genuinely A09: every event was logged,
 
 ---
 
-[Unreleased]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.3.0...v1.4.0

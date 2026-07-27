@@ -1,12 +1,13 @@
 {
   "name": "@yggdrasil/flag-oracle",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Yggdrasil Flag Oracle - Flag validation and progression tracking",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
+    "backfill:achievements": "node dist/scripts/backfill-achievements.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

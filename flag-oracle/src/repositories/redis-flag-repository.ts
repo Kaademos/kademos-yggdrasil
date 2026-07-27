@@ -5,13 +5,13 @@ import {
   FlagData,
   LeaderboardEntry,
   CompletionDetails,
-  EarnedAchievement,        
+  EarnedAchievement,
   FileBasedFlagRepository,
   emptyProgression,
   normaliseProgression,
   applyCapture,
   applyHintReveal,
-  applyAchievements,        
+  applyAchievements,
 } from './flag-repository';
 
 type RedisClient = ReturnType<typeof createClient>;
@@ -48,7 +48,7 @@ export class RedisFlagRepository implements IFlagRepository {
       this.connected = false;
     }
   }
-async awardAchievements(
+  async awardAchievements(
     userId: string,
     earned: EarnedAchievement[]
   ): Promise<EarnedAchievement[]> {
@@ -91,7 +91,7 @@ async awardAchievements(
       throw error;
     }
   }
-  
+
   async getProgression(userId: string): Promise<UserProgression | null> {
     try {
       await this.connect();
