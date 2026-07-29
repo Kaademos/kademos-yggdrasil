@@ -10,13 +10,13 @@ export interface IUserRepository {
 export class InMemoryUserRepository implements IUserRepository {
   private users: Map<string, User> = new Map();
   private readonly bcryptRounds: number;
-  private readonly testUserPassword: string;
+  private readonly testUserPassword?: string;
   private seeded: boolean = false;
 
   constructor(
     bcryptRounds: number = 10,
     autoSeed: boolean = true,
-    testUserPassword: string = 'yggdrasil123'
+    testUserPassword?: string
   ) {
     this.bcryptRounds = bcryptRounds;
     this.testUserPassword = testUserPassword;
@@ -27,6 +27,14 @@ export class InMemoryUserRepository implements IUserRepository {
 
   async seedTestUsers(): Promise<void> {
     if (this.seeded) return;
+
+    // Without an explicitly configured password there is nothing safe to seed.
+    // Silently creating a user with a compiled-in password is how known
+    // credentials end up in production, so skip instead.
+    if (!this.testUserPassword) {
+      this.seeded = true;
+      return;
+    }
 
     // Pre-seed the default "weaver" test user
     try {

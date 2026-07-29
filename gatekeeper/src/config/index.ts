@@ -36,7 +36,10 @@ export function loadConfig(): Config {
   const authRateLimitWindowMs = parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS || '300000', 10);
   const authRateLimitMaxRequests = parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS || '5', 10);
   const allowedOrigin = process.env.ALLOWED_ORIGIN;
-  const testUserPassword = process.env.TEST_USER_PASSWORD || 'yggdrasil123';
+  // No in-source fallback: a hardcoded default silently becomes a known credential on
+  // every deployment that forgets to set it. Unset means "don't seed the demo user".
+  // The dev/CTF value lives in .env.example, which docker-compose reads.
+  const testUserPassword = process.env.TEST_USER_PASSWORD || '';
 
   if (isNaN(port) || port < 1 || port > 65535) {
     throw new Error('Invalid PORT configuration');
@@ -45,6 +48,13 @@ export function loadConfig(): Config {
   if (!sessionSecret || sessionSecret.length < 32) {
     console.warn(
       '[Config] WARNING: Using default or weak SESSION_SECRET. Generate a strong secret for production!'
+    );
+  }
+
+  if (!testUserPassword) {
+    console.warn(
+      '[Config] TEST_USER_PASSWORD is not set — the demo "weaver" user will not be seeded. ' +
+        'Set it in .env (see .env.example) to enable the default CTF login.'
     );
   }
 

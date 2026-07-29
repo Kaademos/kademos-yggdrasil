@@ -14,6 +14,9 @@ async function main() {
   const config = container.resolve<Config>('Config');
 
   const app = express();
+  // Don't advertise the framework to callers. Gatekeeper does the same via helmet;
+  // Flag Oracle hand-rolls its headers, so this has to be explicit.
+  app.disable('x-powered-by');
   app.use(securityHeaders);
   app.use(express.json());
 

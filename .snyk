@@ -28,3 +28,13 @@ exclude:
     - tests/**
     - playwright-report/**
     - test-results/**
+
+    # Local developer/benchmark tooling. Snyk Code reports SSRF and path
+    # traversal here because argparse/process.argv values reach requests.get,
+    # open() and fs.readdirSync. The "untrusted input" is the CLI argument of
+    # the maintainer running the script by hand — anyone who can set it already
+    # has shell. None of this is built into an image, served, or reachable from
+    # the deployed control plane, so it is out of scope per SECURITY.md.
+    - examples/scanners/**
+    - scripts/scanners/**
+    - scripts/strip-comments.js
