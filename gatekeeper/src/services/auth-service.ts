@@ -1,4 +1,5 @@
 import { injectable, inject } from 'tsyringe';
+import { Config } from '../config';
 import bcrypt from 'bcrypt';
 import { User } from '../models/user';
 import { IUserRepository } from '../repositories/user-repository';
@@ -13,7 +14,7 @@ export interface AuthResult {
 export class AuthService {
   constructor(
     @inject('IUserRepository') private userRepository: IUserRepository,
-    @inject('Config') private config: any = { bcryptRounds: 10 }
+    @inject('Config') private config: Pick<Config, 'bcryptRounds'> = { bcryptRounds: 10 }
   ) {
     this.bcryptRounds = config.bcryptRounds || 10;
   }

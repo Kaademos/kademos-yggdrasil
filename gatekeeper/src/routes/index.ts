@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, RequestHandler } from 'express';
 import { createHash } from 'crypto';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { RealmConfig, REALMS_METADATA } from '../config';
@@ -6,6 +6,26 @@ import { ProgressionClient } from '../services/progression-client';
 import { ProgressionService } from '../services/progression-service';
 import { csrfProtection } from '../middleware/csrf';
 import { metrics } from '../utils/metrics';
+
+/**
+ * Pull the upstream HTTP status out of a proxied-request failure.
+ *
+ * The flag oracle is reached over axios, whose rejections carry the upstream
+ * response on `error.response`. Narrowed here rather than typing the catch as
+ * `any`, so a shape change surfaces at compile time instead of silently
+ * degrading every upstream 404 into a 500.
+ */
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function upstreamStatus(error: unknown): number | undefined {
+  if (typeof error !== 'object' || error === null) return undefined;
+  const response = (error as { response?: unknown }).response;
+  if (typeof response !== 'object' || response === null) return undefined;
+  const status = (response as { status?: unknown }).status;
+  return typeof status === 'number' ? status : undefined;
+}
 
 /**
  * Convert a raw user/session id into a stable, non-reversible display handle so the
@@ -20,8 +40,8 @@ export function createRoutes(
   realms: RealmConfig[],
   progressionClient: ProgressionClient,
   progressionService: ProgressionService,
-  authMiddleware: any,
-  realmGate: any,
+  authMiddleware: { ensureSession: RequestHandler },
+  realmGate: (realmName: string) => RequestHandler,
   landingPagePath?: string
 ): Router {
   const router = Router();
@@ -172,12 +192,12 @@ export function createRoutes(
 
         const data = await progressionClient.getHints(progressionId, req.params.realm);
         res.status(200).json(data);
-      } catch (error: any) {
-        const status = error?.response?.status === 404 ? 404 : 500;
+      } catch (error) {
+        const status = upstreamStatus(error) === 404 ? 404 : 500;
         if (status === 404) {
           return res.status(404).json({ status: 'error', message: 'No hints for this realm' });
         }
-        console.error('[Gatekeeper] Error fetching hints:', error?.message || error);
+        console.error('[Gatekeeper] Error fetching hints:', errorMessage(error));
         res.status(500).json({ status: 'error', message: 'Internal server error' });
       }
     }
@@ -201,12 +221,12 @@ export function createRoutes(
 
         const result = await progressionClient.revealHint(progressionId, req.params.realm, order);
         res.status(200).json(result);
-      } catch (error: any) {
-        const status = error?.response?.status === 404 ? 404 : 500;
+      } catch (error) {
+        const status = upstreamStatus(error) === 404 ? 404 : 500;
         if (status === 404) {
           return res.status(404).json({ status: 'error', message: 'Hint not found' });
         }
-        console.error('[Gatekeeper] Error revealing hint:', error?.message || error);
+        console.error('[Gatekeeper] Error revealing hint:', errorMessage(error));
         res.status(500).json({ status: 'error', message: 'Internal server error' });
       }
     }

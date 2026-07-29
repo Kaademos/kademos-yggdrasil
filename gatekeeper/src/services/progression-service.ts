@@ -13,7 +13,7 @@ export class ProgressionService {
 
   constructor(
     @inject(ProgressionClient) private progressionClient: ProgressionClient,
-    @inject('Config') private config: any = { cacheTTLMs: 30000 }
+    @inject('Config') private config: number | { cacheTTLMs?: number } = { cacheTTLMs: 30000 }
   ) {
     if (typeof config === 'number') {
       this.cacheTTLMs = config;

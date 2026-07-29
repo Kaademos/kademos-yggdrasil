@@ -94,8 +94,12 @@ describe('IMDSService', () => {
 
       const token = imdsService.generateToken(mockRequest);
       const paths = imdsService.getAvailablePaths(token!);
-      
+
       expect(paths).toBeTruthy();
+      // getAvailablePaths returns string[] | null; toBeTruthy does not narrow for
+      // the compiler, so assert explicitly before dereferencing.
+      if (!paths) throw new Error('expected available paths for a valid token');
+
       expect(Array.isArray(paths)).toBe(true);
       expect(paths.length).toBeGreaterThan(0);
       expect(paths.some((p: string) => p.includes('instance'))).toBe(true);

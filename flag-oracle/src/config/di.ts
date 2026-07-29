@@ -10,6 +10,7 @@ import { HintService } from '../services/hint-service';
 import { DiscordBroadcaster } from '../services/discord-broadcaster';
 import { FlagRepository } from '../repositories/flag-repository';
 import { RepositoryFactory } from '../repositories/repository-factory';
+import { AchievementService } from '../services/achievement-service';
 
 export function configureContainer() {
   const config = loadConfig();
@@ -48,6 +49,7 @@ export function configureContainer() {
   container.register(ScoringService, { useClass: ScoringService });
   container.register(HintService, { useClass: HintService });
   container.register(DiscordBroadcaster, { useClass: DiscordBroadcaster });
+  container.register(AchievementService, { useClass: AchievementService });
 
   // RateLimiter now takes config object injected via 'RateLimitConfig'
   container.register(RateLimiter, { useClass: RateLimiter });

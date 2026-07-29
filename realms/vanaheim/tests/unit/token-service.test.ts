@@ -23,12 +23,31 @@ describe('TokenService', () => {
       expect(token.seed).toBeGreaterThan(0);
     });
 
-    it('should generate different tokens for different userIds', () => {
+    it('should derive a distinct seed per userId', () => {
       const token1 = tokenService.generateToken('merchant1');
       const token2 = tokenService.generateToken('merchant2');
-      
-      expect(token1.value).not.toBe(token2.value);
+
+      // seed = timestamp + parseUserId(userId) * seedMultiplier, so the userId
+      // always shifts the seed regardless of how close the timestamps are.
       expect(token1.seed).not.toBe(token2.seed);
+      expect(token1.userId).toBe('merchant1');
+      expect(token2.userId).toBe('merchant2');
+    });
+
+    it('should emit well-formed tokens for distinct userIds', () => {
+      const token1 = tokenService.generateToken('merchant1');
+      const token2 = tokenService.generateToken('merchant2');
+
+      expect(token1.value).toMatch(/^VAN-[A-F0-9]{16}$/);
+      expect(token2.value).toMatch(/^VAN-[A-F0-9]{16}$/);
+
+      // NOTE: deliberately not asserting token1.value !== token2.value.
+      //
+      // This realm is A04 Cryptographic Failures and its PRNG is an LCG with
+      // intentionally poor mixing, so seeds 1000 apart routinely map onto the
+      // same 16-hex output — colliding tokens ARE the vulnerability being
+      // taught. The previous assertion demanded they never collide, which
+      // failed roughly 40% of runs and contradicted the realm's own premise.
     });
 
     it('should add generated tokens to history', () => {

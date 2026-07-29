@@ -1,3 +1,7 @@
+/* eslint-disable no-console -- emits structured JSON lines to stdout for container
+   log collection (promtail/Loki). stdout is this class's transport, alongside the
+   winston logger; it is not stray debug output. */
+
 import { logger as winstonLogger, sanitizeForLogging } from '../utils/logger';
 
 export interface LogContext {

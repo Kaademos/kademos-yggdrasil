@@ -7,8 +7,8 @@ interface RequestLog {
   ip: string;
   userAgent: string;
   userId?: string;
-  query?: any;
-  body?: any;
+  query?: unknown;
+  body?: unknown;
 }
 
 interface ResponseLog {

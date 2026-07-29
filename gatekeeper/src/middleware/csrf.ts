@@ -21,7 +21,12 @@ export function csrfTokenHandler(req: Request, res: Response) {
   });
 }
 
-export function csrfErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
+export function csrfErrorHandler(
+  err: Error & { code?: string },
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (err.code === 'EBADCSRFTOKEN') {
     return res.status(403).json({
       status: 'error',
