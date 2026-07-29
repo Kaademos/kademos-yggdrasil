@@ -1,0 +1,30 @@
+# Snyk (https://snyk.io) policy file
+#
+# Project Yggdrasil is a vulnerable-by-design CTF platform. Everything under
+# realms/ contains INTENTIONAL security flaws — they are the educational
+# content, not defects. See SECURITY.md for the full scope definition.
+#
+# Only the control plane is in scope for security triage:
+#   - gatekeeper/   (auth, sessions, CSRF, reverse proxy)
+#   - flag-oracle/  (flag validation, scoring, progression)
+#
+# NOTE: this `exclude` block is honoured by Snyk Code (SAST) and Snyk IaC.
+# It does NOT stop Snyk Open Source from discovering realm manifests —
+# those must be deactivated in the Snyk UI (see below).
+version: v1.25.0
+
+exclude:
+  global:
+    # Intentionally vulnerable challenge realms — out of scope by design.
+    - realms/**
+
+    # Build output and vendored dependencies.
+    - '**/node_modules/**'
+    - '**/dist/**'
+    - '**/target/**'
+
+    # Test fixtures containing deliberately weak credentials / example flags.
+    - '**/*.test.ts'
+    - tests/**
+    - playwright-report/**
+    - test-results/**
