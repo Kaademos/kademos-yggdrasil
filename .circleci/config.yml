@@ -231,8 +231,9 @@ jobs:
           name: Snyk Code (SAST) - gatekeeper
           command: |
             cd gatekeeper
-            # Exclude test data files that contain intentional weak credentials for CTF
-            snyk code test --severity-threshold=high --exclude=src/repositories/user-repository.ts,src/config/index.ts
+            # No excludes: the hardcoded seed credential these paths were suppressed
+            # for is fixed, not hidden. Auth paths are fully in scope for the gate.
+            snyk code test --severity-threshold=high
 
       # --- Flag-Oracle scans ---
 
@@ -246,8 +247,9 @@ jobs:
           name: Snyk Code (SAST) - flag-oracle
           command: |
             cd flag-oracle
-            # Exclude test data files that contain intentional example flags for CTF
-            snyk code test --severity-threshold=high --exclude=src/repositories/flag-repository.ts
+            # No excludes: the repo-wide scan reports nothing in flag-repository.ts,
+            # so the suppression was stale. Validation paths are in scope for the gate.
+            snyk code test --severity-threshold=high
 
       # Optional: send snapshots to Snyk UI (non-blocking)
       - run:
