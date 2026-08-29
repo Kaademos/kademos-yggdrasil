@@ -1,5 +1,5 @@
 # Stage 1: Build frontend
-FROM node:20-alpine AS frontend-builder
+FROM node:26-alpine AS frontend-builder
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ WORKDIR /app/frontend
 RUN npx vite build
 
 # Stage 2: Build backend
-FROM node:20-alpine AS backend-builder
+FROM node:26-alpine AS backend-builder
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ COPY src ./src
 RUN npm run build:backend
 
 # Stage 3: Production
-FROM node:20-alpine
+FROM node:26-alpine
 
 WORKDIR /app
 
