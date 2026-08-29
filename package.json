@@ -6,6 +6,6 @@
     "sync-hints": "cd flag-oracle && TS_NODE_TRANSPILE_ONLY=1 node_modules/.bin/ts-node --compiler-options '{\"module\":\"node16\",\"moduleResolution\":\"node16\",\"esModuleInterop\":true,\"types\":[\"node\"]}' ../scripts/sync-hints.ts"
   },
   "devDependencies": {
-    "@playwright/test": "^1.57.0"
+    "@playwright/test": "^1.62.1"
   }
 }
