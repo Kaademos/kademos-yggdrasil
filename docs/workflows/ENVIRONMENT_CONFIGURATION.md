@@ -95,16 +95,16 @@ All flags follow the format: `YGGDRASIL{REALM:UUID}`
 | Variable | Example |
 |----------|---------|
 | `SAMPLE_REALM_FLAG` | `YGGDRASIL{SAMPLE:00000000-0000-0000-0000-000000000000}` |
-| `NIFLHEIM_FLAG` | `YGGDRASIL{NIFLHEIM:ba6cd20a-...}` |
-| `HELHEIM_FLAG` | `YGGDRASIL{HELHEIM:e1a93eab-...}` |
-| `SVARTALFHEIM_FLAG` | `YGGDRASIL{SVARTALFHEIM:77c7df6c-...}` |
-| `JOTUNHEIM_FLAG` | `YGGDRASIL{JOTUNHEIM:522fb48d-...}` |
-| `MUSPELHEIM_FLAG` | `YGGDRASIL{MUSPELHEIM:b1aea18f-...}` |
-| `NIDAVELLIR_FLAG` | `YGGDRASIL{NIDAVELLIR:969cb870-...}` |
-| `VANAHEIM_FLAG` | `YGGDRASIL{VANAHEIM:72dfb48c-...}` |
+| `NIFLHEIM_FLAG` | `YGGDRASIL{NIFLHEIM:<generated>}` |
+| `HELHEIM_FLAG` | `YGGDRASIL{HELHEIM:<generated>}` |
+| `SVARTALFHEIM_FLAG` | `YGGDRASIL{SVARTALFHEIM:<generated>}` |
+| `JOTUNHEIM_FLAG` | `YGGDRASIL{JOTUNHEIM:<generated>}` |
+| `MUSPELHEIM_FLAG` | `YGGDRASIL{MUSPELHEIM:<generated>}` |
+| `NIDAVELLIR_FLAG` | `YGGDRASIL{NIDAVELLIR:<generated>}` |
+| `VANAHEIM_FLAG` | `YGGDRASIL{VANAHEIM:<generated>}` |
 | `MIDGARD_FLAG` | `YGGDRASIL{MIDGARD:771082af-...}` |
 | `ALFHEIM_FLAG` | `YGGDRASIL{ALFHEIM:df463c99-...}` |
-| `ASGARD_FLAG` | `YGGDRASIL{ASGARD:81892ad5-...}` |
+| `ASGARD_FLAG` | `YGGDRASIL{ASGARD:<generated>}` |
 
 **Note:** Flags are defined in `.env.example` with full UUIDs. Use these for development/testing.
 
@@ -246,7 +246,7 @@ grep "GRAFANA_ADMIN_PASSWORD" .env
 ```bash
 # Check flag format
 grep "NIFLHEIM_FLAG" .env
-# Should be: YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf}
+# Should be: YGGDRASIL{NIFLHEIM:<generated-by-make-setup>}
 
 # Verify flag-oracle loaded it
 curl http://localhost:3001/health

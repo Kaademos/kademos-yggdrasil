@@ -4,21 +4,26 @@
 
 import { loadConfig } from '../../src/config';
 
+const TEST_FLAG = 'YGGDRASIL{VANAHEIM:11111111-1111-4111-8111-111111111111}';
+
 describe('loadConfig', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...originalEnv };
+    // Realms fail closed without a flag, so every case supplies one explicitly.
+    process.env.FLAG = TEST_FLAG;
   });
 
   afterAll(() => {
     process.env = originalEnv;
   });
 
-  it('should load default config when no env vars set', () => {
+  it('should load default config when no optional env vars set', () => {
     delete process.env.PORT;
-    delete process.env.FLAG;
+    // FLAG is deliberately not deleted: it has no default by design, and the
+    // 'flag is required' cases below cover its absence.
     delete process.env.REALM_NAME;
     delete process.env.NODE_ENV;
     delete process.env.TOKEN_SEED_MULTIPLIER;
@@ -59,5 +64,18 @@ describe('loadConfig', () => {
   it('should throw error for out-of-range port', () => {
     process.env.PORT = '70000';
     expect(() => loadConfig()).toThrow('Invalid PORT configuration');
+  });
+  describe('flag is required', () => {
+    it('should throw when FLAG is not set', () => {
+      delete process.env.FLAG;
+
+      expect(() => loadConfig()).toThrow('FLAG is not set');
+    });
+
+    it('should throw when FLAG is empty', () => {
+      process.env.FLAG = '';
+
+      expect(() => loadConfig()).toThrow('FLAG is not set');
+    });
   });
 });

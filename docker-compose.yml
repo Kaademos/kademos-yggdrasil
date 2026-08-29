@@ -30,6 +30,20 @@ services:
       - OBSERVABILITY_ENABLED=${OBSERVABILITY_ENABLED:-false}
       - FLAG_MASTER_SECRET=${FLAG_MASTER_SECRET:-}
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+      # The Oracle builds its valid-flag set from these, so they are the same
+      # values the realms are started with. No defaults: an unconfigured realm
+      # simply has no valid flag rather than falling back to a public one.
+      - SAMPLE_REALM_FLAG=${SAMPLE_REALM_FLAG:-}
+      - NIFLHEIM_FLAG=${NIFLHEIM_FLAG:-}
+      - HELHEIM_FLAG=${HELHEIM_FLAG:-}
+      - SVARTALFHEIM_FLAG=${SVARTALFHEIM_FLAG:-}
+      - JOTUNHEIM_FLAG=${JOTUNHEIM_FLAG:-}
+      - MUSPELHEIM_FLAG=${MUSPELHEIM_FLAG:-}
+      - NIDAVELLIR_FLAG=${NIDAVELLIR_FLAG:-}
+      - VANAHEIM_FLAG=${VANAHEIM_FLAG:-}
+      - MIDGARD_FLAG=${MIDGARD_FLAG:-}
+      - ALFHEIM_FLAG=${ALFHEIM_FLAG:-}
+      - ASGARD_FLAG=${ASGARD_FLAG:-}
     volumes:
       - progress_data:/data
     networks:
@@ -96,7 +110,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - PORT=3000
-      - FLAG=${SAMPLE_REALM_FLAG:-YGGDRASIL{SAMPLE:00000000-0000-0000-0000-000000000000}}
+      - FLAG=${SAMPLE_REALM_FLAG}
     networks:
       - sample_realm_net
     healthcheck:
@@ -210,17 +224,26 @@ services:
   nidavellir-db:
     image: postgres:15-alpine
     container_name: nidavellir-db
+    # Deliberately NOT persisted. These databases are read-only challenge
+    # fixtures — no realm ever writes to them — so a named volume bought
+    # nothing and cost two real bugs: Postgres only runs its init scripts on
+    # an EMPTY data directory, so a stale volume kept serving the previous
+    # deployment's flag after `make setup` generated a new one, and any state
+    # a player injected outlived them. Without a volume every fresh container
+    # re-seeds from init.sql.template with the current flag.
     environment:
       - POSTGRES_DB=nidavellir
       - POSTGRES_USER=dwarf_admin
       - POSTGRES_PASSWORD=${NIDAVELLIR_DB_PASSWORD}
+      # Seeded into the database by 10-init.sh; the realm serves it from there.
+      - REALM_FLAG=${NIDAVELLIR_FLAG}
     volumes:
-      - nidavellir_db_data:/var/lib/postgresql/data
-      - ./realms/nidavellir/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./realms/nidavellir/init-db.sql.template:/docker-entrypoint-initdb.d/init.sql.template:ro
+      - ./realms/_shared/init-db-with-flag.sh:/docker-entrypoint-initdb.d/10-init.sh:ro
     networks:
       - nidavellir_net
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "dwarf_admin"]
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "dwarf_admin", "-d", "nidavellir"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -344,17 +367,26 @@ services:
   asgard-db:
     image: postgres:15-alpine
     container_name: asgard-db
+    # Deliberately NOT persisted. These databases are read-only challenge
+    # fixtures — no realm ever writes to them — so a named volume bought
+    # nothing and cost two real bugs: Postgres only runs its init scripts on
+    # an EMPTY data directory, so a stale volume kept serving the previous
+    # deployment's flag after `make setup` generated a new one, and any state
+    # a player injected outlived them. Without a volume every fresh container
+    # re-seeds from init.sql.template with the current flag.
     environment:
       - POSTGRES_DB=asgard
       - POSTGRES_USER=hr_admin
       - POSTGRES_PASSWORD=${ASGARD_DB_PASSWORD}
+      # Seeded into the database by 10-init.sh; the realm serves it from there.
+      - REALM_FLAG=${ASGARD_FLAG}
     volumes:
-      - asgard_db_data:/var/lib/postgresql/data
-      - ./realms/asgard/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./realms/asgard/init-db.sql.template:/docker-entrypoint-initdb.d/init.sql.template:ro
+      - ./realms/_shared/init-db-with-flag.sh:/docker-entrypoint-initdb.d/10-init.sh:ro
     networks:
       - asgard_net
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "hr_admin"]
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "hr_admin", "-d", "asgard"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -430,12 +462,6 @@ volumes:
   redis_data:
     driver: local
     name: yggdrasil_redis_data
-  nidavellir_db_data:
-    driver: local
-    name: yggdrasil_nidavellir_db_data
-  asgard_db_data:
-    driver: local
-    name: yggdrasil_asgard_db_data
   verdaccio_storage:
     driver: local
     name: yggdrasil_verdaccio_storage

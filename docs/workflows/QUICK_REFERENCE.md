@@ -153,7 +153,7 @@ curl -X POST http://localhost:8080/login \
 curl -X POST http://localhost:8080/submit-flag \
   -H "Content-Type: application/json" \
   -H "Cookie: session=..." \
-  -d '{"flag":"YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf}"}'
+  -d '{"flag":"YGGDRASIL{NIFLHEIM:<generated-by-make-setup>}"}'
 ```
 
 **Get Progression:**
@@ -190,16 +190,16 @@ curl http://localhost:8080/progress \
 
 | Variable | Realm | Example Value |
 |----------|-------|---------------|
-| `NIFLHEIM_FLAG` | Realm 10 | `YGGDRASIL{NIFLHEIM:ba6cd20a-...}` |
-| `HELHEIM_FLAG` | Realm 9 | `YGGDRASIL{HELHEIM:e1a93eab-...}` |
-| `SVARTALFHEIM_FLAG` | Realm 8 | `YGGDRASIL{SVARTALFHEIM:77c7df6c-...}` |
-| `JOTUNHEIM_FLAG` | Realm 7 | `YGGDRASIL{JOTUNHEIM:522fb48d-...}` |
-| `MUSPELHEIM_FLAG` | Realm 6 | `YGGDRASIL{MUSPELHEIM:b1aea18f-...}` |
-| `NIDAVELLIR_FLAG` | Realm 5 | `YGGDRASIL{NIDAVELLIR:969cb870-...}` |
-| `VANAHEIM_FLAG` | Realm 4 | `YGGDRASIL{VANAHEIM:72dfb48c-...}` |
+| `NIFLHEIM_FLAG` | Realm 10 | `YGGDRASIL{NIFLHEIM:<generated>}` |
+| `HELHEIM_FLAG` | Realm 9 | `YGGDRASIL{HELHEIM:<generated>}` |
+| `SVARTALFHEIM_FLAG` | Realm 8 | `YGGDRASIL{SVARTALFHEIM:<generated>}` |
+| `JOTUNHEIM_FLAG` | Realm 7 | `YGGDRASIL{JOTUNHEIM:<generated>}` |
+| `MUSPELHEIM_FLAG` | Realm 6 | `YGGDRASIL{MUSPELHEIM:<generated>}` |
+| `NIDAVELLIR_FLAG` | Realm 5 | `YGGDRASIL{NIDAVELLIR:<generated>}` |
+| `VANAHEIM_FLAG` | Realm 4 | `YGGDRASIL{VANAHEIM:<generated>}` |
 | `MIDGARD_FLAG` | Realm 3 | `YGGDRASIL{MIDGARD:771082af-...}` |
 | `ALFHEIM_FLAG` | Realm 2 | `YGGDRASIL{ALFHEIM:df463c99-...}` |
-| `ASGARD_FLAG` | Realm 1 | `YGGDRASIL{ASGARD:81892ad5-...}` |
+| `ASGARD_FLAG` | Realm 1 | `YGGDRASIL{ASGARD:<generated>}` |
 
 ### Generating Secrets
 
@@ -252,8 +252,8 @@ YGGDRASIL{REALM_NAME:UUID}
 ### Examples
 
 ```
-YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf}
-YGGDRASIL{ASGARD:81892ad5-e169-4165-89fe-ab25348325e0}
+YGGDRASIL{NIFLHEIM:<generated-by-make-setup>}
+YGGDRASIL{ASGARD:<generated-by-make-setup>}
 ```
 
 ### Regex Validation

@@ -344,7 +344,7 @@ echo "✅ Asgard tests complete"
 
 ## Database Schema
 
-**File:** `realms/asgard/init-db.sql`
+**File:** `realms/asgard/init-db.sql.template` (the flag is substituted at container init from `ASGARD_FLAG`)
 
 ```sql
 -- Users table (authentication)
@@ -381,7 +381,7 @@ INSERT INTO documents (user_id, title, content) VALUES
 
 ```bash
 # .env
-ASGARD_FLAG=YGGDRASIL{ASGARD:81892ad5-e169-4165-89fe-ab25348325e0}
+ASGARD_FLAG=YGGDRASIL{ASGARD:<generated-by-make-setup>}
 ASGARD_DB_PASSWORD=<secure-password>
 ```
 

@@ -46,7 +46,7 @@ test.describe('Realm Isolation & Progression Security', () => {
     await loginViaUI(page, username, password);
     
     // Try to submit Asgard flag without completing previous realms
-    const asgardFlag = process.env.ASGARD_FLAG || 'YGGDRASIL{ASGARD:81892ad5-e169-4165-89fe-ab25348325e0}';
+    const asgardFlag = process.env.ASGARD_FLAG || 'YGGDRASIL{ASGARD:00000010-0000-4000-8000-000000000000}';
     
     await page.goto('/realms');
     await page.fill('input[name="flag"]', asgardFlag);
@@ -89,7 +89,7 @@ test.describe('Realm Isolation & Progression Security', () => {
     
     // Login and submit first flag
     await loginViaUI(page, username, password);
-    const niflheimFlag = process.env.NIFLHEIM_FLAG || 'YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf}';
+    const niflheimFlag = process.env.NIFLHEIM_FLAG || 'YGGDRASIL{NIFLHEIM:00000001-0000-4000-8000-000000000000}';
     await submitFlagViaUI(page, niflheimFlag);
     
     // Logout (destroy session)

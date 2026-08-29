@@ -1,0 +1,72 @@
+version: 2
+
+# Scope note:
+#
+# Dependabot is pointed at the CONTROL PLANE and the toolchain only. The
+# `realms/` packages are deliberately pinned to vulnerable dependency versions —
+# that is the teaching content, and Midgard's supply-chain challenge depends on
+# specific compromised package versions. An automated bump there would silently
+# repair the vulnerability and break the realm, so realm manifests are updated by
+# hand, deliberately, as a content change.
+#
+# The Snyk gate in CI enforces the same split: it blocks on gatekeeper and
+# flag-oracle, and ignores realms.
+
+updates:
+  - package-ecosystem: npm
+    directory: /gatekeeper
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, gatekeeper]
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    groups:
+      # One PR per class rather than one per package: the control plane has a
+      # large dev-dependency tree and ungrouped updates drown the queue.
+      production-dependencies:
+        dependency-type: production
+      development-dependencies:
+        dependency-type: development
+
+  - package-ecosystem: npm
+    directory: /flag-oracle
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, flag-oracle]
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    groups:
+      production-dependencies:
+        dependency-type: production
+      development-dependencies:
+        dependency-type: development
+
+  # Root package.json carries the Playwright E2E tooling.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels: [dependencies, tooling]
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Base images for the control plane. Realm Dockerfiles are excluded for the
+  # same reason as realm npm packages: their base images are part of the
+  # challenge surface.
+  - package-ecosystem: docker
+    directories:
+      - /gatekeeper
+      - /flag-oracle
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    labels: [dependencies, docker]
+    commit-message:
+      prefix: "chore(docker)"

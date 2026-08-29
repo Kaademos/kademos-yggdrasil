@@ -8,11 +8,19 @@ interface Config {
 
 function loadConfig(): Config {
   const port = parseInt(process.env.PORT || '3000', 10);
-  const flag = process.env.FLAG || 'YGGDRASIL{SAMPLE:00000000-0000-0000-0000-000000000000}';
+  const flag = process.env.FLAG;
   const nodeEnv = process.env.NODE_ENV || 'development';
 
   if (isNaN(port) || port < 1 || port > 65535) {
     throw new Error('Invalid PORT configuration');
+  }
+
+  if (!flag) {
+    throw new Error(
+      'FLAG is not set. Realms refuse to start without an explicitly configured flag so that ' +
+        'no deployment ever runs on a value published in the repository. ' +
+        'Run `make setup` to generate a flag for every realm.'
+    );
   }
 
   return { port, flag, nodeEnv };

@@ -48,6 +48,13 @@ export class IMDSService {
     
     // Cleanup expired tokens every hour
     this.cleanupInterval = setInterval(() => this.cleanupExpiredTokens(), 3600000);
+
+    // Don't prevent Node.js from exiting — matches SessionStore.startCleanup().
+    // Without this the interval is an open handle: the realm's own test run used
+    // to hang after its last assertion rather than exiting.
+    if (this.cleanupInterval.unref) {
+      this.cleanupInterval.unref();
+    }
   }
 
   /**

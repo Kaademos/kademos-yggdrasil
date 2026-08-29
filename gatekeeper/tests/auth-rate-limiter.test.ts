@@ -9,6 +9,9 @@ describe('AuthRateLimiter', () => {
 
   afterEach(() => {
     rateLimiter.clear();
+    // Window-expiry cases below opt into fake timers; make sure a failure there
+    // can never leave the rest of the suite on a frozen clock.
+    jest.useRealTimers();
   });
 
   describe('checkLimit', () => {
@@ -60,7 +63,12 @@ describe('AuthRateLimiter', () => {
       expect(result.retryAfter).toBeLessThanOrEqual(2); // Within window duration
     });
 
-    it('should allow requests after window expires', async () => {
+    // The limiter compares Date.now() against a window, so expiry is tested by
+    // moving the clock rather than by sleeping. A real 150ms sleep raced the
+    // 100ms window whenever the suite ran under parallel load: the sleep is a
+    // lower bound, but so is the scheduling delay before the assertion runs.
+    it('should allow requests after window expires', () => {
+      jest.useFakeTimers();
       const shortWindowLimiter = new AuthRateLimiter(100, 2); // 100ms window
 
       shortWindowLimiter.checkLimit('test-key');
@@ -69,8 +77,7 @@ describe('AuthRateLimiter', () => {
       const blockedResult = shortWindowLimiter.checkLimit('test-key');
       expect(blockedResult.allowed).toBe(false);
 
-      // Wait for window to expire
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      jest.advanceTimersByTime(150);
 
       const allowedResult = shortWindowLimiter.checkLimit('test-key');
       expect(allowedResult.allowed).toBe(true);
@@ -94,14 +101,14 @@ describe('AuthRateLimiter', () => {
   });
 
   describe('cleanup', () => {
-    it('should remove old entries', async () => {
+    it('should remove old entries', () => {
+      jest.useFakeTimers();
       const shortWindowLimiter = new AuthRateLimiter(100, 5);
 
       shortWindowLimiter.checkLimit('key1');
       shortWindowLimiter.checkLimit('key2');
 
-      // Wait for entries to expire
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      jest.advanceTimersByTime(150);
 
       shortWindowLimiter.cleanup();
 
