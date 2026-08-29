@@ -167,14 +167,14 @@ gitleaks detect --config .gitleaks.toml --log-opts="HEAD~1..HEAD"
 - ✅ Use `.env` files for configuration (they're gitignored)
 - ✅ Use `<generate-strong-secret>` placeholders in `.env.example`
 - ✅ Mark intentional vulnerabilities with comments: `// VULNERABLE: weak password for challenge`
-- ✅ Use environment variables for flags: `process.env.REALM_FLAG`
+- ✅ Read flags from the environment with **no fallback** — fail closed if unset
 - ✅ Document false positives in this file
 - ✅ Run `./scripts/scan-secrets-enhanced.sh` before committing
 
 **DON'T:**
 - ❌ Commit real API tokens (GitHub, AWS, OpenAI, etc.)
 - ❌ Commit private keys (`.pem`, `.key`, `id_rsa`, etc.)
-- ❌ Hard-code flags in source code
+- ❌ Hard-code flags in source code — including as an `||` fallback, a SQL seed, or a doc example
 - ❌ Commit production credentials
 - ❌ Use real passwords in examples
 
@@ -187,7 +187,15 @@ When creating new challenges with weak credentials:
 // VULNERABLE: Weak password for brute force challenge
 const DEFAULT_ADMIN_PASSWORD = 'admin123';
 
-// ✅ GOOD: Environment-driven flag
+// ✅ GOOD: Environment-driven flag, failing closed
+const flag = process.env.FLAG;
+if (!flag) {
+  throw new Error('FLAG is not set. Run `make setup` to generate one per realm.');
+}
+
+// ❌ BAD: a fallback IS a hard-coded flag. Every realm shipped one of these,
+// and because the *_FLAG variables were empty by default, the published
+// fallback was the value actually in play.
 const REALM_FLAG = process.env.ALFHEIM_FLAG || 'YGGDRASIL{ALFHEIM:placeholder}';
 
 // ❌ BAD: Hard-coded real flag
@@ -370,3 +378,53 @@ For questions about secrets management:
 4. Consult the security team
 
 **Remember:** When in doubt, treat it as a real secret and rotate it.
+
+## Flags Are Deployment Secrets
+
+Realm flags are generated per install by `make setup` (see `scripts/generate-flags.sh`),
+written only to the gitignored `.env`, and consumed in exactly two places:
+
+- **The realms**, via `FLAG` — every realm throws at startup if it is unset.
+- **The Flag Oracle**, via `<REALM>_FLAG` — `loadRealmFlags()` builds the valid-flag set
+  from the environment, with no built-in defaults. An unconfigured realm has no valid
+  flag rather than a public one.
+
+Nidavellir and Asgard additionally serve their flag out of a Postgres seed. Those seeds
+are templates (`init-db.sql.template`) with a `__REALM_FLAG__` placeholder, substituted at
+container init by `realms/_shared/init-db-with-flag.sh` from the same `.env` value.
+
+The `no-committed-flags` job in `.circleci/config.yml` fails the build if a flag
+literal reappears in application source, so a fallback cannot creep back in unnoticed.
+
+To rotate every flag: `scripts/generate-flags.sh --force`, then recreate the realm
+database volumes so the seeds re-run. Rotating invalidates all existing captures.
+
+## The Old Flags Are Still in Git History — On Purpose
+
+The flag values that used to be committed remain in the repository's history, and
+that is a deliberate decision rather than an oversight.
+
+**We rotated instead of rewriting.** Flags are now generated per deployment, so every
+value visible in history is dead: no running instance accepts any of them, and
+`make setup` gives each new deployment its own set. Rewriting history would spend
+real effort making a worthless string harder to find.
+
+Rewriting was also considered and rejected on its own merits:
+
+- It breaks every fork, clone and open pull request, and forces every contributor
+  to re-clone.
+- It does not actually delete anything. GitHub retains unreachable objects, and
+  forks keep their own copies, so the values stay reachable regardless.
+- The property that makes the exposure harmless is rotation, not deletion — and
+  rotation is now structural (`make rotate-flags`), not a one-off cleanup.
+
+This is the standard incident response for a leaked credential: **rotate it, then
+make the leak class impossible.** Both are done — the `no-committed-flags` CI job
+fails the build if a flag literal reappears in application source.
+
+If a *live* secret is ever committed — an API token, a private key, a real
+password — that is a different situation and the response is different: rotate the
+credential immediately at its source, then contact the maintainers before touching
+history. As of the audit for the public launch, history contains no live
+credentials. The `AKIAIOSFODNN7EXAMPLE` string in Alfheim is AWS's own published
+documentation example key, used as realistic fixture data for the IMDS challenge.

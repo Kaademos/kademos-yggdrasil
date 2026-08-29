@@ -9,7 +9,19 @@ describe('IMDSService', () => {
   const testFlag = 'YGGDRASIL{ALFHEIM:test-flag-uuid}';
 
   beforeEach(() => {
+    // IMDSService starts an hourly cleanup interval in its constructor. Under
+    // real timers that handle keeps the Node process alive after the last
+    // assertion, so the run hangs instead of exiting. Faking timers also makes
+    // the TTL-expiry cases below deterministic and instant.
+    jest.useFakeTimers();
     imdsService = new IMDSService(testFlag);
+  });
+
+  afterEach(() => {
+    // Clears the interval as well as the token map — the leak this suite used
+    // to hit is a real one, not a test artefact.
+    imdsService.destroy();
+    jest.useRealTimers();
   });
 
   describe('Token Generation', () => {
@@ -231,7 +243,7 @@ describe('IMDSService', () => {
       expect(newCount).toBe(initialCount + 1);
     });
 
-    it('should clean up expired tokens', (done) => {
+    it('should clean up expired tokens', () => {
       const mockRequest = {
         method: 'PUT',
         headers: {
@@ -242,17 +254,16 @@ describe('IMDSService', () => {
       const token = imdsService.generateToken(mockRequest);
       expect(token).toBeTruthy();
 
-      // Wait for token to expire
-      setTimeout(() => {
-        const metadata = imdsService.getInstanceMetadata(token!);
-        expect(metadata).toBeNull();
-        done();
-      }, 1200);
-    }, 2000);
+      // Advance past the 1s TTL. Expiry is a Date.now() comparison, which the
+      // fake clock moves with the timers.
+      jest.advanceTimersByTime(1200);
+
+      expect(imdsService.getInstanceMetadata(token!)).toBeNull();
+    });
   });
 
   describe('Security', () => {
-    it('should not accept expired tokens', (done) => {
+    it('should not accept expired tokens', () => {
       const mockRequest = {
         method: 'PUT',
         headers: {
@@ -261,13 +272,11 @@ describe('IMDSService', () => {
       } as any;
 
       const token = imdsService.generateToken(mockRequest);
-      
-      setTimeout(() => {
-        const credentials = imdsService.getIAMCredentials(token!, 'AlfheimAdminRole');
-        expect(credentials).toBeNull();
-        done();
-      }, 1200);
-    }, 2000);
+
+      jest.advanceTimersByTime(1200);
+
+      expect(imdsService.getIAMCredentials(token!, 'AlfheimAdminRole')).toBeNull();
+    });
 
     it('should generate cryptographically strong tokens', () => {
       const mockRequest = {

@@ -266,18 +266,25 @@ echo "✅ All tests passed for <REALM-NAME>"
 
 ## Continuous Integration
 
-### GitHub Actions
+### CircleCI
 
-All tests must pass in CI before merging:
+CircleCI is the only CI system for this project — there are no GitHub Actions
+workflows. All tests must pass before merging.
+
+Realm suites run through the `test` job's `make test-realms` step, which iterates
+every realm package, so a new realm is picked up automatically once its directory
+exists and its `package.json` defines `test`. Add it to the realm list in the
+"Install realm dependencies" step of `.circleci/config.yml`:
 
 ```yaml
-# .github/workflows/ci.yml (excerpt)
-- name: Run Realm Tests
-  run: |
-    cd realms/<realm-name>
-    npm install
-    npm test
-    npm run lint
+# .circleci/config.yml (excerpt)
+- run:
+    name: Install realm dependencies
+    command: |
+      for realm in _template alfheim asgard helheim jotunheim midgard \
+                   muspelheim nidavellir niflheim vanaheim <realm-name>; do
+        ( cd "realms/$realm" && npm ci )
+      done
 ```
 
 ### Pre-Commit Hooks

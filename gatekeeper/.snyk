@@ -2,14 +2,17 @@
 
 version: v1.25.0
 
-# Ignore specific vulnerabilities
-exclude:
-  code:
-    # Test data configuration - not a real production secret
-    # The 'yggdrasil123' password is:
-    # - Only used for seeding test users in development/CTF environment
-    # - Configurable via TEST_USER_PASSWORD environment variable
-    # - Not used in any production deployment
-    # - Intentionally weak for CTF training purposes
-    - src/repositories/user-repository.ts
-    - src/config/index.ts
+# NOTE: this file previously excluded src/repositories/user-repository.ts and
+# src/config/index.ts from Snyk Code, on the grounds that the seeded 'weaver'
+# password was "configurable via TEST_USER_PASSWORD". That justification did not
+# hold: docker-compose.yml never forwarded TEST_USER_PASSWORD to the container,
+# so every containerised deployment fell back to the compiled-in default.
+#
+# The underlying issue is now fixed rather than suppressed — there is no
+# password literal in source, and an unset TEST_USER_PASSWORD skips seeding
+# entirely — so the exclusions have been removed.
+
+exclude: {}
+
+# Patch any applicable issues
+patch: {}

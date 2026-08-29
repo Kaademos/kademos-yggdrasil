@@ -57,6 +57,47 @@ export function createRoutes(
     res.status(200).json({ status: 'ok', service: 'gatekeeper' });
   });
 
+  /**
+   * RFC 9116 security.txt — the rules of engagement for a hosted instance.
+   *
+   * Yggdrasil is deliberately vulnerable, so a public deployment has to say out
+   * loud which hosts are the target and which are merely in the path. Values are
+   * environment-driven so an operator can point it at their own contact without
+   * rebuilding the image, and the route is declared here (ahead of the realm
+   * proxies and the SPA catch-all) so it can never be shadowed by a realm.
+   */
+  router.get('/.well-known/security.txt', (_req: Request, res: Response) => {
+    const contact = process.env.SECURITY_CONTACT || 'mailto:kirumachi@proton.me';
+    const canonical = process.env.PUBLIC_ORIGIN
+      ? `${process.env.PUBLIC_ORIGIN}/.well-known/security.txt`
+      : undefined;
+    const inScope = process.env.PUBLIC_ORIGIN || '(this deployment only)';
+
+    // RFC 9116 requires an expiry; default to a year out so a forgotten
+    // deployment advertises a stale-but-honest date rather than none.
+    const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+
+    const lines = [
+      `Contact: ${contact}`,
+      `Expires: ${expires}`,
+      ...(canonical ? [`Canonical: ${canonical}`] : []),
+      'Policy: https://github.com/Kaademos/kademos-yggdrasil/blob/main/SECURITY.md',
+      '',
+      '# Project Yggdrasil is a vulnerable-by-design training platform.',
+      '# The realms are MEANT to be exploited. Please do not report them.',
+      '#',
+      `# In scope:     ${inScope}`,
+      '# Out of scope: Cloudflare and every other network provider in the path,',
+      '#               other players, and any host not listed above.',
+      '#',
+      '# Report only: control-plane flaws (gatekeeper / flag-oracle), container',
+      '# escape, or host compromise. See the Policy link for full scope.',
+      '',
+    ];
+
+    res.type('text/plain').send(lines.join('\n'));
+  });
+
   router.get('/metrics', async (_req: Request, res: Response) => {
     try {
       const metricsData = await metrics.getMetrics();

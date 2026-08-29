@@ -270,7 +270,7 @@ describe('Phase 4: SSRF Filter Bypass', () => {
       const metadataUrl = 'http://localhost:9090';
       
       // Phase 4: Use IPv6 bypass to access metadata service
-      const mockFlag = 'YGGDRASIL{ASGARD:81892ad5-e169-4165-89fe-ab25348325e0}';
+      const mockFlag = 'YGGDRASIL{ASGARD:00000010-0000-4000-8000-000000000000}';
       mockedAxios.get.mockResolvedValue({
         status: 200,
         data: {

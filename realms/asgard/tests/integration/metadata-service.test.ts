@@ -78,7 +78,7 @@ describe('Phase 5: Metadata Service', () => {
           id: 1,
           secret_type: 'flag',
           secret_key: 'asgard_master_key',
-          secret_value: 'YGGDRASIL{ASGARD:81892ad5-e169-4165-89fe-ab25348325e0}',
+          secret_value: 'YGGDRASIL{ASGARD:00000010-0000-4000-8000-000000000000}',
           created_at: '2025-12-13T00:00:00.000Z'
         },
         {
@@ -102,7 +102,7 @@ describe('Phase 5: Metadata Service', () => {
     });
 
     test('FLAG HERE: first secret should be Asgard flag', async () => {
-      const mockFlag = 'YGGDRASIL{ASGARD:81892ad5-e169-4165-89fe-ab25348325e0}';
+      const mockFlag = 'YGGDRASIL{ASGARD:00000010-0000-4000-8000-000000000000}';
       mockPool.query.mockResolvedValue({
         rows: [
           {
@@ -229,7 +229,7 @@ describe('Phase 5: Metadata Service', () => {
       // Phase 4: SSRF bypassed filter using IPv6 notation
       // Now accessing metadata service
 
-      const mockFlag = 'YGGDRASIL{ASGARD:81892ad5-e169-4165-89fe-ab25348325e0}';
+      const mockFlag = 'YGGDRASIL{ASGARD:00000010-0000-4000-8000-000000000000}';
       const mockSecrets = [
         {
           id: 1,

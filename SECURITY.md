@@ -12,11 +12,11 @@ The [`realms/`](realms/) directory contains **intentional** security flaws — S
 
 Security fixes are applied to the latest minor release. Please upgrade before reporting.
 
-| Version | Supported          | Notes                       |
-| ------- | ------------------ | --------------------------- |
-| 1.4.x   | :white_check_mark: | Current release             |
-| 1.3.x   | :white_check_mark: | Previous minor (critical fixes only) |
-| < 1.3   | :x:                | Unsupported                 |
+| Version | Supported          | Notes                                                      |
+| ------- | ------------------ | ---------------------------------------------------------- |
+| 2.0.x   | :white_check_mark: | Current release                                            |
+| 1.6.x   | :warning:          | Critical fixes only. **Ships published flag values — see the 2.0.0 release notes and upgrade.** |
+| < 1.6   | :x:                | Unsupported                                                |
 
 ## Reporting a Vulnerability
 
@@ -39,6 +39,42 @@ We will acknowledge your report within **48 hours** and keep you updated as we i
 | CI/CD workflow configuration                      | Findings only reachable with `NODE_ENV` set to a non-production value |
 
 If you're unsure whether something is in scope, email us and ask — we'd rather hear about it.
+
+## Hosted Instances — Rules of Engagement
+
+Yggdrasil is designed to be run locally. When an operator *does* host it publicly, the
+target is the deployment and nothing else. These rules apply to any instance we run, and
+we recommend them to anyone who runs their own.
+
+### You may
+
+- Attack the realms with any tooling you like — Burp, `sqlmap`, `ffuf`, Kali, your own scripts.
+  Breaking them is the point.
+- Exploit anything reachable inside a realm you have legitimately unlocked.
+- Report control-plane flaws, container escapes, or host compromise under the policy above.
+
+### You may not
+
+- **Attack the infrastructure in the path.** Cloudflare, the hosting provider, DNS and the
+  upstream network are transit, not targets. Findings against them are out of scope and will
+  be reported to us as abuse rather than treated as research.
+- **Attack other players.** No interfering with another player's session, progression, score,
+  or challenge state, and no attempting to reach another player's instance.
+- **Run denial-of-service or volumetric traffic.** Load testing, resource exhaustion and
+  traffic floods are out of scope on a shared instance. Rate limits exist; do not try to
+  exhaust them.
+- **Pivot outward.** Do not use a realm as a launch point against any host that is not
+  explicitly listed as in scope, and do not exfiltrate data to third-party services.
+- **Publish flags or full write-ups** while an instance is live. Hints and concepts are
+  welcome in the community; solutions are not.
+
+### Scope is published, not implied
+
+Every hosted instance serves `/.well-known/security.txt` listing its contact, its policy,
+and the exact hostnames that are in scope. If a host is not named there, it is not in scope.
+If you are unsure, ask before you test.
+
+Safe harbor below applies only to activity that stays inside these rules.
 
 ## Safe Harbor
 

@@ -428,11 +428,11 @@ circleci config validate
 # Via CircleCI CLI (if installed)
 circleci follow
 
-# Via GitHub (if using GitHub Actions)
+# Via CircleCI
 gh run list
 
 # Via web UI
-# Go to CircleCI dashboard or GitHub Actions tab
+# Go to the CircleCI dashboard
 ```
 
 **Investigating CI Failures:**

@@ -40,7 +40,7 @@ This represents a common real-world vulnerability where error handling reveals t
 3. **Extract the flag** from the error response:
    ```json
    {
-     "error": "CRITICAL ERROR: Impossible pressure detected: -9999. Cryo-system integrity compromised. EMERGENCY OVERRIDE ENGAGED. Chamber 42 unlocked. Access Code: YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf}"
+     "error": "CRITICAL ERROR: Impossible pressure detected: -9999. Cryo-system integrity compromised. EMERGENCY OVERRIDE ENGAGED. Chamber 42 unlocked. Access Code: YGGDRASIL{NIFLHEIM:<generated-by-make-setup>}"
    }
    ```
 
@@ -48,7 +48,7 @@ This represents a common real-world vulnerability where error handling reveals t
    ```bash
    curl -X POST http://localhost:8080/submit-flag \
      -H "Content-Type: application/json" \
-     -d '{"userId":"your-user-id","flag":"YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf}"}'
+     -d '{"userId":"your-user-id","flag":"YGGDRASIL{NIFLHEIM:<generated-by-make-setup>}"}'
    ```
 
 ### Alternative Exploitation Methods
@@ -235,7 +235,7 @@ docker build -t niflheim .
 
 # Run container
 docker run -p 3000:3000 \
-  -e FLAG=YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf} \
+  -e FLAG=YGGDRASIL{NIFLHEIM:<generated-by-make-setup>} \
   niflheim
 ```
 
@@ -385,6 +385,6 @@ After capturing Niflheim's flag and submitting it, **Helheim** (Realm 9) will be
 
 ---
 
-**Flag Format:** `YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf}`  
+**Flag Format:** `YGGDRASIL{NIFLHEIM:<generated-by-make-setup>}`  
 **Realm Level:** 10 (Entry)  
 **Implemented:** Milestone 3, Phase 1

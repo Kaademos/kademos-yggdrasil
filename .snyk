@@ -1,0 +1,40 @@
+# Snyk (https://snyk.io) policy file
+#
+# Project Yggdrasil is a vulnerable-by-design CTF platform. Everything under
+# realms/ contains INTENTIONAL security flaws — they are the educational
+# content, not defects. See SECURITY.md for the full scope definition.
+#
+# Only the control plane is in scope for security triage:
+#   - gatekeeper/   (auth, sessions, CSRF, reverse proxy)
+#   - flag-oracle/  (flag validation, scoring, progression)
+#
+# NOTE: this `exclude` block is honoured by Snyk Code (SAST) and Snyk IaC.
+# It does NOT stop Snyk Open Source from discovering realm manifests —
+# those must be deactivated in the Snyk UI (see below).
+version: v1.25.0
+
+exclude:
+  global:
+    # Intentionally vulnerable challenge realms — out of scope by design.
+    - realms/**
+
+    # Build output and vendored dependencies.
+    - '**/node_modules/**'
+    - '**/dist/**'
+    - '**/target/**'
+
+    # Test fixtures containing deliberately weak credentials / example flags.
+    - '**/*.test.ts'
+    - tests/**
+    - playwright-report/**
+    - test-results/**
+
+    # Local developer/benchmark tooling. Snyk Code reports SSRF and path
+    # traversal here because argparse/process.argv values reach requests.get,
+    # open() and fs.readdirSync. The "untrusted input" is the CLI argument of
+    # the maintainer running the script by hand — anyone who can set it already
+    # has shell. None of this is built into an image, served, or reachable from
+    # the deployed control plane, so it is out of scope per SECURITY.md.
+    - examples/scanners/**
+    - scripts/scanners/**
+    - scripts/strip-comments.js

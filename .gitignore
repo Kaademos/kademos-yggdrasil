@@ -427,9 +427,6 @@ security-scan-*.json
 audit-report-*.html
 snyk-report.json
 
-# Dependency vulnerabilities
-.snyk
-
 # ============================================================
 # CI/CD Artifacts
 # ============================================================

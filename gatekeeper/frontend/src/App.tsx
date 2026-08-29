@@ -4,6 +4,7 @@ import { WeaversPath } from './components/WeaversPath';
 import { RealmMap } from './components/RealmMap';
 import { Hints } from './components/Hints';
 import { Leaderboard } from './components/Leaderboard';
+import { ScopeBanner } from './components/ScopeBanner';
 
 function App() {
   const [, setIsAuthenticated] = useState(false);
@@ -58,6 +59,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-950">
+      <ScopeBanner />
       <Hero onCTAClick={handleCTAClick} />
       <WeaversPath />
       <RealmMap />
