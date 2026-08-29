@@ -15,7 +15,7 @@
 [![Docker](https://img.shields.io/badge/Docker-20.10+-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-20+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![CI](https://github.com/Kaademos/kademos-yggdrasil/actions/workflows/ci.yml/badge.svg)](https://github.com/Kaademos/kademos-yggdrasil/actions/workflows/ci.yml)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/Kaademos/kademos-yggdrasil/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/Kaademos/kademos-yggdrasil/tree/main)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?logo=discord&logoColor=white)](https://discord.gg/y82Hg9CnSk)
 [![Open in GitHub Codespaces](https://img.shields.io/badge/Codespaces-Play%20in%20your%20browser-181717?logo=github&logoColor=white)](https://codespaces.new/Kaademos/kademos-yggdrasil?quickstart=1)
 

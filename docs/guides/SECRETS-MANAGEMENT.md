@@ -393,7 +393,7 @@ Nidavellir and Asgard additionally serve their flag out of a Postgres seed. Thos
 are templates (`init-db.sql.template`) with a `__REALM_FLAG__` placeholder, substituted at
 container init by `realms/_shared/init-db-with-flag.sh` from the same `.env` value.
 
-The `no-committed-flags` job in `.github/workflows/ci.yml` fails the build if a flag
+The `no-committed-flags` job in `.circleci/config.yml` fails the build if a flag
 literal reappears in application source, so a fallback cannot creep back in unnoticed.
 
 To rotate every flag: `scripts/generate-flags.sh --force`, then recreate the realm

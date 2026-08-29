@@ -57,18 +57,6 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: monthly
-    open-pull-requests-limit: 3
-    labels: [dependencies, ci]
-    commit-message:
-      prefix: "chore(ci)"
-    groups:
-      actions:
-        patterns: ["*"]
-
   # Base images for the control plane. Realm Dockerfiles are excluded for the
   # same reason as realm npm packages: their base images are part of the
   # challenge surface.

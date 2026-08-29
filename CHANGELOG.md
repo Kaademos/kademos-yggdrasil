@@ -47,10 +47,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **GitHub Codespaces support** (`.devcontainer/`) — docker-in-docker, flag generation on
   create, stack start on every resume, port 8080 forwarded. Play in a browser with nothing
   installed locally, on the player's own quota. Practice only; see Notes.
-- **GitHub Actions CI** (`.github/workflows/ci.yml`) with six jobs: lint, unit and realm
-  suites, manifest validation, the flag-literal guard, secret scan and dependency audit,
-  and a full build-and-smoke integration job that asserts the seeded flag matches `.env`
-  and that a realm refuses to boot without one. Unmetered on public repositories.
+- **`no-committed-flags` CircleCI job**, gating `build-and-integration`, plus two new
+  assertions in that job: the flag seeded into Nidavellir's database must match the one
+  generated into `.env`, and a realm image must refuse to boot with `FLAG` unset. CI stays
+  entirely on CircleCI.
 - **`make rotate-flags`** — regenerates every flag and recreates services in one step.
 - **Community health files**: `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1, with
   security-specific standards), pull request template, `CODEOWNERS`, and Dependabot
@@ -65,6 +65,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   player state outlived the session. Their seeds are now `init-db.sql.template` files with
   a `__REALM_FLAG__` placeholder, substituted at container init by
   `realms/_shared/init-db-with-flag.sh`.
+- **CircleCI runs on feature branches.** Every job was filtered to `main` and `develop`
+  only, so a pull request received no CI until after it had already been merged. The
+  filters now also match the conventional branch prefixes from `CONTRIBUTING.md`.
+- **`build-and-integration` generates flags instead of copying `.env.example`.** The
+  example ships with empty flags and realms now fail closed, so the old `cp` would have
+  broken the job; it runs `make setup`.
 - **`make setup` generates secrets idempotently.** It previously only did so when `.env`
   was absent, so a hand-written or upgraded `.env` kept its placeholders forever.
 - **`make validate-env` fails closed** instead of silently copying `.env.example`, and now
@@ -94,7 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - `.github/workflows/.c.md` — a complete CI workflow saved with a `.md` extension to
-  disable it, superseded by `ci.yml`.
+  disable it. Its secret-scan and integration coverage already exists in CircleCI, which
+  remains the only CI system for this project.
 - `realms/nidavellir/src/public/index.html.old` — an orphaned build artefact.
 - The `nidavellir_db_data` and `asgard_db_data` volumes.
 
