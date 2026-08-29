@@ -19,7 +19,6 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
-    labels: [dependencies, gatekeeper]
     commit-message:
       prefix: "chore(deps)"
       prefix-development: "chore(deps-dev)"
@@ -37,7 +36,6 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
-    labels: [dependencies, flag-oracle]
     commit-message:
       prefix: "chore(deps)"
       prefix-development: "chore(deps-dev)"
@@ -53,7 +51,6 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 3
-    labels: [dependencies, tooling]
     commit-message:
       prefix: "chore(deps)"
 
@@ -67,6 +64,5 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 2
-    labels: [dependencies, docker]
     commit-message:
       prefix: "chore(docker)"
