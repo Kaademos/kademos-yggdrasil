@@ -118,7 +118,7 @@ Project Yggdrasil
 **Flag Format:**
 ```
 YGGDRASIL{REALM_NAME:UUID}
-Example: YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf}
+Example: YGGDRASIL{NIFLHEIM:<generated-by-make-setup>}
 ```
 
 **Realm Isolation:**

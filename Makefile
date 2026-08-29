@@ -11,6 +11,7 @@ help:
 	@echo "📦 Setup & Installation:"
 	@echo "  make yggdrasil     - One command to setup and start everything"
 	@echo "  make setup         - First-time setup (create .env, install deps)"
+	@echo "  make rotate-flags  - Rotate all realm flags (invalidates captures)"
 	@echo "  make install       - Install dependencies for all services"
 	@echo ""
 	@echo "🚀 Service Management:"
@@ -55,8 +56,16 @@ setup: validate-env
 	@if [ ! -f .env ]; then \
 		cp .env.example .env; \
 		echo "   ✅ Created .env from .env.example"; \
-		echo "   📝 Generating secrets..."; \
-		SESSION_SECRET=$$(openssl rand -hex 32 2>/dev/null || head -c 32 /dev/urandom | base64); \
+	else \
+		echo "   ℹ️  .env already exists, keeping it"; \
+	fi
+	@echo ""
+	@echo "🔑 Step 2: Filling in unset secrets..."
+	@# Idempotent by construction: each sed only matches the .env.example
+	@# placeholder, so an already-generated secret is left untouched. Run
+	@# unconditionally so a hand-written or upgraded .env cannot keep a
+	@# placeholder value forever.
+	@SESSION_SECRET=$$(openssl rand -hex 32 2>/dev/null || head -c 32 /dev/urandom | base64); \
 		JOTUNHEIM_SECRET=$$(openssl rand -hex 32 2>/dev/null || head -c 32 /dev/urandom | base64); \
 		NIDAVELLIR_PASS=$$(openssl rand -hex 16 2>/dev/null || head -c 16 /dev/urandom | base64); \
 		ASGARD_PASS=$$(openssl rand -hex 16 2>/dev/null || head -c 16 /dev/urandom | base64); \
@@ -66,16 +75,32 @@ setup: validate-env
 		sed -i.bak "s|NIDAVELLIR_DB_PASSWORD=<generate-strong-password-for-production>|NIDAVELLIR_DB_PASSWORD=$$NIDAVELLIR_PASS|g" .env; \
 		sed -i.bak "s|ASGARD_DB_PASSWORD=<generate-strong-password-for-production>|ASGARD_DB_PASSWORD=$$ASGARD_PASS|g" .env; \
 		sed -i.bak "s|GRAFANA_ADMIN_PASSWORD=<generate-strong-password-for-production>|GRAFANA_ADMIN_PASSWORD=$$GRAFANA_PASS|g" .env; \
-		rm -f .env.bak; \
-		echo "   ✅ Generated secure secrets"; \
-	else \
-		echo "   ℹ️  .env already exists, skipping creation"; \
-	fi
+		rm -f .env.bak
+	@echo "   ✅ Secrets present"
 	@echo ""
-	@echo "📦 Step 2: Installing dependencies..."
+	@echo "🔐 Step 3: Generating deployment flags..."
+	@bash scripts/generate-flags.sh
+	@echo ""
+	@echo "📦 Step 4: Installing dependencies..."
 	@$(MAKE) install
 	@echo ""
 	@echo "✅ Setup complete! You can now run 'make up' to start the platform."
+	@echo ""
+
+rotate-flags:
+	@echo "🔄 Rotating every realm flag and the master secret..."
+	@echo ""
+	@echo "   ⚠️  This invalidates every captured flag and all stored progression."
+	@printf "   Continue? [y/N] " && read ans && [ "$$ans" = "y" ] || (echo "   Aborted."; exit 1)
+	@bash scripts/generate-flags.sh --force
+	@echo ""
+	@echo "♻️  Recreating services so they pick up the new values..."
+	@# The realm databases are unpersisted, so recreating the containers is all
+	@# it takes for their seeds to re-run against the new flags. Nothing to
+	@# delete by hand, and no volume names to get wrong.
+	docker compose up -d --force-recreate
+	@echo ""
+	@echo "✅ Flags rotated. Players must re-capture every realm."
 	@echo ""
 
 validate-env:
@@ -83,12 +108,14 @@ validate-env:
 	@command -v docker >/dev/null 2>&1 || (echo "❌ Error: Docker not installed. Please install Docker first." && exit 1)
 	@command -v docker compose >/dev/null 2>&1 || docker compose version >/dev/null 2>&1 || (echo "❌ Error: docker compose not installed" && exit 1)
 	@echo "   ✅ Docker installed"
+	@# Fail closed rather than copying .env.example: that file ships with empty
+	@# flags, and realms now refuse to start without one. A confusing crash loop
+	@# is a worse outcome than a clear instruction here.
 	@if [ ! -f .env ]; then \
-		echo "   ⚠️  .env not found. Run 'make setup' to create it."; \
-		echo "   ℹ️  Copying from .env.example for now..."; \
-		cp .env.example .env; \
+		echo "   ❌ .env not found. Run 'make setup' to create it and generate flags."; \
+		exit 1; \
 	fi
-	@echo "   ✅ Environment file ready"
+	@bash scripts/verify-env.sh
 	@echo ""
 
 up: validate-env

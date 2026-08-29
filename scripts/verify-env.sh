@@ -21,6 +21,7 @@ echo "✅ .env file exists"
 REQUIRED_VARS=(
     "APP_PORT"
     "SESSION_SECRET"
+    "FLAG_MASTER_SECRET"
     "NIFLHEIM_FLAG"
     "HELHEIM_FLAG"
     "SVARTALFHEIM_FLAG"
@@ -45,9 +46,13 @@ for var in "${REQUIRED_VARS[@]}"; do
         echo "❌ Missing: $var"
         ((MISSING++))
     else
-        # Check for placeholder values
-        value=$(grep "^${var}=" .env | cut -d= -f2-)
-        if [[ "$value" == *"<generate-strong"* ]]; then
+        # An empty value is as bad as a missing key: realms fail closed on an
+        # unset FLAG, and an unset secret silently disables features.
+        value=$(grep "^${var}=" .env | tail -n 1 | cut -d= -f2-)
+        if [ -z "$value" ]; then
+            echo "❌ Empty: $var"
+            ((MISSING++))
+        elif [[ "$value" == "<"*">" ]]; then
             echo "⚠️  Placeholder found in: $var"
             ((PLACEHOLDER++))
         fi
@@ -68,5 +73,6 @@ else
     [ $PLACEHOLDER -gt 0 ] && echo "   - $PLACEHOLDER placeholder values need to be replaced"
     echo ""
     echo "   Run 'make setup' to auto-generate secrets"
+    echo "   (flags and FLAG_MASTER_SECRET: scripts/generate-flags.sh)"
     exit 1
 fi

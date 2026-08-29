@@ -151,7 +151,7 @@ The vault response contains the realm flag:
   "success": true,
   "vault": {
     "realm": "Vanaheim",
-    "flag": "YGGDRASIL{VANAHEIM:72dfb48c-b67c-445b-a901-2f09c70f6210}"
+    "flag": "YGGDRASIL{VANAHEIM:<your-deployment-flag>}"
   }
 }
 ```

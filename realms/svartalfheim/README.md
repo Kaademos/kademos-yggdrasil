@@ -49,7 +49,7 @@ For CTF purposes, the exploit is simplified: sending a cookie containing `EXPLOI
 
 4. **Extract flag** from response (in badge message):
    ```
-   Forge compromised! Access Code: YGGDRASIL{SVARTALFHEIM:77c7df6c-2625-45aa-a00f-37a415c8a97e}
+   Forge compromised! Access Code: YGGDRASIL{SVARTALFHEIM:<your-deployment-flag>}
    ```
 
 ## API Endpoints
@@ -253,6 +253,6 @@ After capturing Svartalfheim's flag, you've completed Milestone 3! The next real
 
 ---
 
-**Flag Format:** `YGGDRASIL{SVARTALFHEIM:77c7df6c-2625-45aa-a00f-37a415c8a97e}`  
+**Flag Format:** `YGGDRASIL{SVARTALFHEIM:<your-deployment-flag>}`  
 **Realm Level:** 8  
 **Implemented:** Milestone 3, Phase 3

@@ -1,0 +1,61 @@
+{
+  "name": "Project Yggdrasil",
+
+  // Node 20 matches the version every service builds against. Docker-in-Docker
+  // gives the Codespace its own daemon, so the ten realm containers and their
+  // isolated networks come up exactly as they do locally — nothing vulnerable
+  // is ever exposed outside this workspace.
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": true
+    }
+  },
+
+  // The full stack is fifteen containers and wants roughly 3.5 GB of RAM. The
+  // 2-core Codespace can technically run it but swaps hard during the first
+  // build; asking for 4 cores keeps a cold start bearable.
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Yggdrasil — Bifröst Gate",
+      "onAutoForward": "notify"
+    }
+  },
+
+  // `make` is not guaranteed in the base image and every workflow here goes
+  // through it.
+  "onCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends make && sudo rm -rf /var/lib/apt/lists/*",
+
+  // Generates .env, a unique flag per realm and FLAG_MASTER_SECRET, then
+  // installs dependencies. Runs once, when the Codespace is created.
+  "postCreateCommand": "make setup",
+
+  // Runs on every start, including after a stop/resume. `docker compose up -d`
+  // is idempotent, so a resumed Codespace comes back to a working platform
+  // without the player running anything by hand.
+  "postStartCommand": "make up",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
+    }
+  },
+
+  "remoteUser": "node"
+}

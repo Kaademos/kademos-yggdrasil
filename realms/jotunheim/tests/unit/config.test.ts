@@ -4,12 +4,16 @@
 
 import { loadConfig } from '../../src/config';
 
+const TEST_FLAG = 'YGGDRASIL{JOTUNHEIM:11111111-1111-4111-8111-111111111111}';
+
 describe('Configuration', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...originalEnv };
+    // Realms fail closed without a flag, so every case supplies one explicitly.
+    process.env.FLAG = TEST_FLAG;
   });
 
   afterAll(() => {
@@ -86,6 +90,19 @@ describe('Configuration', () => {
       );
       
       consoleWarnSpy.mockRestore();
+    });
+  });
+  describe('flag is required', () => {
+    it('should throw when FLAG is not set', () => {
+      delete process.env.FLAG;
+
+      expect(() => loadConfig()).toThrow('FLAG is not set');
+    });
+
+    it('should throw when FLAG is empty', () => {
+      process.env.FLAG = '';
+
+      expect(() => loadConfig()).toThrow('FLAG is not set');
     });
   });
 });

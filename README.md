@@ -15,7 +15,9 @@
 [![Docker](https://img.shields.io/badge/Docker-20.10+-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-20+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![CI](https://github.com/Kaademos/kademos-yggdrasil/actions/workflows/ci.yml/badge.svg)](https://github.com/Kaademos/kademos-yggdrasil/actions/workflows/ci.yml)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?logo=discord&logoColor=white)](https://discord.gg/y82Hg9CnSk)
+[![Open in GitHub Codespaces](https://img.shields.io/badge/Codespaces-Play%20in%20your%20browser-181717?logo=github&logoColor=white)](https://codespaces.new/Kaademos/kademos-yggdrasil?quickstart=1)
 
 [**Quick Start**](#-quick-start) •
 [**The Realms**](#-the-ten-realms) •
@@ -103,15 +105,31 @@ The climb starts underground and rises toward the light. Each realm is a distinc
 - **Make** (recommended) and **Git**
 - Node.js 20+ is only needed for local development *outside* Docker
 
+### Play in your browser — nothing to install
+
+Click **[Open in GitHub Codespaces](https://codespaces.new/Kaademos/kademos-yggdrasil?quickstart=1)**.
+The Codespace generates its own flags, builds the stack and forwards port 8080, so you get a
+private instance running on your own GitHub quota — no Docker on your machine, and nothing
+vulnerable exposed to anyone else. The first build takes a few minutes.
+
+> Codespaces play is **practice**: your instance is yours, so its flags are yours too and are
+> not ranked. See [Security](#-security).
+
 ### One-command setup
 
 ```bash
 git clone https://github.com/Kaademos/kademos-yggdrasil.git
 cd kademos-yggdrasil
 
-# Generate the environment, install dependencies, and start every service
+# Generate the environment and per-deployment flags, install dependencies,
+# and start every service
 make yggdrasil
 ```
+
+> **Flags are generated, never shipped.** `make setup` creates a unique flag for every realm
+> plus a `FLAG_MASTER_SECRET`, all written to the gitignored `.env`. Realms refuse to start
+> without one, so no deployment ever runs on a value published in this repository. Re-run
+> `scripts/generate-flags.sh` to fill gaps, or `--force` to rotate.
 
 That's it — the platform is live at **http://localhost:8080/**. Open it, click **INITIATE ASCENSION**, and begin with Niflheim.
 

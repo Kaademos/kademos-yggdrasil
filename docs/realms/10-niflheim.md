@@ -261,7 +261,7 @@ echo "✅ Niflheim tests complete"
 4. **Extract Flag:**
    ```bash
    # Parse flag from response
-   echo '{"error":"...","flag":"YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf}"}' \
+   echo '{"error":"...","flag":"YGGDRASIL{NIFLHEIM:<generated-by-make-setup>}"}' \
      | grep -o "YGGDRASIL{NIFLHEIM:[a-f0-9-]\+}"
    ```
 
@@ -269,7 +269,7 @@ echo "✅ Niflheim tests complete"
    ```bash
    curl -X POST http://localhost:8080/submit-flag \
      -H "Content-Type: application/json" \
-     -d '{"userId":"test-user","flag":"YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf}"}'
+     -d '{"userId":"test-user","flag":"YGGDRASIL{NIFLHEIM:<generated-by-make-setup>}"}'
    ```
 
 ---
@@ -310,7 +310,7 @@ echo "✅ Niflheim tests complete"
 │  Emergency door UNLOCKED            │
 │                                     │
 │  System Diagnostic Code:            │
-│  YGGDRASIL{NIFLHEIM:ba6cd20a...}   │
+│  YGGDRASIL{NIFLHEIM:<generated>}   │
 │                                     │
 └─────────────────────────────────────┘
 ```
@@ -379,7 +379,7 @@ router.post('/regulate', async (req, res) => {
 
 ```bash
 # .env
-NIFLHEIM_FLAG=YGGDRASIL{NIFLHEIM:ba6cd20a-a60f-4857-992a-c0e06f0534bf}
+NIFLHEIM_FLAG=YGGDRASIL{NIFLHEIM:<generated-by-make-setup>}
 ```
 
 ---

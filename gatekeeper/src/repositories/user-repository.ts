@@ -13,11 +13,7 @@ export class InMemoryUserRepository implements IUserRepository {
   private readonly testUserPassword?: string;
   private seeded: boolean = false;
 
-  constructor(
-    bcryptRounds: number = 10,
-    autoSeed: boolean = true,
-    testUserPassword?: string
-  ) {
+  constructor(bcryptRounds: number = 10, autoSeed: boolean = true, testUserPassword?: string) {
     this.bcryptRounds = bcryptRounds;
     this.testUserPassword = testUserPassword;
     if (autoSeed) {

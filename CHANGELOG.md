@@ -7,6 +7,135 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-08-29
+
+> **Flags become deployment secrets.** Every realm flag was reachable in this
+> repository — as fallbacks in realm config, as a hardcoded default set in the Flag
+> Oracle, and as literals in two SQL seeds — and because every `*_FLAG` in `.env`
+> shipped empty, those published values were the ones actually in play. Flags are now
+> generated per install, realms refuse to start without one, and CI fails if a literal
+> reappears. **Upgrading requires operator action — see Migration below.**
+
+### Security
+
+- **Realm flags are no longer present in the repository.** They were exposed in three
+  independent places: a `process.env.FLAG || 'YGGDRASIL{…}'` fallback in all ten realm
+  configs plus `_template` and `sample-realm`; a hardcoded `defaultFlags` array in
+  `FileBasedFlagRepository.getValidFlags()` that was the Oracle's entire accepted set;
+  and literal values in `realms/nidavellir/init-db.sql` and `realms/asgard/init-db.sql`,
+  which are what those two realms actually serve. Every value has been removed from
+  source, seeds, documentation and test fixtures.
+- **Realms fail closed.** `loadConfig()` throws when `FLAG` is unset, in every realm and
+  in the Java realm's `application.properties`. There is no default to fall back to.
+- **Flags are generated per deployment.** `scripts/generate-flags.sh` creates a unique
+  flag per realm and a 64-character `FLAG_MASTER_SECRET`, written only to the gitignored
+  `.env`. `make setup` runs it; `make rotate-flags` rotates everything.
+- **The Oracle sources its valid-flag set from the environment.** New
+  `flag-oracle/src/config/realm-flags.ts` builds it from `<REALM>_FLAG` joined to
+  `REALM_ORDER`, with no built-in defaults — an unconfigured realm has no valid flag
+  rather than a public one. This also fixes a latent bug: Vanaheim, Midgard, Alfheim and
+  Asgard were missing from the hardcoded set entirely and could never be captured.
+- **`no-committed-flags` CI job** fails the build if a `YGGDRASIL{…}` literal reappears
+  in application source, so the fallback pattern cannot return unnoticed.
+- **Published rules of engagement** for hosted instances: `/.well-known/security.txt`
+  (RFC 9116, environment-driven), an in-app scope banner shown only on non-local origins,
+  and a "Hosted Instances — Rules of Engagement" section in `SECURITY.md` naming transit
+  providers, other players and denial-of-service as out of scope.
+
+### Added
+
+- **GitHub Codespaces support** (`.devcontainer/`) — docker-in-docker, flag generation on
+  create, stack start on every resume, port 8080 forwarded. Play in a browser with nothing
+  installed locally, on the player's own quota. Practice only; see Notes.
+- **GitHub Actions CI** (`.github/workflows/ci.yml`) with six jobs: lint, unit and realm
+  suites, manifest validation, the flag-literal guard, secret scan and dependency audit,
+  and a full build-and-smoke integration job that asserts the seeded flag matches `.env`
+  and that a realm refuses to boot without one. Unmetered on public repositories.
+- **`make rotate-flags`** — regenerates every flag and recreates services in one step.
+- **Community health files**: `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1, with
+  security-specific standards), pull request template, `CODEOWNERS`, and Dependabot
+  configuration scoped to the control plane and toolchain.
+
+### Changed
+
+- **Realm databases are no longer persisted.** Nidavellir and Asgard never write to their
+  databases — they are read-only challenge fixtures — and the named volumes caused two
+  bugs: Postgres only runs `docker-entrypoint-initdb.d` on an empty data directory, so a
+  stale volume kept serving the previous deployment's flag after rotation, and injected
+  player state outlived the session. Their seeds are now `init-db.sql.template` files with
+  a `__REALM_FLAG__` placeholder, substituted at container init by
+  `realms/_shared/init-db-with-flag.sh`.
+- **`make setup` generates secrets idempotently.** It previously only did so when `.env`
+  was absent, so a hand-written or upgraded `.env` kept its placeholders forever.
+- **`make validate-env` fails closed** instead of silently copying `.env.example`, and now
+  runs `scripts/verify-env.sh` — which was present in the repository but never invoked by
+  anything, and which now treats an empty value as missing rather than only flagging
+  placeholders.
+- **CORS-adjacent deployment configuration**: `SECURITY_CONTACT` and `PUBLIC_ORIGIN`
+  drive `security.txt` without a rebuild.
+
+### Fixed
+
+- **Alfheim's test suite hung rather than exiting.** `IMDSService` starts an hourly
+  cleanup `setInterval` in its constructor that nothing cleared, leaving an open handle
+  after the last assertion. The interval is now `unref()`ed — matching the existing
+  convention in `SessionStore.startCleanup()` — and the suite destroys the service in
+  `afterEach`. Runtime went from a 120s+ hang to 1.1s.
+- **`auth-rate-limiter` failed under parallel load.** Two cases raced a 100ms window with
+  a real 150ms sleep; a sleep is a lower bound, and so is the scheduling delay before the
+  assertion. Both now move the clock with `jest.advanceTimersByTime`. 157ms to 4ms.
+- **Postgres healthchecks reported healthy mid-seed.** `pg_isready` probed the unix
+  socket, which is available during `initdb` while the server is still running init
+  scripts. Both realm databases now probe over TCP, which `initdb` deliberately does not
+  expose until seeding completes.
+- **`make test-lint` was failing on `main`** — a Prettier violation in
+  `gatekeeper/src/repositories/user-repository.ts`.
+
+### Removed
+
+- `.github/workflows/.c.md` — a complete CI workflow saved with a `.md` extension to
+  disable it, superseded by `ci.yml`.
+- `realms/nidavellir/src/public/index.html.old` — an orphaned build artefact.
+- The `nidavellir_db_data` and `asgard_db_data` volumes.
+
+### Migration
+
+Upgrading from 1.6.x **requires operator action**. An existing deployment will refuse to
+start until flags exist.
+
+```bash
+git pull && git checkout v2.0.0
+make setup            # generates a flag per realm + FLAG_MASTER_SECRET into .env
+docker compose down
+docker volume rm yggdrasil_nidavellir_db_data yggdrasil_asgard_db_data   # now unused
+make up
+```
+
+- Back up `FLAG_MASTER_SECRET` from `.env`. Losing it invalidates every per-user flag the
+  Oracle has ever issued.
+- **All existing player progression stops validating**, because every flag value changes.
+  Communicate this before upgrading a shared instance.
+- Any deployment that hand-wrote `data/flags.json` keeps working: it is still read when no
+  `<REALM>_FLAG` variables are configured.
+
+### Notes
+
+- **The old flag values remain in git history deliberately.** They are dead — flags are
+  now generated per deployment — and rewriting history would break every fork and open
+  pull request while not actually deleting anything, since GitHub retains unreachable
+  objects and forks keep their own copies. The response to a leaked credential is to
+  rotate it and make the leak class impossible; both are done. Reasoning is recorded in
+  `docs/guides/SECRETS-MANAGEMENT.md`. A full history audit found no live credentials —
+  the `AKIAIOSFODNN7EXAMPLE` string in Alfheim is AWS's own published documentation
+  example key, used as fixture data.
+- **Codespaces play is unranked practice.** A player who runs the stack also runs the
+  Gatekeeper, so no score originating on player-controlled compute can be trusted. Ranked
+  play requires a hosted instance.
+- Dependabot is deliberately **not** pointed at `realms/`: those packages are pinned to
+  vulnerable versions on purpose, and Midgard's supply-chain challenge depends on specific
+  compromised package versions. Realm dependencies are updated by hand, as content changes.
+
+
 ## [1.6.0] - 2026-07-27
 
 > **Server-side achievement system.** Named, earned markers derived from a
@@ -286,7 +415,8 @@ Both were replaced by the failure that is genuinely A09: every event was logged,
 
 ---
 
-[Unreleased]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/Kaademos/kademos-yggdrasil/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.6.0...v2.0.0
 [1.6.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/Kaademos/kademos-yggdrasil/compare/v1.4.0...v1.4.1

@@ -1,0 +1,42 @@
+# Code owners for Project Yggdrasil.
+#
+# The last matching pattern wins, so the stricter rules sit at the bottom.
+
+# Default owner for everything not matched below.
+*                           @Kaademos
+
+# ---------------------------------------------------------------------------
+# Control plane — held to ASVS Level 2 and reviewed as production code, not as
+# challenge content. A flaw here is a real vulnerability; a flaw in realms/ is
+# usually the point.
+# ---------------------------------------------------------------------------
+/gatekeeper/                @Kaademos
+/flag-oracle/               @Kaademos
+
+# ---------------------------------------------------------------------------
+# Flag handling. These files decide whether a deployment can run on a flag value
+# that exists in the repository. They were the source of the published-flag
+# exposure, so changes here want deliberate review.
+# ---------------------------------------------------------------------------
+/scripts/generate-flags.sh                     @Kaademos
+/scripts/verify-env.sh                         @Kaademos
+/flag-oracle/src/config/realm-flags.ts         @Kaademos
+/realms/_shared/init-db-with-flag.sh           @Kaademos
+/realms/*/init-db.sql.template                 @Kaademos
+.env.example                                   @Kaademos
+
+# ---------------------------------------------------------------------------
+# Build, CI and deployment surface.
+# ---------------------------------------------------------------------------
+/.github/                   @Kaademos
+/.circleci/                 @Kaademos
+/.devcontainer/             @Kaademos
+docker-compose.yml          @Kaademos
+docker-compose.observability.yml  @Kaademos
+Makefile                    @Kaademos
+
+# ---------------------------------------------------------------------------
+# Security policy and disclosure.
+# ---------------------------------------------------------------------------
+SECURITY.md                 @Kaademos
+CODE_OF_CONDUCT.md          @Kaademos

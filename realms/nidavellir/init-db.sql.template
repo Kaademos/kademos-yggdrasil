@@ -63,7 +63,7 @@ INSERT INTO forge_masters (name, specialization, rank, years_experience) VALUES
 -- SPOILER: Insert realm secret (FLAG) - target of UNION SELECT injection
 -- EXPLOIT: Use UNION SELECT to extract from secrets table
 INSERT INTO secrets (realm, access_code, security_level) VALUES
-('NIDAVELLIR', 'YGGDRASIL{NIDAVELLIR:8f4c2e1a-9b3d-4f7e-a1c5-6d8b2f4e9a7c}', 'TOP_SECRET');
+('NIDAVELLIR', '__REALM_FLAG__', 'TOP_SECRET');
 
 -- Insert decoy secrets to make enumeration more realistic
 INSERT INTO secrets (realm, access_code, security_level) VALUES
