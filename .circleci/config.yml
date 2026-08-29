@@ -412,6 +412,7 @@ workflows:
                 - main
                 - develop
                 - /^(feat|feature|fix|docs|chore|refactor|test|ci)\/.*/
+                - /^dependabot\/.*/
 
       - test:
           requires:
@@ -422,6 +423,7 @@ workflows:
                 - main
                 - develop
                 - /^(feat|feature|fix|docs|chore|refactor|test|ci)\/.*/
+                - /^dependabot\/.*/
 
       - validate-manifests:
           requires:
@@ -432,6 +434,7 @@ workflows:
                 - main
                 - develop
                 - /^(feat|feature|fix|docs|chore|refactor|test|ci)\/.*/
+                - /^dependabot\/.*/
 
       - validate-attack-traces:
           requires:
@@ -442,6 +445,7 @@ workflows:
                 - main
                 - develop
                 - /^(feat|feature|fix|docs|chore|refactor|test|ci)\/.*/
+                - /^dependabot\/.*/
 
       - no-committed-flags:
           requires:
@@ -452,6 +456,7 @@ workflows:
                 - main
                 - develop
                 - /^(feat|feature|fix|docs|chore|refactor|test|ci)\/.*/
+                - /^dependabot\/.*/
 
       - security:
           requires:
@@ -462,6 +467,7 @@ workflows:
                 - main
                 - develop
                 - /^(feat|feature|fix|docs|chore|refactor|test|ci)\/.*/
+                - /^dependabot\/.*/
 
       - snyk-secure-core:
           requires:
@@ -472,6 +478,7 @@ workflows:
                 - main
                 - develop
                 - /^(feat|feature|fix|docs|chore|refactor|test|ci)\/.*/
+                - /^dependabot\/.*/
 
       - build-and-integration:
           requires:
@@ -487,3 +494,4 @@ workflows:
                 - main
                 - develop
                 - /^(feat|feature|fix|docs|chore|refactor|test|ci)\/.*/
+                - /^dependabot\/.*/
